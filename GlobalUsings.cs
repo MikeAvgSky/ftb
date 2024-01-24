@@ -1,0 +1,8 @@
+﻿global using System.Net;
+global using System.Text.Json;
+global using Microsoft.Net.Http.Headers;
+global using Polly;
+global using Polly.Extensions.Http;
+global using Trading.Bot.Configuration;
+global using Trading.Bot.Models;
+global using Trading.Bot.Services;
