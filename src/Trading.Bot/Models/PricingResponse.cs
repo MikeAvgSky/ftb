@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Models;
 
-public class InstrumentPrice
+public class PricingResponse
 {
     public string Type { get; set; }
     public DateTime Time { get; set; }

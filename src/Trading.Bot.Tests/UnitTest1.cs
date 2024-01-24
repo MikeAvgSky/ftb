@@ -6,6 +6,7 @@ namespace Trading.Bot.Tests
         [TestMethod]
         public void TestMethod1()
         {
+            
         }
     }
 }

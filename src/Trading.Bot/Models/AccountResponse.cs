@@ -1,7 +1,8 @@
 ﻿namespace Trading.Bot.Models;
 
-public class AccountSummary
+public class AccountResponse
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public GuaranteedStopLossOrderMode GuaranteedStopLossOrderMode { get; set; }
     public bool HedgingEnabled { get; set; }
     public string Id { get; set; }

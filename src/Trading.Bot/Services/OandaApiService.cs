@@ -26,17 +26,32 @@ public class OandaApiService
                 if (dataKey == default)
                 {
                     value = JsonSerializer.Deserialize<T>(stringResponse,
-                        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                        new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                            NumberHandling = JsonNumberHandling.AllowReadingFromString
+                        });
 
                     return new ApiResponse<T>(response.StatusCode, value);
                 }
 
                 var dictResponse = JsonSerializer.Deserialize<Dictionary<string, object>>(stringResponse);
 
-                value = JsonSerializer.Deserialize<T>(dictResponse[dataKey]?.ToString() ?? "",
-                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                if (dictResponse.ContainsKey(dataKey))
+                {
+                    var valueString = JsonSerializer.Serialize(dictResponse[dataKey]);
 
-                return new ApiResponse<T>(response.StatusCode, value);
+                    value = JsonSerializer.Deserialize<T>(valueString,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                            NumberHandling = JsonNumberHandling.AllowReadingFromString
+                        });
+
+                    return new ApiResponse<T>(response.StatusCode, value);
+                }
+
+                return new ApiResponse<T>(HttpStatusCode.NotFound, default);
             }
 
             return new ApiResponse<T>(response.StatusCode, default);
@@ -47,10 +62,10 @@ public class OandaApiService
         }
     }
 
-    public async Task<ApiResponse<AccountSummary>> GetAccountSummary() =>
-        await GetAsync<AccountSummary>($"accounts/{_accountId}/summary", "account");
+    public async Task<ApiResponse<AccountResponse>> GetAccountSummary() =>
+        await GetAsync<AccountResponse>($"accounts/{_accountId}/summary", "account");
 
-    public async Task<ApiResponse<List<AccountInstrument>>> GetAccountInstruments(string instruments = default)
+    public async Task<ApiResponse<List<InstrumentResponse>>> GetInstruments(string instruments = default)
     {
         var endpoint = $"accounts/{_accountId}/instruments";
 
@@ -59,11 +74,11 @@ public class OandaApiService
             endpoint += $"?instruments={instruments}";
         }
 
-        return await GetAsync<List<AccountInstrument>>(endpoint, "instruments");
+        return await GetAsync<List<InstrumentResponse>>(endpoint, "instruments");
     }
         
 
-    public async Task<ApiResponse<CandleData>> GetCandleData(string instrument, string granularity = "H1",
+    public async Task<ApiResponse<CandleResponse>> GetCandles(string instrument, string granularity = "H1",
         string price = "MBA", int count = 10, DateTime fromDate = default, DateTime toDate = default)
     {
         var endpoint = $"instruments/{instrument}/candles?granularity={granularity}&price={price}";
@@ -77,9 +92,9 @@ public class OandaApiService
             endpoint += $"&count={count}";
         }
 
-        return await GetAsync<CandleData>(endpoint);
+        return await GetAsync<CandleResponse>(endpoint);
     }
 
-    public async Task<ApiResponse<List<InstrumentPrice>>> GetPrices(string instruments) =>
-        await GetAsync<List<InstrumentPrice>>($"accounts/{_accountId}/pricing?instruments={instruments}");
+    public async Task<ApiResponse<List<PricingResponse>>> GetPrices(string instruments) =>
+        await GetAsync<List<PricingResponse>>($"accounts/{_accountId}/pricing?instruments={instruments}");
 }

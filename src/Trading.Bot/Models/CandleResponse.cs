@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Models;
 
-public class CandleData
+public class CandleResponse
 {
     public string Instrument { get; set; }
     public string Granularity { get; set; }

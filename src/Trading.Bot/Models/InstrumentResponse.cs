@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Models;
 
-public class AccountInstrument
+public class InstrumentResponse
 {
     public string Name { get; set; }
     public string Type { get; set; }
@@ -8,12 +8,13 @@ public class AccountInstrument
     public int PipLocation { get; set; }
     public int DisplayPrecision { get; set; }
     public int TradeUnitsPrecision { get; set; }
-    public double MinimumTradeSize { get; set; }
+    public string MinimumTradeSize { get; set; }
     public double MaximumTrailingStopDistance { get; set; }
     public double MinimumTrailingStopDistance { get; set; }
-    public double MaximumPositionSize { get; set; }
+    public string MaximumPositionSize { get; set; }
     public double MaximumOrderUnits { get; set; }
     public double MarginRate { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public GuaranteedStopLossOrderMode GuaranteedStopLossOrderMode { get; set; }
     public string MinimumGuaranteedStopLossDistance { get; set; }
     public double GuaranteedStopLossOrderExecutionPremium { get; set; }
