@@ -12,3 +12,4 @@ global using System.Diagnostics;
 global using Trading.Bot.Endpoints;
 global using System.Net.Http.Headers;
 global using System.Text.Json.Serialization;
+global using Trading.Bot.Models.Enums;

@@ -18,7 +18,7 @@ public class AccountResponse
     public int PendingOrderCount { get; set; }
     public double Pl { get; set; }
     public double ResettablePL { get; set; }
-    public DateTime ResettablePLTime { get; set; }
+    public string ResettablePLTime { get; set; }
     public double Financing { get; set; }
     public double Commission { get; set; }
     public double DividendAdjustment { get; set; }

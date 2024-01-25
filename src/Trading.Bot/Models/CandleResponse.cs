@@ -4,10 +4,10 @@ public class CandleResponse
 {
     public string Instrument { get; set; }
     public string Granularity { get; set; }
-    public Candle[] Candles { get; set; }
+    public CandleData[] Candles { get; set; }
 }
 
-public class Candle
+public class CandleData
 {
     public bool Complete { get; set; }
     public int Volume { get; set; }

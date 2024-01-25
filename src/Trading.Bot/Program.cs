@@ -42,6 +42,10 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint($"./{version}/swagger.json", "Trading Bot API");
 });
 
+app.MapAccountEndpoints();
+
 app.MapInstrumentEndpoints();
+
+app.MapCandleEndpoints();
 
 app.Run();
