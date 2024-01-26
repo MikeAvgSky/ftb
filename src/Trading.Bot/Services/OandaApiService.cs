@@ -25,12 +25,7 @@ public class OandaApiService
 
                 if (dataKey == default)
                 {
-                    value = JsonSerializer.Deserialize<T>(stringResponse,
-                        new JsonSerializerOptions
-                        {
-                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                            NumberHandling = JsonNumberHandling.AllowReadingFromString
-                        });
+                    value = Deserialize<T>(stringResponse);
 
                     return new ApiResponse<T>(response.StatusCode, value);
                 }
@@ -39,14 +34,7 @@ public class OandaApiService
 
                 if (dictResponse.ContainsKey(dataKey))
                 {
-                    var valueString = JsonSerializer.Serialize(dictResponse[dataKey]);
-
-                    value = JsonSerializer.Deserialize<T>(valueString,
-                        new JsonSerializerOptions
-                        {
-                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                            NumberHandling = JsonNumberHandling.AllowReadingFromString
-                        });
+                    value = Deserialize<T>(JsonSerializer.Serialize(dictResponse[dataKey]));
 
                     return new ApiResponse<T>(response.StatusCode, value);
                 }
@@ -60,6 +48,16 @@ public class OandaApiService
         {
             return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
         }
+    }
+
+    private static T Deserialize<T>(string stringResponse) where T : class
+    {
+        return JsonSerializer.Deserialize<T>(stringResponse,
+            new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                NumberHandling = JsonNumberHandling.AllowReadingFromString
+            });
     }
 
     public async Task<ApiResponse<AccountResponse>> GetAccountSummary() =>
