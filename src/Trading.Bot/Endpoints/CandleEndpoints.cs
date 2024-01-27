@@ -1,8 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.IO.Compression;
-using Trading.Bot.Extensions;
-
-namespace Trading.Bot.Endpoints;
+﻿namespace Trading.Bot.Endpoints;
 
 public static class CandleEndpoints
 {
@@ -24,7 +20,7 @@ public static class CandleEndpoints
 
             DateTime.TryParse(toDate, out var _toDate);
 
-            var allInstrumentCombinations = currencyList.GetAllCombinations().ToList();
+            var instruments = currencyList.GetAllCombinations().ToList();
 
             var candleResponses = new ConcurrentBag<CandleResponse>();
 
@@ -33,7 +29,7 @@ public static class CandleEndpoints
                 MaxDegreeOfParallelism = 3
             };
 
-            await Parallel.ForEachAsync(allInstrumentCombinations, parallelOptions, async (instrument, _) =>
+            await Parallel.ForEachAsync(instruments, parallelOptions, async (instrument, _) =>
             {
                 var apiResponse = await apiService.GetCandles(instrument, granularity, price, count, _fromDate, _toDate);
 
@@ -42,26 +38,9 @@ public static class CandleEndpoints
 
             if (!candleResponses.Any()) return Results.Empty;
 
-            var zipFileList = candleResponses.ToDictionary(cr => 
-                $"{cr.Instrument}_{granularity}.json", GetCandleBytes);
+            var zipFile = await GetZippedFile(candleResponses, granularity);
 
-            using var memoryStream = new MemoryStream();
-
-            var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true);
-
-            foreach (var zipFile in zipFileList)
-            {
-                var zipEntry = zipArchive.CreateEntry(zipFile.Key, CompressionLevel.Optimal);
-                await using var entryStream = zipEntry.Open();
-                var fileStream = new MemoryStream(zipFile.Value);
-                await fileStream.CopyToAsync(entryStream);
-            }
-
-            zipArchive.Dispose();
-
-            memoryStream.Seek(0, SeekOrigin.Begin);
-
-            return Results.File(memoryStream.ToArray(), "application/zip", "candles.zip");
+            return Results.File(zipFile, "application/octet-stream", "candles.zip");
         }
         catch (Exception ex)
         {
@@ -69,13 +48,47 @@ public static class CandleEndpoints
         }
     }
 
-    private static byte[] GetCandleBytes(CandleResponse cr)
+    private static async Task<byte[]> GetZippedFile(ConcurrentBag<CandleResponse> candleResponses, string granularity)
     {
-        var options = new JsonSerializerOptions { WriteIndented = true };
+        var zipFileList = candleResponses.ToDictionary(cr =>
+            $"{cr.Instrument}_{granularity}.csv", GetCsvCandleBytes);
 
-        var candles = cr.Candles.Where(c => c.Complete).Select(MapToCandle);
+        using var memoryStream = new MemoryStream();
 
-        return JsonSerializer.SerializeToUtf8Bytes(candles, options);
+        using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+        {
+            foreach (var zipFile in zipFileList)
+            {
+                var zipEntry = zipArchive.CreateEntry(zipFile.Key, CompressionLevel.Optimal);
+
+                await using var entryStream = zipEntry.Open();
+
+                var fileStream = new MemoryStream(zipFile.Value);
+
+                await fileStream.CopyToAsync(entryStream);
+            }
+        }
+
+        memoryStream.Seek(0, SeekOrigin.Begin);
+
+        return memoryStream.ToArray();
+    }
+
+    private static byte[] GetCsvCandleBytes(CandleResponse cr)
+    {
+        var candles = cr.Candles.Where(c => c.Complete).Select(MapToCandle).ToList();
+
+        using var memoryStream = new MemoryStream();
+
+        using (var writer = new StreamWriter(memoryStream))
+        {
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.WriteRecordsAsync(candles);
+            }
+        }
+
+        return memoryStream.ToArray();
     }
 
     private static Candle MapToCandle(CandleData candleData)

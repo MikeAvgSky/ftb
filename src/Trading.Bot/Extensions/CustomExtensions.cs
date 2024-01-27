@@ -24,8 +24,11 @@ public static class CustomExtensions
                 while(index < list.Count)
                 {
                     if (i == index) index++;
+
                     if (index == list.Count) break;
+
                     yield return $"{list[i]}_{list[index]}";
+
                     index++;
                 }
             }
