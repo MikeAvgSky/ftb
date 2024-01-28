@@ -19,7 +19,7 @@ public class Candle
 
     public Candle(CandleData data)
     {
-        Time = data.Time; 
+        Time = data.Time;
         Volume = data.Volume;
         Mid_O = data.Mid.O;
         Mid_H = data.Mid.H;

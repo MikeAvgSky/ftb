@@ -55,7 +55,7 @@ public static class CandleEndpoints
         }
     }
 
-    private static IResult CalculateMovingAverageCross(IFormFile file, int ma_s = 10, int ma_l = 20)
+    private static IResult CalculateMovingAverageCross(IFormFile file, int ma_s = 10, int ma_l = 20, MovingAverage ma = MovingAverage.Simple)
     {
         try
         {
@@ -65,12 +65,18 @@ public static class CandleEndpoints
 
             var dataFrame = DataFrame.LoadCsvFromString(stringData);
 
-            var _windows = new[] { ma_s, ma_l };
+            var windows = new[] { ma_s, ma_l };
 
-            foreach (var window in _windows)
+            foreach (var window in windows)
             {
-                PrimitiveDataFrameColumn<double> col = new($"MA_{window}",
-            candles.Select(c => c.Mid_C).SimpleMovingAverage(window));
+                var maValues = ma switch
+                {
+                    MovingAverage.Simple => candles.Select(c => c.Mid_C).SimpleMovingAverage(window),
+                    MovingAverage.Cumulative => candles.Select(c => c.Mid_C).CumulativeMovingAverage(window),
+                    _ => candles.Select(c => c.Mid_C).SimpleMovingAverage(window)
+                };
+
+                PrimitiveDataFrameColumn<double> col = new($"MA_{window}", maValues);
 
                 dataFrame.Columns.Add(col);
             }

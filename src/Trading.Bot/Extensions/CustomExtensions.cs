@@ -41,7 +41,7 @@ public static class CustomExtensions
 
         using (var writer = new StreamWriter(memoryStream))
         {
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, CultureInfo.GetCultureInfo("en-US")))
             {
                 csv.WriteRecords(sequence);
             }
@@ -56,7 +56,7 @@ public static class CustomExtensions
 
         using (var writer = new StreamWriter(memoryStream))
         {
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            using (var csv = new CsvWriter(writer, CultureInfo.GetCultureInfo("en-US")))
             {
                 var headings = new List<string>(sequence.First().Keys);
 
@@ -138,6 +138,22 @@ public static class CustomExtensions
             queue.Enqueue(d);
 
             yield return queue.Average();
+        }
+    }
+
+    public static IEnumerable<double> CumulativeMovingAverage(this IEnumerable<double> source, int window)
+    {
+        double total = 0;
+
+        var count = 0;
+
+        foreach (var d in source)
+        {
+            count++;
+
+            total += d;
+
+            yield return total / count;
         }
     }
 }
