@@ -6,11 +6,11 @@ public static class CandleEndpoints
     {
         builder.MapGet("api/candles/{currencies}", GetCandles);
 
-        builder.MapPost("api/candles/mac", CalculateMovingAverageCross);
+        builder.MapPost("api/candles/moving_average_cross", CalculateMovingAverageCross);
     }
 
-    private static async Task<IResult> GetCandles(OandaApiService apiService, string currencies, 
-        string fromDate, string toDate, string granularity = "H1", string price = "MBA", int count = 10)
+    private static async Task<IResult> GetCandles(OandaApiService apiService, string currencies, string fromDate, string toDate,
+        string granularity = "H1", string price = "MBA", int count = 10, bool downLoadable = true)
     {
         try
         {
@@ -44,10 +44,15 @@ public static class CandleEndpoints
                 }
             });
 
-            return !candlesBag.Any()
-                ? Results.Empty
-                : Results.File(candlesBag.GetZipFromFileData(), 
-                    "application/octet-stream", "candles.zip");
+            if (!candlesBag.Any())
+            {
+                return Results.Empty;
+            }
+
+            return downLoadable
+                ? Results.File(candlesBag.GetZipFromFileData(),
+                    "application/octet-stream", "candles.zip")
+                : Results.Ok(candlesBag);
         }
         catch (Exception ex)
         {
@@ -55,35 +60,41 @@ public static class CandleEndpoints
         }
     }
 
-    private static IResult CalculateMovingAverageCross(IFormFile file, int ma_s = 10, int ma_l = 20, MovingAverage ma = MovingAverage.Simple)
+    private static IResult CalculateMovingAverageCross(IFormFile file, int ma_s = 10, int ma_l = 20, bool downLoadable = true)
     {
         try
         {
             var candles = GetCandlesFromCsv(file);
 
-            var stringData = ReadFile(file);
+            if (!candles.Any()) return Results.Empty;
 
-            var dataFrame = DataFrame.LoadCsvFromString(stringData);
+            var movingAvgCross = candles.Select(c => new MovingAverageCross(c)).ToList();
 
-            var windows = new[] { ma_s, ma_l };
+            var maShort = candles.Select(c => c.Mid_C).SimpleMovingAverage(ma_s).ToList();
 
-            foreach (var window in windows)
+            var maLong = candles.Select(c => c.Mid_C).SimpleMovingAverage(ma_l).ToList();
+
+            for (var i = 0; i < movingAvgCross.Count; i++)
             {
-                var maValues = ma switch
+                movingAvgCross[i].MaShort = maShort[i];
+                movingAvgCross[i].MaLong = maLong[i];
+                movingAvgCross[i].Delta = maShort[i] - maLong[i];
+                movingAvgCross[i].DeltaPrev = i > 0 ? movingAvgCross[i - 1].Delta : 0;
+                movingAvgCross[i].Trade = movingAvgCross[i].Delta switch
                 {
-                    MovingAverage.Simple => candles.Select(c => c.Mid_C).SimpleMovingAverage(window),
-                    MovingAverage.Cumulative => candles.Select(c => c.Mid_C).CumulativeMovingAverage(window),
-                    _ => candles.Select(c => c.Mid_C).SimpleMovingAverage(window)
+                    >= 0 when movingAvgCross[i].DeltaPrev < 0 => Trade.Buy,
+                    < 0 when movingAvgCross[i].DeltaPrev >= 0 => Trade.Sell,
+                    _ => Trade.None
                 };
-
-                PrimitiveDataFrameColumn<double> col = new($"MA_{window}", maValues);
-
-                dataFrame.Columns.Add(col);
+                movingAvgCross[i].Diff = i < movingAvgCross.Count - 1
+                    ? movingAvgCross[i + 1].Candle.Mid_C - movingAvgCross[i].Candle.Mid_C
+                    : movingAvgCross[i].Candle.Mid_C;
             }
 
-            dataFrame["Delta"] = dataFrame[$"MA_{ma_s}"].Subtract(dataFrame[$"MA_{ma_l}"]);
-
-            return Results.File(dataFrame.GetCsvBytesFromDataFrame(), "text/csv", "candles_mac.csv");
+            return downLoadable
+                ? Results.File(movingAvgCross.Where(m => m.Trade != Trade.None).GetCsvBytes(),
+                    "text/csv", "candles_moving_average_cross.csv")
+                : Results.Ok(candles);
         }
         catch (Exception ex)
         {
@@ -98,16 +109,5 @@ public static class CandleEndpoints
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
 
         return csv.GetRecords<Candle>().ToList();
-    }
-
-    private static string ReadFile(IFormFile file)
-    {
-        using var reader = new StreamReader(file.OpenReadStream());
-
-        using var ms = new MemoryStream();
-
-        reader.BaseStream.CopyTo(ms);
-
-        return Encoding.UTF8.GetString(ms.ToArray());
     }
 }

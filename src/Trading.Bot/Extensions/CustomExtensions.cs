@@ -41,64 +41,23 @@ public static class CustomExtensions
 
         using (var writer = new StreamWriter(memoryStream))
         {
-            using (var csv = new CsvWriter(writer, CultureInfo.GetCultureInfo("en-US")))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
+                var options = new TypeConverterOptions
+                {
+                    Formats = new[]
+                    {
+                        "o"
+                    }
+                };
+
+                csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+
                 csv.WriteRecords(sequence);
             }
         }
 
         return memoryStream.ToArray();
-    }
-
-    public static byte[] GetCsvBytesFromDictionary(this List<Dictionary<string, object>> sequence)
-    {
-        using var memoryStream = new MemoryStream();
-
-        using (var writer = new StreamWriter(memoryStream))
-        {
-            using (var csv = new CsvWriter(writer, CultureInfo.GetCultureInfo("en-US")))
-            {
-                var headings = new List<string>(sequence.First().Keys);
-
-                foreach (var heading in headings)
-                {
-                    csv.WriteField(heading);
-                }
-
-                csv.NextRecord();
-
-                foreach (var item in sequence)
-                {
-                    foreach (var heading in headings)
-                    {
-                        csv.WriteField(item[heading]);
-                    }
-
-                    csv.NextRecord();
-                }
-            }
-        }
-
-        return memoryStream.ToArray();
-    }
-
-    public static byte[] GetCsvBytesFromDataFrame(this DataFrame dataFrame)
-    {
-        var data = new List<Dictionary<string, object>>();
-
-        foreach (var row in dataFrame.Rows)
-        {
-            var dict = new Dictionary<string, object>();
-
-            foreach (var column in dataFrame.Columns)
-            {
-                dict.Add(column.Name, row[column.Name]);
-            }
-
-            data.Add(dict);
-        }
-
-        return data.GetCsvBytesFromDictionary();
     }
 
     public static byte[] GetZipFromFileData(this IEnumerable<FileData<IEnumerable<Candle>>> files)
@@ -141,7 +100,7 @@ public static class CustomExtensions
         }
     }
 
-    public static IEnumerable<double> CumulativeMovingAverage(this IEnumerable<double> source, int window)
+    public static IEnumerable<double> CumulativeMovingAverage(this IEnumerable<double> source)
     {
         double total = 0;
 
