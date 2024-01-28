@@ -5,6 +5,8 @@ public static class CandleEndpoints
     public static void MapCandleEndpoints(this IEndpointRouteBuilder builder)
     {
         builder.MapGet("api/candles/{currencies}", GetCandles);
+
+        builder.MapPost("api/candles/mac", CalculateMovingAverageCross);
     }
 
     private static async Task<IResult> GetCandles(OandaApiService apiService, string currencies, 
@@ -12,17 +14,20 @@ public static class CandleEndpoints
     {
         try
         {
-            if (!currencies.Contains(',')) return Results.BadRequest("Please provide comma separated currencies");
-
+            if (!currencies.Contains(','))
+            {
+                return Results.BadRequest("Please provide comma separated currencies");
+            }
+            
             var currencyList = currencies.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
             DateTime.TryParse(fromDate, out var _fromDate);
 
             DateTime.TryParse(toDate, out var _toDate);
 
-            var instruments = currencyList.GetAllCombinations().ToList();
+            var instruments = currencyList.GetAllCombinations();
 
-            var candleResponses = new ConcurrentBag<CandleResponse>();
+            var candlesBag = new ConcurrentBag<FileData<IEnumerable<Candle>>>();
 
             var parallelOptions = new ParallelOptions
             {
@@ -31,16 +36,18 @@ public static class CandleEndpoints
 
             await Parallel.ForEachAsync(instruments, parallelOptions, async (instrument, _) =>
             {
-                var apiResponse = await apiService.GetCandles(instrument, granularity, price, count, _fromDate, _toDate);
+                var candles = (await apiService.GetCandles(instrument, granularity, price, count, _fromDate, _toDate)).ToList();
 
-                if (apiResponse.StatusCode == HttpStatusCode.OK) candleResponses.Add(apiResponse.Value);
+                if (candles.Any())
+                {
+                    candlesBag.Add(new FileData<IEnumerable<Candle>>($"{instrument}_{granularity}.csv", candles));
+                }
             });
 
-            if (!candleResponses.Any()) return Results.Empty;
-
-            var zipFile = await GetZippedFile(candleResponses, granularity);
-
-            return Results.File(zipFile, "application/octet-stream", "candles.zip");
+            return !candlesBag.Any()
+                ? Results.Empty
+                : Results.File(candlesBag.GetZipFromFileData(), 
+                    "application/octet-stream", "candles.zip");
         }
         catch (Exception ex)
         {
@@ -48,51 +55,53 @@ public static class CandleEndpoints
         }
     }
 
-    private static async Task<byte[]> GetZippedFile(ConcurrentBag<CandleResponse> candleResponses, string granularity)
+    private static IResult CalculateMovingAverageCross(IFormFile file, int ma_s = 10, int ma_l = 20)
     {
-        var zipFileList = candleResponses.ToDictionary(cr =>
-            $"{cr.Instrument}_{granularity}.csv", GetCsvCandleBytes);
-
-        using var memoryStream = new MemoryStream();
-
-        using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+        try
         {
-            foreach (var zipFile in zipFileList)
+            var candles = GetCandlesFromCsv(file);
+
+            var stringData = ReadFile(file);
+
+            var dataFrame = DataFrame.LoadCsvFromString(stringData);
+
+            var _windows = new[] { ma_s, ma_l };
+
+            foreach (var window in _windows)
             {
-                var zipEntry = zipArchive.CreateEntry(zipFile.Key, CompressionLevel.Optimal);
+                PrimitiveDataFrameColumn<double> col = new($"MA_{window}",
+            candles.Select(c => c.Mid_C).SimpleMovingAverage(window));
 
-                await using var entryStream = zipEntry.Open();
-
-                var fileStream = new MemoryStream(zipFile.Value);
-
-                await fileStream.CopyToAsync(entryStream);
+                dataFrame.Columns.Add(col);
             }
+
+            dataFrame["Delta"] = dataFrame[$"MA_{ma_s}"].Subtract(dataFrame[$"MA_{ma_l}"]);
+
+            return Results.File(dataFrame.GetCsvBytesFromDataFrame(), "text/csv", "candles_mac.csv");
         }
-
-        memoryStream.Seek(0, SeekOrigin.Begin);
-
-        return memoryStream.ToArray();
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
     }
 
-    private static byte[] GetCsvCandleBytes(CandleResponse cr)
+    private static List<Candle> GetCandlesFromCsv(IFormFile file)
     {
-        var candles = cr.Candles.Where(c => c.Complete).Select(MapToCandle).ToList();
+        using var reader = new StreamReader(file.OpenReadStream());
 
-        using var memoryStream = new MemoryStream();
+        using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
 
-        using (var writer = new StreamWriter(memoryStream))
-        {
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-            {
-                csv.WriteRecordsAsync(candles);
-            }
-        }
-
-        return memoryStream.ToArray();
+        return csv.GetRecords<Candle>().ToList();
     }
 
-    private static Candle MapToCandle(CandleData candleData)
+    private static string ReadFile(IFormFile file)
     {
-        return new Candle(candleData);
+        using var reader = new StreamReader(file.OpenReadStream());
+
+        using var ms = new MemoryStream();
+
+        reader.BaseStream.CopyTo(ms);
+
+        return Encoding.UTF8.GetString(ms.ToArray());
     }
 }

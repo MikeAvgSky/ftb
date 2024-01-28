@@ -63,7 +63,7 @@ public class OandaApiService
     public async Task<ApiResponse<AccountResponse>> GetAccountSummary() =>
         await GetAsync<AccountResponse>($"accounts/{_accountId}/summary", "account");
 
-    public async Task<ApiResponse<List<InstrumentResponse>>> GetInstruments(string instruments = default)
+    public async Task<IEnumerable<Instrument>> GetInstruments(string instruments = default)
     {
         var endpoint = $"accounts/{_accountId}/instruments";
 
@@ -72,11 +72,14 @@ public class OandaApiService
             endpoint += $"?instruments={instruments}";
         }
 
-        return await GetAsync<List<InstrumentResponse>>(endpoint, "instruments");
-    }
-        
+        var instrumentResponse = await GetAsync<List<InstrumentResponse>>(endpoint, "instruments");
 
-    public async Task<ApiResponse<CandleResponse>> GetCandles(string instrument, string granularity = "H1",
+        return instrumentResponse.StatusCode == HttpStatusCode.OK
+            ? instrumentResponse.Value.Select(MapToInstrument)
+            : Enumerable.Empty<Instrument>();
+    }
+    
+    public async Task<IEnumerable<Candle>> GetCandles(string instrument, string granularity = "H1",
         string price = "MBA", int count = 10, DateTime fromDate = default, DateTime toDate = default)
     {
         var endpoint = $"instruments/{instrument}/candles?granularity={granularity}&price={price}";
@@ -90,9 +93,23 @@ public class OandaApiService
             endpoint += $"&count={count}";
         }
 
-        return await GetAsync<CandleResponse>(endpoint);
+        var candleResponse =  await GetAsync<CandleResponse>(endpoint);
+
+        return candleResponse.StatusCode == HttpStatusCode.OK
+            ? candleResponse.Value.Candles.Where(c => c.Complete).Select(MapToCandle)
+            : Enumerable.Empty<Candle>();
     }
 
     public async Task<ApiResponse<List<PricingResponse>>> GetPrices(string instruments) =>
         await GetAsync<List<PricingResponse>>($"accounts/{_accountId}/pricing?instruments={instruments}");
+
+    private static Candle MapToCandle(CandleData candleData)
+    {
+        return new Candle(candleData);
+    }
+
+    private static Instrument MapToInstrument(InstrumentResponse ir)
+    {
+        return new Instrument(ir.Name, ir.Type, ir.DisplayName, ir.PipLocation, ir.TradeUnitsPrecision, ir.MarginRate);
+    }
 }

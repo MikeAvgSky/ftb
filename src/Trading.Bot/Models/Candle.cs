@@ -2,20 +2,20 @@
 
 public class Candle
 {
-    public DateTime Time { get; }
-    public int Volume { get; }
-    public double Mid_O { get; }
-    public double Mid_H { get; }
-    public double Mid_L { get; }
-    public double Mid_C { get; }
-    public double Bid_O { get; }
-    public double Bid_H { get; }
-    public double Bid_L { get; }
-    public double Bid_C { get; }
-    public double Ask_O { get; }
-    public double Ask_H { get; }
-    public double Ask_L { get; }
-    public double Ask_C { get; }
+    public DateTime Time { get; set; }
+    public int Volume { get; set; }
+    public double Mid_O { get; set; }
+    public double Mid_H { get; set; }
+    public double Mid_L { get; set; }
+    public double Mid_C { get; set; }
+    public double Bid_O { get; set; }   
+    public double Bid_H { get; set; }
+    public double Bid_L { get; set; }
+    public double Bid_C { get; set; }
+    public double Ask_O { get; set; }
+    public double Ask_H { get; set; }
+    public double Ask_L { get; set; }
+    public double Ask_C { get; set; }
 
     public Candle(CandleData data)
     {
@@ -34,4 +34,6 @@ public class Candle
         Ask_L = data.Ask.L;
         Ask_C = data.Ask.C;
     }
+
+    public Candle() {}
 }

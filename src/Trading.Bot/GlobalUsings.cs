@@ -1,4 +1,5 @@
 ﻿global using System.Net;
+global using System.Text;
 global using System.Text.Json;
 global using System.Reflection;
 global using System.Diagnostics;
@@ -9,6 +10,7 @@ global using System.IO.Compression;
 global using System.Globalization;
 global using Microsoft.Net.Http.Headers;
 global using Microsoft.OpenApi.Models;
+global using Microsoft.Data.Analysis;
 global using Polly;
 global using Polly.Extensions.Http;
 global using CsvHelper;

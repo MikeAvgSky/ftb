@@ -11,27 +11,20 @@ public static class InstrumentEndpoints
     {
         try
         {
-            var apiResponse = await apiService.GetInstruments(instruments);
+            var instrumentList = (await apiService.GetInstruments(instruments)).ToList();
 
-            if (apiResponse.StatusCode == HttpStatusCode.OK)
-            {
-                var options = new JsonSerializerOptions { WriteIndented = true };
+            if (!instrumentList.Any()) return Results.Empty;
 
-                var bytes = JsonSerializer.SerializeToUtf8Bytes(apiResponse.Value.Select(MapToInstrument), options);
+            var options = new JsonSerializerOptions { WriteIndented = true };
 
-                return Results.File(bytes, "application/json", "instruments.json");
-            }
+            var bytes = JsonSerializer.SerializeToUtf8Bytes(instrumentList, options);
 
-            return Results.Empty;
+            return Results.File(bytes, "application/json", "instruments.json");
+
         }
         catch (Exception ex)
         {
             return Results.Problem(ex.Message);
         }
-    }
-
-    private static Instrument MapToInstrument(InstrumentResponse ir)
-    {
-        return new Instrument(ir.Name, ir.Type, ir.DisplayName, ir.PipLocation, ir.TradeUnitsPrecision, ir.MarginRate);
     }
 }
