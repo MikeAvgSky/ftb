@@ -60,13 +60,18 @@ public static class CandleEndpoints
         }
     }
 
-    private static IResult CalculateMovingAverageCross(IFormFile file, int ma_s = 10, int ma_l = 20, bool downLoadable = true)
+    private static async Task<IResult> CalculateMovingAverageCross(OandaApiService apiService, IFormFile file, 
+        int ma_s = 10, int ma_l = 20, bool downLoadable = true)
     {
         try
         {
             var candles = GetCandlesFromCsv(file);
 
             if (!candles.Any()) return Results.Empty;
+
+            var instruments = file.FileName[..file.FileName.LastIndexOf('_')];
+
+            var instrumentInfo = (await apiService.GetInstruments(instruments)).First();
 
             var movingAvgCross = candles.Select(c => new MovingAverageCross(c)).ToList();
 
@@ -89,6 +94,8 @@ public static class CandleEndpoints
                 movingAvgCross[i].Diff = i < movingAvgCross.Count - 1
                     ? movingAvgCross[i + 1].Candle.Mid_C - movingAvgCross[i].Candle.Mid_C
                     : movingAvgCross[i].Candle.Mid_C;
+                movingAvgCross[i].Gain = movingAvgCross[i].Diff / instrumentInfo.PipLocation * 
+                                         GetTradeValue(movingAvgCross[i].Trade);
             }
 
             return downLoadable
@@ -100,6 +107,17 @@ public static class CandleEndpoints
         {
             return Results.Problem(ex.Message);
         }
+    }
+
+    private static int GetTradeValue(Trade trade)
+    {
+        return trade switch
+        {
+            Trade.None => 0,
+            Trade.Buy => 1,
+            Trade.Sell => -1,
+            _ => 0,
+        };
     }
 
     private static List<Candle> GetCandlesFromCsv(IFormFile file)

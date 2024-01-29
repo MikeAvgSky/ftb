@@ -9,6 +9,7 @@ public class MovingAverageCross
     public double DeltaPrev { get; set; }
     public Trade Trade { get; set; }
     public double Diff { get; set; }
+    public double Gain { get; set; }
 
     public MovingAverageCross(Candle candle)
     {
