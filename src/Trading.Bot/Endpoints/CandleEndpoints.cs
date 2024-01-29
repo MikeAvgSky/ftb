@@ -60,12 +60,17 @@ public static class CandleEndpoints
         }
     }
 
-    private static async Task<IResult> CalculateMovingAverageCross(OandaApiService apiService, IFormFile file, 
-        int ma_s = 10, int ma_l = 20, bool downLoadable = true)
+    private static async Task<IResult> CalculateMovingAverageCross(OandaApiService apiService, IFormFile file,
+        string ma_s, string ma_l, bool downLoadable = true)
     {
         try
         {
-            var candles = GetCandlesFromCsv(file);
+            if (string.IsNullOrEmpty(ma_s) || string.IsNullOrEmpty(ma_l))
+            {
+                return Results.BadRequest("Please provide short and/or long windows");
+            }
+
+            var candles = file.GetObjectFromCsv<Candle>();
 
             if (!candles.Any()) return Results.Empty;
 
@@ -73,34 +78,49 @@ public static class CandleEndpoints
 
             var instrumentInfo = (await apiService.GetInstruments(instruments)).First();
 
-            var movingAvgCross = candles.Select(c => new MovingAverageCross(c)).ToList();
+            var maShortList = ma_s.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
 
-            var maShort = candles.Select(c => c.Mid_C).SimpleMovingAverage(ma_s).ToList();
+            var maLongList = ma_l.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
 
-            var maLong = candles.Select(c => c.Mid_C).SimpleMovingAverage(ma_l).ToList();
+            var mergedWindows = maShortList.Concat(maLongList).GetAllWindowCombinations().Distinct().ToList();
 
-            for (var i = 0; i < movingAvgCross.Count; i++)
+            var movingAvgCrossList = new List<FileData<IEnumerable<MovingAverageCross>>>();
+
+            foreach (var window in mergedWindows)
             {
-                movingAvgCross[i].MaShort = maShort[i];
-                movingAvgCross[i].MaLong = maLong[i];
-                movingAvgCross[i].Delta = maShort[i] - maLong[i];
-                movingAvgCross[i].DeltaPrev = i > 0 ? movingAvgCross[i - 1].Delta : 0;
-                movingAvgCross[i].Trade = movingAvgCross[i].Delta switch
+                var movingAvgCross = candles.Select(c => new MovingAverageCross(c)).ToList();
+
+                var maShort = candles.Select(c => c.Mid_C).SimpleMovingAverage(window.Item1).ToList();
+
+                var maLong = candles.Select(c => c.Mid_C).SimpleMovingAverage(window.Item2).ToList();
+
+                for (var i = 0; i < movingAvgCross.Count; i++)
                 {
-                    >= 0 when movingAvgCross[i].DeltaPrev < 0 => Trade.Buy,
-                    < 0 when movingAvgCross[i].DeltaPrev >= 0 => Trade.Sell,
-                    _ => Trade.None
-                };
-                movingAvgCross[i].Diff = i < movingAvgCross.Count - 1
-                    ? movingAvgCross[i + 1].Candle.Mid_C - movingAvgCross[i].Candle.Mid_C
-                    : movingAvgCross[i].Candle.Mid_C;
-                movingAvgCross[i].Gain = movingAvgCross[i].Diff / instrumentInfo.PipLocation * 
-                                         GetTradeValue(movingAvgCross[i].Trade);
+                    movingAvgCross[i].MaShort = maShort[i];
+                    movingAvgCross[i].MaLong = maLong[i];
+                    movingAvgCross[i].Delta = maShort[i] - maLong[i];
+                    movingAvgCross[i].DeltaPrev = i > 0 ? movingAvgCross[i - 1].Delta : 0;
+                    movingAvgCross[i].Trade = movingAvgCross[i].Delta switch
+                    {
+                        >= 0 when movingAvgCross[i].DeltaPrev < 0 => Trade.Buy,
+                        < 0 when movingAvgCross[i].DeltaPrev >= 0 => Trade.Sell,
+                        _ => Trade.None
+                    };
+                    movingAvgCross[i].Diff = i < movingAvgCross.Count - 1
+                        ? movingAvgCross[i + 1].Candle.Mid_C - movingAvgCross[i].Candle.Mid_C
+                        : movingAvgCross[i].Candle.Mid_C;
+                    movingAvgCross[i].Gain = movingAvgCross[i].Diff / instrumentInfo.PipLocation *
+                                             GetTradeValue(movingAvgCross[i].Trade);
+                }
+
+                movingAvgCrossList.Add(new FileData<IEnumerable<MovingAverageCross>>(
+                    $"{instruments}_moving_average_cross_{window.Item1}_{window.Item2}.csv",
+                    movingAvgCross.Where(m => m.Trade != Trade.None)));
             }
 
             return downLoadable
-                ? Results.File(movingAvgCross.Where(m => m.Trade != Trade.None).GetCsvBytes(),
-                    "text/csv", "candles_moving_average_cross.csv")
+                ? Results.File(movingAvgCrossList.GetZipFromFileData(),
+                    "application/octet-stream", "moving_average_cross.zip")
                 : Results.Ok(candles);
         }
         catch (Exception ex)
@@ -118,14 +138,5 @@ public static class CandleEndpoints
             Trade.Sell => -1,
             _ => 0,
         };
-    }
-
-    private static List<Candle> GetCandlesFromCsv(IFormFile file)
-    {
-        using var reader = new StreamReader(file.OpenReadStream());
-
-        using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
-
-        return csv.GetRecords<Candle>().ToList();
     }
 }

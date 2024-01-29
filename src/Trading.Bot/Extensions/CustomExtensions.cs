@@ -35,6 +35,42 @@ public static class CustomExtensions
         }
     }
 
+    public static IEnumerable<Tuple<int, int>> GetAllWindowCombinations(this IEnumerable<int> sequence)
+    {
+        if (sequence == null)
+        {
+            yield break;
+        }
+
+        var list = sequence.ToList();
+
+        if (!list.Any())
+        {
+            yield return Tuple.Create(0, 0);
+        }
+        else
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                var index = 0;
+
+                while (index < list.Count)
+                {
+                    if (i == index) index++;
+
+                    if (index == list.Count) break;
+
+                    if (list[i] < list[index])
+                    {
+                        yield return Tuple.Create(list[i], list[index]);
+                    }
+
+                    index++;
+                }
+            }
+        }
+    }
+
     public static byte[] GetCsvBytes<T>(this IEnumerable<T> sequence)
     {
         using var memoryStream = new MemoryStream();
@@ -60,7 +96,7 @@ public static class CustomExtensions
         return memoryStream.ToArray();
     }
 
-    public static byte[] GetZipFromFileData(this IEnumerable<FileData<IEnumerable<Candle>>> files)
+    public static byte[] GetZipFromFileData<T>(this IEnumerable<FileData<IEnumerable<T>>> files)
     {
         using var memoryStream = new MemoryStream();
 
@@ -81,6 +117,15 @@ public static class CustomExtensions
         memoryStream.Seek(0, SeekOrigin.Begin);
 
         return memoryStream.ToArray();
+    }
+
+    public static List<T> GetObjectFromCsv<T>(this IFormFile file)
+    {
+        using var reader = new StreamReader(file.OpenReadStream());
+
+        using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+
+        return csv.GetRecords<T>().ToList();
     }
 
     public static IEnumerable<double> SimpleMovingAverage(this IEnumerable<double> source, int window)
