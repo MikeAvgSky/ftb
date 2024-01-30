@@ -10,6 +10,8 @@ public class MovingAverageCross
     public Trade Trade { get; set; }
     public double Diff { get; set; }
     public double Gain { get; set; }
+    public double CumGain { get; set; }
+    public int TradeCount { get; set; }
 
     public MovingAverageCross(Candle candle)
     {

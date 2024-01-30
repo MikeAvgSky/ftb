@@ -6,7 +6,7 @@ public static class CandleEndpoints
     {
         builder.MapGet("api/candles/{currencies}", GetCandles);
 
-        builder.MapPost("api/candles/moving_average_cross", CalculateMovingAverageCross);
+        builder.MapPost("api/candles/ma_strategy/{maShort}/{maLong}", CalculateMovingAverage);
     }
 
     private static async Task<IResult> GetCandles(ISender sender, 
@@ -22,8 +22,8 @@ public static class CandleEndpoints
         }
     }
 
-    private static async Task<IResult> CalculateMovingAverageCross(ISender sender, 
-        [AsParameters] CalculateMovingAverageCrossRequest request)
+    private static async Task<IResult> CalculateMovingAverage(ISender sender, 
+        [AsParameters] CalculateMovingAverageRequest request)
     {
         try
         {
