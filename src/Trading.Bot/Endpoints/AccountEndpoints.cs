@@ -11,7 +11,7 @@ public static class AccountEndpoints
     {
         try
         {
-            var apiResponse = await apiService.GetAccountSummary();
+            var apiResponse = await apiService.GetOandaAccountSummary();
 
             if (apiResponse.StatusCode == HttpStatusCode.OK)
             {

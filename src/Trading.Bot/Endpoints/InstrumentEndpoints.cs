@@ -11,7 +11,7 @@ public static class InstrumentEndpoints
     {
         try
         {
-            var instrumentList = (await apiService.GetInstruments(instruments)).ToList();
+            var instrumentList = (await apiService.GetInstrumentsFromOanda(instruments)).ToList();
 
             if (!instrumentList.Any()) return Results.Empty;
 

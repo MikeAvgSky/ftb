@@ -4,6 +4,8 @@ public class OandaApiService
 {
     private readonly HttpClient _httpClient;
     private readonly string _accountId;
+    public const string defaultGranularity = "H1";
+    public const string defaultPrice = "MBA";
 
     public OandaApiService(HttpClient httpClient, Constants constants)
     {
@@ -60,10 +62,21 @@ public class OandaApiService
             });
     }
 
-    public async Task<ApiResponse<AccountResponse>> GetAccountSummary() =>
+    public async Task<ApiResponse<AccountResponse>> GetOandaAccountSummary() =>
         await GetAsync<AccountResponse>($"accounts/{_accountId}/summary", "account");
 
-    public async Task<IEnumerable<Instrument>> GetInstruments(string instruments = default)
+    public async Task<IEnumerable<Instrument>> GetInstrumentsFromOanda(string instruments)
+    {
+        var endpoint = BuildInstrumentsEndpoint(instruments);
+
+        var instrumentResponse = await GetAsync<List<InstrumentResponse>>(endpoint, "instruments");
+
+        return instrumentResponse.StatusCode == HttpStatusCode.OK
+            ? instrumentResponse.Value.Select(MapToInstrument)
+            : Enumerable.Empty<Instrument>();
+    }
+
+    private string BuildInstrumentsEndpoint(string instruments)
     {
         var endpoint = $"accounts/{_accountId}/instruments";
 
@@ -72,26 +85,13 @@ public class OandaApiService
             endpoint += $"?instruments={instruments}";
         }
 
-        var instrumentResponse = await GetAsync<List<InstrumentResponse>>(endpoint, "instruments");
-
-        return instrumentResponse.StatusCode == HttpStatusCode.OK
-            ? instrumentResponse.Value.Select(MapToInstrument)
-            : Enumerable.Empty<Instrument>();
+        return endpoint;
     }
-    
-    public async Task<IEnumerable<Candle>> GetCandles(string instrument, string granularity = "H1",
-        string price = "MBA", int count = 10, DateTime fromDate = default, DateTime toDate = default)
-    {
-        var endpoint = $"instruments/{instrument}/candles?granularity={granularity}&price={price}";
 
-        if (fromDate != default && toDate != default)
-        {
-            endpoint += $"&from={fromDate:O}&to{toDate:O}";
-        }
-        else
-        {
-            endpoint += $"&count={count}";
-        }
+    public async Task<IEnumerable<Candle>> GetCandlesFromOanda(string instrument, string granularity,
+        string price, int count, DateTime fromDate, DateTime toDate)
+    {
+        var endpoint = BuildCandlesEndpoint(instrument, granularity, price, count, fromDate, toDate);
 
         var candleResponse =  await GetAsync<CandleResponse>(endpoint);
 
@@ -100,7 +100,42 @@ public class OandaApiService
             : Enumerable.Empty<Candle>();
     }
 
-    public async Task<ApiResponse<List<PricingResponse>>> GetPrices(string instruments) =>
+    private static string BuildCandlesEndpoint(string instrument, string granularity, string price, int count,
+        DateTime fromDate, DateTime toDate)
+    {
+        var endpoint = $"instruments/{instrument}/candles";
+
+        if (!string.IsNullOrEmpty(granularity))
+        {
+            endpoint += $"?granularity={granularity}";
+        }
+        else
+        {
+            endpoint += $"?granularity={defaultGranularity}";
+        }
+
+        if (!string.IsNullOrEmpty(price))
+        {
+            endpoint += $"&price={price}";
+        }
+        else
+        {
+            endpoint += $"&price={defaultPrice}";
+        }
+
+        if (fromDate != default && toDate != default)
+        {
+            endpoint += $"&from={fromDate:O}&to{toDate:O}&count=5000";
+        }
+        else
+        {
+            endpoint += $"&count={count}";
+        }
+
+        return endpoint;
+    }
+
+    public async Task<ApiResponse<List<PricingResponse>>> GetPricesFromOanda(string instruments) =>
         await GetAsync<List<PricingResponse>>($"accounts/{_accountId}/pricing?instruments={instruments}");
 
     private static Candle MapToCandle(CandleData candleData)

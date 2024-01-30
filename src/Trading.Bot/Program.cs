@@ -24,6 +24,13 @@ builder.Services.AddHttpClient<OandaApiService>(httpClient =>
 
 }).AddPolicyHandler(retryPolicy);
 
+builder.Services.AddMediatR(c =>
+{
+    c.Lifetime = ServiceLifetime.Scoped;
+
+    c.RegisterServicesFromAssemblyContaining<Program>();
+});
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
