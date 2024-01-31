@@ -76,18 +76,6 @@ public class OandaApiService
             : Enumerable.Empty<Instrument>();
     }
 
-    private string BuildInstrumentsEndpoint(string instruments)
-    {
-        var endpoint = $"accounts/{_accountId}/instruments";
-
-        if (instruments != default)
-        {
-            endpoint += $"?instruments={instruments}";
-        }
-
-        return endpoint;
-    }
-
     public async Task<IEnumerable<Candle>> GetCandlesFromOanda(string instrument, string granularity,
         string price, int count, DateTime fromDate, DateTime toDate)
     {
@@ -98,6 +86,21 @@ public class OandaApiService
         return candleResponse.StatusCode == HttpStatusCode.OK
             ? candleResponse.Value.Candles.Where(c => c.Complete).Select(MapToCandle)
             : Enumerable.Empty<Candle>();
+    }
+
+    public async Task<ApiResponse<List<PricingResponse>>> GetPricesFromOanda(string instruments) =>
+        await GetAsync<List<PricingResponse>>($"accounts/{_accountId}/pricing?instruments={instruments}");
+
+    private string BuildInstrumentsEndpoint(string instruments)
+    {
+        var endpoint = $"accounts/{_accountId}/instruments";
+
+        if (instruments != default)
+        {
+            endpoint += $"?instruments={instruments}";
+        }
+
+        return endpoint;
     }
 
     private static string BuildCandlesEndpoint(string instrument, string granularity, string price, int count,
@@ -134,9 +137,6 @@ public class OandaApiService
 
         return endpoint;
     }
-
-    public async Task<ApiResponse<List<PricingResponse>>> GetPricesFromOanda(string instruments) =>
-        await GetAsync<List<PricingResponse>>($"accounts/{_accountId}/pricing?instruments={instruments}");
 
     private static Candle MapToCandle(CandleData candleData)
     {

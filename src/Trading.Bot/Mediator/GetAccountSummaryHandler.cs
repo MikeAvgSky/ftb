@@ -17,11 +17,16 @@ public sealed class GetAccountSummaryHandler : IRequestHandler<GetAccountSummary
         {
             var bytes = new List<AccountResponse> { apiResponse.Value }.GetCsvBytes();
 
-            return Results.File(bytes, "text/csv", "account_summary.csv");
+            return request.Download
+                ? Results.File(bytes, "text/csv", "instruments.csv")
+                : Results.Ok(apiResponse.Value);
         }
 
         return Results.Empty;
     }
 }
 
-public record GetAccountSummaryRequest : IHttpRequest;
+public record GetAccountSummaryRequest : IHttpRequest
+{
+    public bool Download { get; set; }
+}

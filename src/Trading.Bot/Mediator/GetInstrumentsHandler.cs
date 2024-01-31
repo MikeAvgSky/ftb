@@ -13,13 +13,24 @@ public sealed class GetInstrumentsHandler : IRequestHandler<GetInstrumentsReques
     {
         var instrumentList = (await _apiService.GetInstrumentsFromOanda(request.Instruments)).ToList();
 
-        return !instrumentList.Any()
-            ? Results.Empty
-            : Results.File(instrumentList.GetCsvBytes(), "text/csv", "instruments.csv");
+        if (!string.IsNullOrEmpty(request.Type))
+        {
+            instrumentList.RemoveAll(i => 
+                !string.Equals(i.Type, request.Type, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!instrumentList.Any()) return Results.Empty;
+
+        return request.Download
+            ? Results.File(instrumentList.GetCsvBytes(), 
+                "text/csv", "instruments.csv")
+            : Results.Ok(instrumentList);
     }
 }
 
 public record GetInstrumentsRequest : IHttpRequest
 {
     public string Instruments { get; set; }
+    public string Type { get; set; }
+    public bool Download { get; set; }
 }
