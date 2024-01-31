@@ -55,4 +55,6 @@ app.MapInstrumentEndpoints();
 
 app.MapCandleEndpoints();
 
+app.MapStrategyEndpoints();
+
 app.Run();

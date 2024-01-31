@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Mediator;
 
-public class CalculateMovingAverageHandler : IRequestHandler<CalculateMovingAverageRequest, IResult>
+public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMovingAverageRequest, IResult>
 {
     private readonly OandaApiService _apiService;
 
@@ -48,7 +48,7 @@ public class CalculateMovingAverageHandler : IRequestHandler<CalculateMovingAver
         return request.Download
             ? Results.File(movingAvgCrossList.GetZipFromFileData(),
                 "application/octet-stream", $"{instruments}_MA.zip")
-            : Results.Ok(candles);
+            : Results.Ok(movingAvgCrossList.Select(l => l.Value));
     }
 
     private static IEnumerable<MovingAverageCross> CreateMovingAverageCross(IEnumerable<Candle> candles, 
@@ -57,8 +57,6 @@ public class CalculateMovingAverageHandler : IRequestHandler<CalculateMovingAver
         var movingAvgCross = candles.Select(c => new MovingAverageCross(c)).ToList();
 
         var cumGain = 0.0;
-
-        var cumTradeCount = 0;
 
         for (var i = 0; i < movingAvgCross.Count; i++)
         {
@@ -72,7 +70,6 @@ public class CalculateMovingAverageHandler : IRequestHandler<CalculateMovingAver
                 < 0 when movingAvgCross[i].DeltaPrev >= 0 => Trade.Sell,
                 _ => Trade.None
             };
-            if (movingAvgCross[i].Trade != Trade.None) cumTradeCount++;
             movingAvgCross[i].Diff = i < movingAvgCross.Count - 1
                 ? movingAvgCross[i + 1].Candle.Mid_C - movingAvgCross[i].Candle.Mid_C
                 : movingAvgCross[i].Candle.Mid_C;
@@ -80,7 +77,6 @@ public class CalculateMovingAverageHandler : IRequestHandler<CalculateMovingAver
                                      GetTradeValue(movingAvgCross[i].Trade);
             cumGain += movingAvgCross[i].Gain;
             movingAvgCross[i].CumGain = cumGain;
-            movingAvgCross[i].TradeCount = cumTradeCount;
         }
 
         return movingAvgCross;

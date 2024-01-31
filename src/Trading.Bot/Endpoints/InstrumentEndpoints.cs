@@ -7,20 +7,12 @@ public static class InstrumentEndpoints
         builder.MapGet("api/instruments", GetInstrumentCollection);
     }
 
-    private static async Task<IResult> GetInstrumentCollection(OandaApiService apiService, string instruments = default)
+    private static async Task<IResult> GetInstrumentCollection(ISender sender,
+        [AsParameters] GetInstrumentsRequest request)
     {
         try
         {
-            var instrumentList = (await apiService.GetInstrumentsFromOanda(instruments)).ToList();
-
-            if (!instrumentList.Any()) return Results.Empty;
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-
-            var bytes = JsonSerializer.SerializeToUtf8Bytes(instrumentList, options);
-
-            return Results.File(bytes, "application/json", "instruments.json");
-
+            return await sender.Send(request);
         }
         catch (Exception ex)
         {

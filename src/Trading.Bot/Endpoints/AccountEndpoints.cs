@@ -7,22 +7,12 @@ public static class AccountEndpoints
         builder.MapGet("api/account", GetAccountSummary);
     }
 
-    private static async Task<IResult> GetAccountSummary(OandaApiService apiService)
+    private static async Task<IResult> GetAccountSummary(ISender sender,
+        [AsParameters] GetAccountSummaryRequest request)
     {
         try
         {
-            var apiResponse = await apiService.GetOandaAccountSummary();
-
-            if (apiResponse.StatusCode == HttpStatusCode.OK)
-            {
-                var options = new JsonSerializerOptions { WriteIndented = true };
-
-                var bytes = JsonSerializer.SerializeToUtf8Bytes(apiResponse.Value, options);
-
-                return Results.File(bytes, "application/json", "account.json");
-            }
-
-            return Results.Empty;
+            return await sender.Send(request);
         }
         catch (Exception ex)
         {

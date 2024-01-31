@@ -41,8 +41,25 @@ public sealed class GetCandlesHandler : IRequestHandler<GetCandlesRequest, IResu
 
             if (candles.Any())
             {
-                candlesBag.Add(new FileData<IEnumerable<Candle>>(
-                    $"{instrument}_{request.Granularity ?? OandaApiService.defaultGranularity}.csv", candles));
+                if (toDate != default && candles.Last().Time < toDate)
+                {
+                    while (candles.Last().Time < toDate)
+                    {
+                        candles.AddRange(await _apiService.GetCandlesFromOanda(
+                            instrument, request.Granularity, request.Price, count, candles.Last().Time, toDate));
+                    }
+
+                    if (candles.Last().Time > toDate) candles.RemoveAll(c => c.Time > toDate);
+
+                    candlesBag.Add(new FileData<IEnumerable<Candle>>(
+                        $"{instrument}_{request.Granularity ?? OandaApiService.DefaultGranularity}.csv", 
+                        candles.DistinctBy(c => c.Time)));
+                }
+                else
+                {
+                    candlesBag.Add(new FileData<IEnumerable<Candle>>(
+                        $"{instrument}_{request.Granularity ?? OandaApiService.DefaultGranularity}.csv", candles));
+                }
             }
         });
 

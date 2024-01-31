@@ -4,8 +4,8 @@ public class OandaApiService
 {
     private readonly HttpClient _httpClient;
     private readonly string _accountId;
-    public const string defaultGranularity = "H1";
-    public const string defaultPrice = "MBA";
+    public const string DefaultGranularity = "H1";
+    public const string DefaultPrice = "MBA";
 
     public OandaApiService(HttpClient httpClient, Constants constants)
     {
@@ -111,7 +111,7 @@ public class OandaApiService
         }
         else
         {
-            endpoint += $"?granularity={defaultGranularity}";
+            endpoint += $"?granularity={DefaultGranularity}";
         }
 
         if (!string.IsNullOrEmpty(price))
@@ -120,7 +120,7 @@ public class OandaApiService
         }
         else
         {
-            endpoint += $"&price={defaultPrice}";
+            endpoint += $"&price={DefaultPrice}";
         }
 
         if (fromDate != default && toDate != default)
