@@ -16,38 +16,41 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
             return Results.BadRequest("Please provide short and/or long windows");
         }
 
-        var candles = request.File.GetObjectFromCsv<Candle>();
-
-        if (!candles.Any()) return Results.Empty;
-
-        var instruments = request.File.FileName[..request.File.FileName.LastIndexOf('_')];
-
-        var instrumentInfo = (await _apiService.GetInstrumentsFromOanda(instruments)).First();
-
-        var maShortList = request.MaShort.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
-
-        var maLongList = request.MaLong.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
-
-        var mergedWindows = maShortList.Concat(maLongList).GetAllWindowCombinations().Distinct();
-
         var movingAvgCrossList = new List<FileData<IEnumerable<MovingAverageCross>>>();
 
-        foreach (var window in mergedWindows)
+        foreach (var file in request.Files)
         {
-            var maShort = candles.Select(c => c.Mid_C).SimpleMovingAverage(window.Item1).ToList();
+            var candles = file.GetObjectFromCsv<Candle>();
 
-            var maLong = candles.Select(c => c.Mid_C).SimpleMovingAverage(window.Item2).ToList();
+            if (!candles.Any()) return Results.Empty;
 
-            var movingAvgCross = CreateMovingAverageCross(candles, maShort, maLong, instrumentInfo);
+            var instrument = file.FileName[..file.FileName.LastIndexOf('_')];
 
-            movingAvgCrossList.Add(new FileData<IEnumerable<MovingAverageCross>>(
-                $"{instruments}_MA_{window.Item1}_{window.Item2}.csv", 
-                request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Trade != Trade.None) : movingAvgCross));
+            var instrumentInfo = (await _apiService.GetInstrumentsFromOanda(instrument)).First();
+
+            var maShortList = request.MaShort.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
+
+            var maLongList = request.MaLong.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
+
+            var mergedWindows = maShortList.Concat(maLongList).GetAllWindowCombinations().Distinct();
+
+            foreach (var window in mergedWindows)
+            {
+                var maShort = candles.Select(c => c.Mid_C).SimpleMovingAverage(window.Item1).ToList();
+
+                var maLong = candles.Select(c => c.Mid_C).SimpleMovingAverage(window.Item2).ToList();
+
+                var movingAvgCross = CreateMovingAverageCross(candles, maShort, maLong, instrumentInfo);
+
+                movingAvgCrossList.Add(new FileData<IEnumerable<MovingAverageCross>>(
+                    $"{instrument}_MA_{window.Item1}_{window.Item2}.csv",
+                    request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Trade != Trade.None) : movingAvgCross));
+            }
         }
 
         return request.Download
             ? Results.File(movingAvgCrossList.GetZipFromFileData(),
-                "application/octet-stream", $"{instruments}_MA.zip")
+                "application/octet-stream", "MA.zip")
             : Results.Ok(movingAvgCrossList.Select(l => l.Value));
     }
 
@@ -96,7 +99,7 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
 
 public record CalculateMovingAverageRequest : IHttpRequest
 {
-    public IFormFile File { get; set; }
+    public IFormFileCollection Files { get; set; }
     public string MaShort { get; set; }
     public string MaLong { get; set; }
     public bool Download { get; set; }

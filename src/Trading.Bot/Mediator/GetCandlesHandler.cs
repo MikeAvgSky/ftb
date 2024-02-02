@@ -20,6 +20,13 @@ public sealed class GetCandlesHandler : IRequestHandler<GetCandlesRequest, IResu
 
         var instruments = currencyList.GetAllCombinations();
 
+        var granularities = request.Granularity.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+        if (!granularities.Any())
+        {
+            granularities = new[] { OandaApiService.DefaultGranularity };
+        }
+
         var candlesBag = new ConcurrentBag<FileData<IEnumerable<Candle>>>();
 
         var parallelOptions = new ParallelOptions
@@ -35,30 +42,32 @@ public sealed class GetCandlesHandler : IRequestHandler<GetCandlesRequest, IResu
 
         await Parallel.ForEachAsync(instruments, parallelOptions, async (instrument, _) =>
         {
-            var candles = (await _apiService.GetCandlesFromOanda(
-                    instrument, request.Granularity, request.Price, count, fromDate, toDate))
-                .ToList();
-
-            if (candles.Any())
+            foreach (var granularity in granularities)
             {
-                if (toDate != default && candles.Last().Time < toDate)
+                var candles = (await _apiService.GetCandlesFromOanda(
+                        instrument, granularity, request.Price, count, fromDate, toDate)).ToList();
+
+                if (candles.Any())
                 {
-                    while (candles.Last().Time < toDate)
+                    if (toDate != default && candles.Last().Time < toDate)
                     {
-                        candles.AddRange(await _apiService.GetCandlesFromOanda(
-                            instrument, request.Granularity, request.Price, count, candles.Last().Time, toDate));
+                        while (candles.Last().Time < toDate)
+                        {
+                            candles.AddRange(await _apiService.GetCandlesFromOanda(
+                                instrument, request.Granularity, request.Price, count, candles.Last().Time, toDate));
+                        }
+
+                        if (candles.Last().Time > toDate) candles.RemoveAll(c => c.Time > toDate);
+
+                        candlesBag.Add(new FileData<IEnumerable<Candle>>(
+                            $"{instrument}_{granularity}.csv",
+                            candles.DistinctBy(c => c.Time)));
                     }
-
-                    if (candles.Last().Time > toDate) candles.RemoveAll(c => c.Time > toDate);
-
-                    candlesBag.Add(new FileData<IEnumerable<Candle>>(
-                        $"{instrument}_{request.Granularity ?? OandaApiService.DefaultGranularity}.csv", 
-                        candles.DistinctBy(c => c.Time)));
-                }
-                else
-                {
-                    candlesBag.Add(new FileData<IEnumerable<Candle>>(
-                        $"{instrument}_{request.Granularity ?? OandaApiService.DefaultGranularity}.csv", candles));
+                    else
+                    {
+                        candlesBag.Add(new FileData<IEnumerable<Candle>>(
+                            $"{instrument}_{granularity}.csv", candles));
+                    }
                 }
             }
         });

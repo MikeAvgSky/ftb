@@ -4,6 +4,7 @@ global using System.Reflection;
 global using System.Diagnostics;
 global using System.Net.Http.Headers;
 global using System.Text.Json.Serialization;
+global using System.Text.RegularExpressions;
 global using System.Collections.Concurrent;
 global using System.IO.Compression;
 global using System.Globalization;

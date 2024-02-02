@@ -3,8 +3,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configure Services
 
-var version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
-
 var constants = builder.Configuration.GetSection(nameof(Constants)).Get<Constants>();
 
 builder.Services.AddSingleton(constants);
@@ -33,10 +31,7 @@ builder.Services.AddMediatR(c =>
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc(version, new OpenApiInfo());
-});
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -44,10 +39,7 @@ var app = builder.Build();
 
 app.UseSwagger();
 
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint($"./{version}/swagger.json", "Trading Bot API");
-});
+app.UseSwaggerUI();
 
 app.MapAccountEndpoints();
 

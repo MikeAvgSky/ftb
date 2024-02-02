@@ -5,7 +5,7 @@ public static class StrategyEndpoints
     public static void MapStrategyEndpoints(this IEndpointRouteBuilder builder)
     {
         builder.MapPost("api/strategy/ma/{maShort}/{maLong}", CalculateMovingAverage);
-        builder.MapPost("api/strategy/result/{strategy}", CalculateStrategyResult);
+        builder.MapPost("api/strategy/results", CalculateStrategyResults);
     }
 
     private static async Task<IResult> CalculateMovingAverage(ISender sender,
@@ -21,7 +21,7 @@ public static class StrategyEndpoints
         }
     }
 
-    private static async Task<IResult> CalculateStrategyResult(ISender sender,
+    private static async Task<IResult> CalculateStrategyResults(ISender sender,
         [AsParameters] CalculateStrategyResultRequest request)
     {
         try
