@@ -22,9 +22,11 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
         {
             var candles = file.GetObjectFromCsv<Candle>();
 
-            if (!candles.Any()) return Results.Empty;
+            if (!candles.Any()) continue;
 
             var instrument = file.FileName[..file.FileName.LastIndexOf('_')];
+
+            var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
             var instrumentInfo = (await _apiService.GetInstrumentsFromOanda(instrument)).First();
 
@@ -43,14 +45,16 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
                 var movingAvgCross = CreateMovingAverageCross(candles, maShort, maLong, instrumentInfo);
 
                 movingAvgCrossList.Add(new FileData<IEnumerable<MovingAverageCross>>(
-                    $"{instrument}_MA_{window.Item1}_{window.Item2}.csv",
+                    $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}.csv",
                     request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Trade != Trade.None) : movingAvgCross));
             }
         }
 
+        if (!movingAvgCrossList.Any()) return Results.Empty;
+
         return request.Download
             ? Results.File(movingAvgCrossList.GetZipFromFileData(),
-                "application/octet-stream", "MA.zip")
+                "application/octet-stream", "ma.zip")
             : Results.Ok(movingAvgCrossList.Select(l => l.Value));
     }
 

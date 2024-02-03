@@ -20,7 +20,8 @@ public sealed class GetCandlesHandler : IRequestHandler<GetCandlesRequest, IResu
 
         var instruments = currencyList.GetAllCombinations();
 
-        var granularities = request.Granularity.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var granularities = request.Granularity?.Split(',', StringSplitOptions.RemoveEmptyEntries) 
+                            ?? Array.Empty<string>();
 
         if (!granularities.Any())
         {
