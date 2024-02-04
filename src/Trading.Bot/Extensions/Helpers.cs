@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Extensions;
 
-public static class CustomExtensions
+public static class Helpers
 {
     public static IEnumerable<string> GetAllCombinations(this IEnumerable<string> sequence)
     {
@@ -126,38 +126,5 @@ public static class CustomExtensions
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
 
         return csv.GetRecords<T>().ToList();
-    }
-
-    public static IEnumerable<double> SimpleMovingAverage(this IEnumerable<double> source, int window)
-    {
-        var queue = new Queue<double>(window);
-
-        foreach (var d in source)
-        {
-            if (queue.Count == window)
-            {
-                queue.Dequeue();
-            }
-
-            queue.Enqueue(d);
-
-            yield return queue.Average();
-        }
-    }
-
-    public static IEnumerable<double> CumulativeMovingAverage(this IEnumerable<double> source)
-    {
-        double total = 0;
-
-        var count = 0;
-
-        foreach (var d in source)
-        {
-            count++;
-
-            total += d;
-
-            yield return total / count;
-        }
     }
 }
