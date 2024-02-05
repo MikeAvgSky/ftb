@@ -20,6 +20,7 @@ public sealed class CalculateStrategyResultHandler : IRequestHandler<CalculateSt
             var strategy = (match.Groups["strategy"].Value switch
             {
                 var s when s.StartsWith("MA") => file.GetObjectFromCsv<MovingAverageCross>(),
+                var s when s.StartsWith("BB") => file.GetObjectFromCsv<BollingerBands>(),
                 _ => Enumerable.Empty<Strategy>()
             }).ToList();
 

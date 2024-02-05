@@ -83,7 +83,8 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
                 ? movingAvgCross[i + 1].Candle.Mid_C - movingAvgCross[i].Candle.Mid_C
                 : movingAvgCross[i].Candle.Mid_C;
 
-            movingAvgCross[i].Gain = movingAvgCross[i].Diff / instrumentInfo.PipLocation * GetTradeValue(movingAvgCross[i].Trade);
+            movingAvgCross[i].Gain = movingAvgCross[i].Diff / instrumentInfo.PipLocation *
+                                     movingAvgCross[i].Trade.GetTradeValue();
 
             cumGain += movingAvgCross[i].Gain;
 
@@ -91,17 +92,6 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
         }
 
         return movingAvgCross;
-    }
-
-    private static int GetTradeValue(Trade trade)
-    {
-        return trade switch
-        {
-            Trade.None => 0,
-            Trade.Buy => 1,
-            Trade.Sell => -1,
-            _ => 0,
-        };
     }
 }
 
