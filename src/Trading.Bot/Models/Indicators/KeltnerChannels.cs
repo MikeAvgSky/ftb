@@ -24,7 +24,9 @@ public class KeltnerChannels : Indicator
         for (var i = 0; i < keltner.Length; i++)
         {
             keltner[i].EMA = ema[i];
+
             keltner[i].KeltnerTop = atr[i].ATR * 2 + ema[i];
+
             keltner[i].KeltnerBottom = keltner[i].EMA - atr[i].ATR * 2;
         }
 

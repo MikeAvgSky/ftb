@@ -59,7 +59,35 @@ public static class Indicators
             yield return 0;
         }
 
-        var alpha = 2 / (double)(window + 1);
+        var alpha = 2.0 / (window + 1);
+
+        var result = 0.0;
+
+        for (var i = 0; i < list.Length; i++)
+        {
+            result = i == 0
+                ? list[i]
+                : alpha * list[i] + (1 - alpha) * result;
+
+            yield return result;
+        }
+    }
+
+    public static IEnumerable<double> RelativeMovingAverage(this IEnumerable<double> sequence, int window)
+    {
+        if (sequence == null)
+        {
+            yield break;
+        }
+
+        var list = sequence.ToArray();
+
+        if (!list.Any())
+        {
+            yield return 0;
+        }
+
+        var alpha = 1.0 / window;
 
         var result = 0.0;
 
