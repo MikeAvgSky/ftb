@@ -21,7 +21,7 @@ public sealed class CalculateStrategyResultHandler : IRequestHandler<CalculateSt
             {
                 var s when s.StartsWith("MA") => file.GetObjectFromCsv<MovingAverageCross>(),
                 var s when s.StartsWith("BB") => file.GetObjectFromCsv<BollingerBands>(),
-                _ => Enumerable.Empty<Strategy>()
+                _ => Enumerable.Empty<Indicator>()
             }).ToList();
 
             if (!strategy.Any()) return Task.FromResult(Results.BadRequest("Strategy is not valid"));
@@ -31,7 +31,7 @@ public sealed class CalculateStrategyResultHandler : IRequestHandler<CalculateSt
                 Instrument = match.Groups["instrument"].Value,
                 Granularity = match.Groups["granularity"].Value,
                 Strategy = match.Groups["strategy"].Value,
-                TradeCount = strategy.Count(s => s.Trade != Trade.None),
+                TradeCount = strategy.Count(s => s.Trade != Signal.None),
                 TotalGain = strategy.Select(s => s.Gain).Sum(),
                 MeanGain = strategy.Select(s => s.Gain).Average(),
                 MinGain = strategy.OrderBy(s => s.Gain).First().Gain,

@@ -128,13 +128,13 @@ public static class Helpers
         return csv.GetRecords<T>().ToList();
     }
 
-    public static int GetTradeValue(this Trade trade)
+    public static int GetTradeValue(this Signal trade)
     {
         return trade switch
         {
-            Trade.None => 0,
-            Trade.Buy => 1,
-            Trade.Sell => -1,
+            Signal.None => 0,
+            Signal.Buy => 1,
+            Signal.Sell => -1,
             _ => 0,
         };
     }

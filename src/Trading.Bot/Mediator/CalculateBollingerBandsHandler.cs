@@ -38,7 +38,7 @@ public class CalculateBollingerBandsHandler : IRequestHandler<CalculateBollinger
 
             bollingerBandsList.Add(new FileData<IEnumerable<BollingerBands>>(
                 $"{instrument}_{granularity}_BB_{request.Window ?? 20}_{request.StandardDeviation ?? 2}.csv",
-                request.ShowTradesOnly ? bollingerBands.Where(ma => ma.Trade != Trade.None) : bollingerBands));
+                request.ShowTradesOnly ? bollingerBands.Where(ma => ma.Trade != Signal.None) : bollingerBands));
         }
 
         if (!bollingerBandsList.Any()) return Results.Empty;
@@ -54,7 +54,7 @@ public class CalculateBollingerBandsHandler : IRequestHandler<CalculateBollinger
     {
         var bollingerBands = candles.Select(c => new BollingerBands(c)).ToList();
 
-        var lastTrade = Trade.None;
+        var lastTrade = Signal.None;
 
         var cumGain = 0.0;
 
@@ -68,12 +68,12 @@ public class CalculateBollingerBandsHandler : IRequestHandler<CalculateBollinger
 
             bollingerBands[i].Trade = bollingerBands[i].Candle.Mid_C switch
             {
-                var mid when mid < bollingerBands[i].BollingerBottom && lastTrade is not Trade.Buy => Trade.Buy,
-                var mid when mid > bollingerBands[i].BollingerTop && lastTrade is not Trade.Sell => Trade.Sell,
-                _ => Trade.None
+                var mid when mid < bollingerBands[i].BollingerBottom && lastTrade is not Signal.Buy => Signal.Buy,
+                var mid when mid > bollingerBands[i].BollingerTop && lastTrade is not Signal.Sell => Signal.Sell,
+                _ => Signal.None
             };
 
-            if (bollingerBands[i].Trade is not Trade.None) lastTrade = bollingerBands[i].Trade;
+            if (bollingerBands[i].Trade is not Signal.None) lastTrade = bollingerBands[i].Trade;
 
             bollingerBands[i].Diff = i < bollingerBands.Count - 1
                 ? bollingerBands[i + 1].Candle.Mid_C - bollingerBands[i].Candle.Mid_C

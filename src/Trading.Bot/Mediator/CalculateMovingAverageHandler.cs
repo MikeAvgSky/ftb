@@ -43,7 +43,7 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
 
                 movingAvgCrossList.Add(new FileData<IEnumerable<MovingAverageCross>>(
                     $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}.csv",
-                    request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Trade != Trade.None) : movingAvgCross));
+                    request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Trade != Signal.None) : movingAvgCross));
             }
         }
 
@@ -74,9 +74,9 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
 
             movingAvgCross[i].Trade = movingAvgCross[i].Delta switch
             {
-                >= 0 when movingAvgCross[i].DeltaPrev < 0 => Trade.Buy,
-                < 0 when movingAvgCross[i].DeltaPrev >= 0 => Trade.Sell,
-                _ => Trade.None
+                >= 0 when movingAvgCross[i].DeltaPrev < 0 => Signal.Buy,
+                < 0 when movingAvgCross[i].DeltaPrev >= 0 => Signal.Sell,
+                _ => Signal.None
             };
 
             movingAvgCross[i].Diff = i < movingAvgCross.Count - 1

@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Models;
 
-public class MovingAverageCross : Strategy
+public class MovingAverageCross : Indicator
 {
     public Candle Candle { get; set; }
     public double MaShort { get; set; }
