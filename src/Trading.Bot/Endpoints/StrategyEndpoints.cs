@@ -4,7 +4,7 @@ public static class StrategyEndpoints
 {
     public static void MapStrategyEndpoints(this IEndpointRouteBuilder builder)
     {
-        builder.MapPost("api/strategy/ma", CalculateMovingAverage);
+        builder.MapPost("api/strategy/mac", CalculateMovingAverage);
         builder.MapPost("api/strategy/bb", CalculateBollingerBands);
         builder.MapPost("api/strategy/results", CalculateStrategyResults);
     }

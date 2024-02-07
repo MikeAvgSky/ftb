@@ -1,4 +1,4 @@
-﻿namespace Trading.Bot.Models;
+﻿namespace Trading.Bot.Models.DataTransferObjects;
 
 public class Instrument
 {

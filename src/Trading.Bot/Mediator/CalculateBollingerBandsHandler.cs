@@ -2,14 +2,7 @@
 
 public class CalculateBollingerBandsHandler : IRequestHandler<CalculateBollingerBandsRequest, IResult>
 {
-    private readonly OandaApiService _apiService;
-
-    public CalculateBollingerBandsHandler(OandaApiService apiService)
-    {
-        _apiService = apiService;
-    }
-
-    public async Task<IResult> Handle(CalculateBollingerBandsRequest request, CancellationToken cancellationToken)
+    public Task<IResult> Handle(CalculateBollingerBandsRequest request, CancellationToken cancellationToken)
     {
         var bollingerBandsList = new List<FileData<IEnumerable<BollingerBands>>>();
 
@@ -23,8 +16,6 @@ public class CalculateBollingerBandsHandler : IRequestHandler<CalculateBollinger
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var instrumentInfo = (await _apiService.GetInstrumentsFromOanda(instrument)).First();
-
             var bollingerBands = BollingerBands.ProcessCandles(candles, new TradeSettings());
 
                 bollingerBandsList.Add(new FileData<IEnumerable<BollingerBands>>(
@@ -32,12 +23,12 @@ public class CalculateBollingerBandsHandler : IRequestHandler<CalculateBollinger
                 request.ShowTradesOnly ? bollingerBands.Where(ma => ma.Signal != Signal.None) : bollingerBands));
         }
 
-        if (!bollingerBandsList.Any()) return Results.Empty;
+        if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);
 
-        return request.Download
+        return Task.FromResult(request.Download
             ? Results.File(bollingerBandsList.GetZipFromFileData(),
                 "application/octet-stream", "bb.zip")
-            : Results.Ok(bollingerBandsList.Select(l => l.Value));
+            : Results.Ok(bollingerBandsList.Select(l => l.Value)));
     }
 }
 

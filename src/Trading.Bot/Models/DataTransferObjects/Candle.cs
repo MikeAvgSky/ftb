@@ -1,4 +1,4 @@
-﻿namespace Trading.Bot.Models;
+﻿namespace Trading.Bot.Models.DataTransferObjects;
 
 public class Candle
 {
@@ -8,7 +8,7 @@ public class Candle
     public double Mid_H { get; set; }
     public double Mid_L { get; set; }
     public double Mid_C { get; set; }
-    public double Bid_O { get; set; }   
+    public double Bid_O { get; set; }
     public double Bid_H { get; set; }
     public double Bid_L { get; set; }
     public double Bid_C { get; set; }
@@ -27,7 +27,7 @@ public class Candle
         Mid_C = data.Mid.C;
         Bid_O = data.Bid.O;
         Bid_H = data.Bid.H;
-        Bid_L = data.Bid.L; 
+        Bid_L = data.Bid.L;
         Bid_C = data.Bid.C;
         Ask_O = data.Ask.O;
         Ask_H = data.Ask.H;
@@ -35,5 +35,5 @@ public class Candle
         Ask_C = data.Ask.C;
     }
 
-    public Candle() {}
+    public Candle() { }
 }

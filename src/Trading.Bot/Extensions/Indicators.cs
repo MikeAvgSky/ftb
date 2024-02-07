@@ -2,8 +2,34 @@
 
 public static class Indicators
 {
+    public static IEnumerable<double> CumulativeMovingAverage(this IEnumerable<double> sequence)
+    {
+        if (sequence == null)
+        {
+            yield break;
+        }
+
+        double total = 0;
+
+        var count = 0;
+
+        foreach (var d in sequence)
+        {
+            count++;
+
+            total += d;
+
+            yield return total / count;
+        }
+    }
+
     public static IEnumerable<double> SimpleMovingAverage(this IEnumerable<double> sequence, int window)
     {
+        if (sequence == null)
+        {
+            yield break;
+        }
+
         var queue = new Queue<double>(window);
 
         foreach (var d in sequence)
@@ -19,19 +45,31 @@ public static class Indicators
         }
     }
 
-    public static IEnumerable<double> CumulativeMovingAverage(this IEnumerable<double> sequence)
+    public static IEnumerable<double> ExponentialMovingAverage(this IEnumerable<double> sequence, int window)
     {
-        double total = 0;
-
-        var count = 0;
-
-        foreach (var d in sequence)
+        if (sequence == null)
         {
-            count++;
+            yield break;
+        }
 
-            total += d;
+        var list = sequence.ToArray();
 
-            yield return total / count;
+        if (!list.Any())
+        {
+            yield return 0;
+        }
+
+        var alpha = 2 / (double)(window + 1);
+
+        var result = 0.0;
+
+        for (var i = 0; i < list.Length; i++)
+        {
+            result = i == 0
+                ? list[i]
+                : alpha * list[i] + (1 - alpha) * result;
+
+            yield return result;
         }
     }
 
@@ -42,7 +80,7 @@ public static class Indicators
             return 0;
         }
 
-        var list = sequence.ToList();
+        var list = sequence.ToArray();
 
         if (!list.Any())
         {
@@ -53,7 +91,7 @@ public static class Indicators
 
         var sum = list.Sum(d => Math.Pow(d - average, std));
 
-        return Math.Sqrt(sum / list.Count);
+        return Math.Sqrt(sum / list.Length);
     }
 
     public static IEnumerable<double> MovingStandardDeviation(this IEnumerable<double> sequence, int window, int std)

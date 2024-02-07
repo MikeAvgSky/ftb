@@ -31,7 +31,7 @@ public sealed class CalculateStrategyResultHandler : IRequestHandler<CalculateSt
                 Instrument = match.Groups["instrument"].Value,
                 Granularity = match.Groups["granularity"].Value,
                 Strategy = match.Groups["strategy"].Value,
-                TradeCount = strategy.Count(s => s.Trade != Signal.None),
+                TradeCount = strategy.Count(s => s.Signal != Signal.None),
                 TotalGain = strategy.Select(s => s.Gain).Sum(),
                 MeanGain = strategy.Select(s => s.Gain).Average(),
                 MinGain = strategy.OrderBy(s => s.Gain).First().Gain,
