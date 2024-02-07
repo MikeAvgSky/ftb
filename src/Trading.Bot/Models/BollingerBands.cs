@@ -15,7 +15,7 @@ public class BollingerBands : Indicator
         var standardDeviation = typicalPrice
             .MovingStandardDeviation(tradeSettings.MovingAverageWindow, tradeSettings.StandardDeviation).ToList();
 
-        var bollingerBandsAverage = typicalPrice.MovingAverage(tradeSettings.MovingAverageWindow).ToList();
+        var bollingerBandsAverage = typicalPrice.SimpleMovingAverage(tradeSettings.MovingAverageWindow).ToList();
 
         for (var i = 0; i < bollingerBands.Count; i++)
         {

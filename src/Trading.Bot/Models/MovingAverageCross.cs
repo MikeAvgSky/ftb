@@ -2,7 +2,6 @@
 
 public class MovingAverageCross : Indicator
 {
-    public Candle Candle { get; set; }
     public double MaShort { get; set; }
     public double MaLong { get; set; }
     public double Delta { get; set; }

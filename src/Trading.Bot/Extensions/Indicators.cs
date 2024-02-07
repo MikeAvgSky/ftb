@@ -2,7 +2,7 @@
 
 public static class Indicators
 {
-    public static IEnumerable<double> MovingAverage(this IEnumerable<double> sequence, int window)
+    public static IEnumerable<double> SimpleMovingAverage(this IEnumerable<double> sequence, int window)
     {
         var queue = new Queue<double>(window);
 

@@ -35,15 +35,15 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
 
             foreach (var window in mergedWindows)
             {
-                var maShort = candles.Select(c => c.Mid_C).MovingAverage(window.Item1).ToList();
+                var maShort = candles.Select(c => c.Mid_C).SimpleMovingAverage(window.Item1).ToList();
 
-                var maLong = candles.Select(c => c.Mid_C).MovingAverage(window.Item2).ToList();
+                var maLong = candles.Select(c => c.Mid_C).SimpleMovingAverage(window.Item2).ToList();
 
                 var movingAvgCross = CreateMovingAverageCross(candles, maShort, maLong, instrumentInfo);
 
                 movingAvgCrossList.Add(new FileData<IEnumerable<MovingAverageCross>>(
                     $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}.csv",
-                    request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Trade != Signal.None) : movingAvgCross));
+                    request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Signal != Signal.None) : movingAvgCross));
             }
         }
 
@@ -60,8 +60,6 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
     {
         var movingAvgCross = candles.Select(c => new MovingAverageCross(c)).ToList();
 
-        var cumGain = 0.0;
-
         for (var i = 0; i < movingAvgCross.Count; i++)
         {
             movingAvgCross[i].MaShort = maShort[i];
@@ -72,23 +70,18 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
 
             movingAvgCross[i].DeltaPrev = i > 0 ? movingAvgCross[i - 1].Delta : 0;
 
-            movingAvgCross[i].Trade = movingAvgCross[i].Delta switch
+            movingAvgCross[i].Signal = movingAvgCross[i].Delta switch
             {
                 >= 0 when movingAvgCross[i].DeltaPrev < 0 => Signal.Buy,
                 < 0 when movingAvgCross[i].DeltaPrev >= 0 => Signal.Sell,
                 _ => Signal.None
             };
 
-            movingAvgCross[i].Diff = i < movingAvgCross.Count - 1
+            var diff = i < movingAvgCross.Count - 1
                 ? movingAvgCross[i + 1].Candle.Mid_C - movingAvgCross[i].Candle.Mid_C
                 : movingAvgCross[i].Candle.Mid_C;
 
-            movingAvgCross[i].Gain = movingAvgCross[i].Diff / instrumentInfo.PipLocation *
-                                     movingAvgCross[i].Trade.GetTradeValue();
-
-            cumGain += movingAvgCross[i].Gain;
-
-            movingAvgCross[i].CumGain = cumGain;
+            movingAvgCross[i].Gain = diff / instrumentInfo.PipLocation * (int)movingAvgCross[i].Signal;
         }
 
         return movingAvgCross;
