@@ -1,15 +1,15 @@
 ﻿namespace Trading.Bot.Mediator;
 
-public sealed class GetCandlesHandler : IRequestHandler<GetCandlesRequest, IResult>
+public sealed class CandlesHandler : IRequestHandler<CandlesRequest, IResult>
 {
     private readonly OandaApiService _apiService;
 
-    public GetCandlesHandler(OandaApiService apiService)
+    public CandlesHandler(OandaApiService apiService)
     {
         _apiService = apiService;
     }
 
-    public async Task<IResult> Handle(GetCandlesRequest request, CancellationToken cancellationToken)
+    public async Task<IResult> Handle(CandlesRequest request, CancellationToken cancellationToken)
     {
         if (!request.Currencies.Contains(','))
         {
@@ -80,7 +80,7 @@ public sealed class GetCandlesHandler : IRequestHandler<GetCandlesRequest, IResu
     }
 }
 
-public record GetCandlesRequest : IHttpRequest
+public record CandlesRequest : IHttpRequest
 {
     public string Currencies { get; set; }
     public string Granularity { get; set; }

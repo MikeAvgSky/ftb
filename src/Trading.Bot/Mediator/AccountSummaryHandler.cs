@@ -1,15 +1,15 @@
 ﻿namespace Trading.Bot.Mediator;
 
-public sealed class GetAccountSummaryHandler : IRequestHandler<GetAccountSummaryRequest, IResult>
+public sealed class AccountSummaryHandler : IRequestHandler<AccountSummaryRequest, IResult>
 {
     private readonly OandaApiService _apiService;
 
-    public GetAccountSummaryHandler(OandaApiService apiService)
+    public AccountSummaryHandler(OandaApiService apiService)
     {
         _apiService = apiService;
     }
 
-    public async Task<IResult> Handle(GetAccountSummaryRequest request, CancellationToken cancellationToken)
+    public async Task<IResult> Handle(AccountSummaryRequest request, CancellationToken cancellationToken)
     {
         var apiResponse = await _apiService.GetOandaAccountSummary();
 
@@ -26,7 +26,7 @@ public sealed class GetAccountSummaryHandler : IRequestHandler<GetAccountSummary
     }
 }
 
-public record GetAccountSummaryRequest : IHttpRequest
+public record AccountSummaryRequest : IHttpRequest
 {
     public bool Download { get; set; }
 }

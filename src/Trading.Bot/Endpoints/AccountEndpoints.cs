@@ -8,7 +8,7 @@ public static class AccountEndpoints
     }
 
     private static async Task<IResult> GetAccountSummary(ISender sender,
-        [AsParameters] GetAccountSummaryRequest request)
+        [AsParameters] AccountSummaryRequest request)
     {
         try
         {

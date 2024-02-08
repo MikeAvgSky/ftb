@@ -1,12 +1,12 @@
 ﻿namespace Trading.Bot.Mediator;
 
-public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMovingAverageRequest, IResult>
+public sealed class MovingAverageCrossHandler : IRequestHandler<MovingAverageCrossRequest, IResult>
 {
-    public Task<IResult> Handle(CalculateMovingAverageRequest request, CancellationToken cancellationToken)
+    public Task<IResult> Handle(MovingAverageCrossRequest crossRequest, CancellationToken cancellationToken)
     {
         var movingAvgCrossList = new List<FileData<IEnumerable<MovingAverageCross>>>();
 
-        foreach (var file in request.Files)
+        foreach (var file in crossRequest.Files)
         {
             var candles = file.GetObjectFromCsv<Candle>();
 
@@ -16,10 +16,10 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var maShortList = request.MaShort?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
+            var maShortList = crossRequest.ShortWindow?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
                               ?? new[] { 10 };
 
-            var maLongList = request.MaLong?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
+            var maLongList = crossRequest.LongWindow?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
                              ?? new[] { 20 };
 
             var mergedWindows = maShortList.Concat(maLongList).GetAllWindowCombinations().Distinct();
@@ -32,24 +32,24 @@ public sealed class CalculateMovingAverageHandler : IRequestHandler<CalculateMov
 
                 movingAvgCrossList.Add(new FileData<IEnumerable<MovingAverageCross>>(
                     $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}.csv",
-                    request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Signal != Signal.None) : movingAvgCross));
+                    crossRequest.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Signal != Signal.None) : movingAvgCross));
             }
         }
 
         if (!movingAvgCrossList.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(request.Download
+        return Task.FromResult(crossRequest.Download
             ? Results.File(movingAvgCrossList.GetZipFromFileData(),
                 "application/octet-stream", "ma.zip")
             : Results.Ok(movingAvgCrossList.Select(l => l.Value)));
     }
 }
 
-public record CalculateMovingAverageRequest : IHttpRequest
+public record MovingAverageCrossRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; }
-    public string MaShort { get; set; }
-    public string MaLong { get; set; }
+    public string ShortWindow { get; set; }
+    public string LongWindow { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }

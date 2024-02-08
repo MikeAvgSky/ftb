@@ -1,8 +1,8 @@
 ﻿namespace Trading.Bot.Mediator;
 
-public class CalculateBollingerBandsHandler : IRequestHandler<CalculateBollingerBandsRequest, IResult>
+public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IResult>
 {
-    public Task<IResult> Handle(CalculateBollingerBandsRequest request, CancellationToken cancellationToken)
+    public Task<IResult> Handle(BollingerBandsRequest request, CancellationToken cancellationToken)
     {
         var bollingerBandsList = new List<FileData<IEnumerable<BollingerBands>>>();
 
@@ -32,7 +32,7 @@ public class CalculateBollingerBandsHandler : IRequestHandler<CalculateBollinger
     }
 }
 
-public record CalculateBollingerBandsRequest : IHttpRequest
+public record BollingerBandsRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; }
     public int? Window { get; set; }

@@ -1,15 +1,15 @@
 ﻿namespace Trading.Bot.Mediator;
 
-public sealed class GetInstrumentsHandler : IRequestHandler<GetInstrumentsRequest, IResult>
+public sealed class InstrumentsHandler : IRequestHandler<InstrumentsRequest, IResult>
 {
     private readonly OandaApiService _apiService;
 
-    public GetInstrumentsHandler(OandaApiService apiService)
+    public InstrumentsHandler(OandaApiService apiService)
     {
         _apiService = apiService;
     }
 
-    public async Task<IResult> Handle(GetInstrumentsRequest request, CancellationToken cancellationToken)
+    public async Task<IResult> Handle(InstrumentsRequest request, CancellationToken cancellationToken)
     {
         var instrumentList = (await _apiService.GetInstrumentsFromOanda(request.Instruments)).ToList();
 
@@ -28,7 +28,7 @@ public sealed class GetInstrumentsHandler : IRequestHandler<GetInstrumentsReques
     }
 }
 
-public record GetInstrumentsRequest : IHttpRequest
+public record InstrumentsRequest : IHttpRequest
 {
     public string Instruments { get; set; }
     public string Type { get; set; }

@@ -1,11 +1,11 @@
 ﻿namespace Trading.Bot.Mediator;
 
-public sealed class CalculateStrategyResultHandler : IRequestHandler<CalculateStrategyResultRequest, IResult>
+public sealed class StrategyResultHandler : IRequestHandler<StrategyResultRequest, IResult>
 {
     internal const string FilenameRegex =
         @"^(?<instrument>[A-Z_-]{7})_(?<granularity>[A-Z0-9]{2})_(?<strategy>[A-Z0-9_-]+).csv";
 
-    public Task<IResult> Handle(CalculateStrategyResultRequest request, CancellationToken cancellationToken)
+    public Task<IResult> Handle(StrategyResultRequest request, CancellationToken cancellationToken)
     {
         var results = new List<StrategyResult>();
 
@@ -48,7 +48,7 @@ public sealed class CalculateStrategyResultHandler : IRequestHandler<CalculateSt
     }
 }
 
-public record CalculateStrategyResultRequest : IHttpRequest
+public record StrategyResultRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; }
     public bool Download { get; set; }

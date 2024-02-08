@@ -10,11 +10,11 @@ public static class StrategyEndpoints
     }
 
     private static async Task<IResult> CalculateMovingAverage(ISender sender,
-        [AsParameters] CalculateMovingAverageRequest request)
+        [AsParameters] MovingAverageCrossRequest crossRequest)
     {
         try
         {
-            return await sender.Send(request);
+            return await sender.Send(crossRequest);
         }
         catch (Exception ex)
         {
@@ -23,7 +23,7 @@ public static class StrategyEndpoints
     }
 
     private static async Task<IResult> CalculateBollingerBands(ISender sender,
-        [AsParameters] CalculateBollingerBandsRequest request)
+        [AsParameters] BollingerBandsRequest request)
     {
         try
         {
@@ -36,7 +36,7 @@ public static class StrategyEndpoints
     }
 
     private static async Task<IResult> CalculateStrategyResults(ISender sender,
-        [AsParameters] CalculateStrategyResultRequest request)
+        [AsParameters] StrategyResultRequest request)
     {
         try
         {

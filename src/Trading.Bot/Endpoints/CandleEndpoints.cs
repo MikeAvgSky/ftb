@@ -8,7 +8,7 @@ public static class CandleEndpoints
     }
 
     private static async Task<IResult> GetCandles(ISender sender, 
-        [AsParameters] GetCandlesRequest request)
+        [AsParameters] CandlesRequest request)
     {
         try
         {

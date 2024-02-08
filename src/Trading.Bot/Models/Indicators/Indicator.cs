@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Models.Indicators;
 
-public class Indicator
+public abstract class Indicator
 {
     public Candle Candle { get; set; }
     public double Spread { get; set; }

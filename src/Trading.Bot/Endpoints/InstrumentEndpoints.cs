@@ -8,7 +8,7 @@ public static class InstrumentEndpoints
     }
 
     private static async Task<IResult> GetInstrumentCollection(ISender sender,
-        [AsParameters] GetInstrumentsRequest request)
+        [AsParameters] InstrumentsRequest request)
     {
         try
         {
