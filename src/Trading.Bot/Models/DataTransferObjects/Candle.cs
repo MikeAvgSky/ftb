@@ -16,6 +16,15 @@ public class Candle
     public double Ask_H { get; set; }
     public double Ask_L { get; set; }
     public double Ask_C { get; set; }
+    public double BodySize { get; set; }
+    public int Direction { get; set; }
+    public double FullRange { get; set; }
+    public double BodyPercentage { get; set; }
+    public double BodyLower { get; set; }
+    public double BodyUpper { get; set; }
+    public double BodyBottomPercentage { get; set; }
+    public double BodyTopPercentage { get; set; }
+    public double MidPoint { get; set; }
 
     public Candle(CandleData data)
     {
@@ -33,6 +42,15 @@ public class Candle
         Ask_H = data.Ask.H;
         Ask_L = data.Ask.L;
         Ask_C = data.Ask.C;
+        BodySize = Math.Abs(Mid_C - Mid_O);
+        Direction = Mid_C - Mid_O >= 0 ? 1 : -1;
+        FullRange = Mid_H - Mid_L;
+        BodyPercentage = BodySize / FullRange * 100;
+        BodyLower = new[] { Mid_C, Mid_O }.Min();
+        BodyUpper = new[] { Mid_C, Mid_O }.Max();
+        BodyBottomPercentage = (BodyLower - Mid_L) / FullRange * 100;
+        BodyTopPercentage = (Mid_H - BodyUpper) / FullRange * 100;
+        MidPoint = FullRange / 2 + Mid_L;
     }
 
     public Candle() { }
