@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Extensions;
 
-public static class Helpers
+public static class HelperExtensions
 {
     public static IEnumerable<string> GetAllCombinations(this IEnumerable<string> sequence)
     {

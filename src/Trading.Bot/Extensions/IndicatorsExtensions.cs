@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Extensions;
 
-public static class Indicators
+public static class IndicatorsExtensions
 {
     public static IEnumerable<double> CumulativeMovingAverage(this IEnumerable<double> sequence)
     {

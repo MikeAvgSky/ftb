@@ -47,6 +47,6 @@ app.MapInstrumentEndpoints();
 
 app.MapCandleEndpoints();
 
-app.MapStrategyEndpoints();
+app.MapSimulationEndpoints();
 
 app.Run();
