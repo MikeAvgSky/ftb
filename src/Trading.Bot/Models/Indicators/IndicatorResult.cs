@@ -1,6 +1,6 @@
-﻿namespace Trading.Bot.Models;
+﻿namespace Trading.Bot.Models.Indicators;
 
-public class StrategyResult
+public class IndicatorResult
 {
     public string Instrument { get; set; }
     public string Granularity { get; set; }

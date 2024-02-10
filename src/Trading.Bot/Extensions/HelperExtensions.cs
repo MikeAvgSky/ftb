@@ -119,12 +119,12 @@ public static class HelperExtensions
         return memoryStream.ToArray();
     }
 
-    public static List<T> GetObjectFromCsv<T>(this IFormFile file)
+    public static T[] GetObjectFromCsv<T>(this IFormFile file)
     {
         using var reader = new StreamReader(file.OpenReadStream());
 
         using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
 
-        return csv.GetRecords<T>().ToList();
+        return csv.GetRecords<T>().ToArray();
     }
 }

@@ -4,7 +4,7 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 {
     public Task<IResult> Handle(RsiEmaRequest request, CancellationToken cancellationToken)
     {
-        var bollingerBandsList = new List<FileData<IEnumerable<BollingerBands>>>();
+        var rsiList = new List<FileData<IEnumerable<RsiResult>>>();
 
         foreach (var file in request.Files)
         {
@@ -16,27 +16,29 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var bollingerBands = BollingerBands.ProcessCandles(candles, new TradeSettings());
+            var rsi = candles.CalcRsi(request.RsiWindow ?? 14).ToArray();
 
-                bollingerBandsList.Add(new FileData<IEnumerable<BollingerBands>>(
-                $"{instrument}_{granularity}_BB_{request.Window ?? 20}_{request.StandardDeviation ?? 2}.csv",
-                request.ShowTradesOnly ? bollingerBands.Where(ma => ma.Signal != Signal.None) : bollingerBands));
+            var ema = candles.Select(c => c.Mid_C).CalcEma(request.EmaWindow ?? 200).ToArray();
+
+            rsiList.Add(new FileData<IEnumerable<RsiResult>>(
+                $"{instrument}_{granularity}_RSI_EMA.csv",
+                request.ShowTradesOnly ? rsi.Where(ma => ma.Signal != Signal.None) : rsi));
         }
 
-        if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);
+        if (!rsiList.Any()) return Task.FromResult(Results.Empty);
 
         return Task.FromResult(request.Download
-            ? Results.File(bollingerBandsList.GetZipFromFileData(),
+            ? Results.File(rsiList.GetZipFromFileData(),
                 "application/octet-stream", "bb.zip")
-            : Results.Ok(bollingerBandsList.Select(l => l.Value)));
+            : Results.Ok(rsiList.Select(l => l.Value)));
     }
 }
 
 public record RsiEmaRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; }
-    public int? Window { get; set; }
-    public int? StandardDeviation { get; set; }
+    public int? RsiWindow { get; set; }
+    public int? EmaWindow { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }

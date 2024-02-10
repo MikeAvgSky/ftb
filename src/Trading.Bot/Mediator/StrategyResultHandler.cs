@@ -7,7 +7,7 @@ public sealed class StrategyResultHandler : IRequestHandler<StrategyResultReques
 
     public Task<IResult> Handle(StrategyResultRequest request, CancellationToken cancellationToken)
     {
-        var results = new List<StrategyResult>();
+        var results = new List<IndicatorResult>();
 
         var filenameRegex = new Regex(FilenameRegex, RegexOptions.IgnoreCase);
 
@@ -19,14 +19,14 @@ public sealed class StrategyResultHandler : IRequestHandler<StrategyResultReques
 
             var strategy = (match.Groups["strategy"].Value switch
             {
-                var s when s.StartsWith("MA") => file.GetObjectFromCsv<MovingAverageCross>(),
-                var s when s.StartsWith("BB") => file.GetObjectFromCsv<BollingerBands>(),
+                var s when s.StartsWith("MA") => file.GetObjectFromCsv<MacResult>(),
+                var s when s.StartsWith("BB") => file.GetObjectFromCsv<BollingerBandsResult>(),
                 _ => Enumerable.Empty<Indicator>()
             }).ToList();
 
             if (!strategy.Any()) return Task.FromResult(Results.BadRequest("Strategy is not valid"));
 
-            var result = new StrategyResult
+            var result = new IndicatorResult
             {
                 Instrument = match.Groups["instrument"].Value,
                 Granularity = match.Groups["granularity"].Value,

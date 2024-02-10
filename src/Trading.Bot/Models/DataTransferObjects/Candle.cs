@@ -25,6 +25,7 @@ public class Candle
     public double BodyBottomPercentage { get; set; }
     public double BodyTopPercentage { get; set; }
     public double MidPoint { get; set; }
+    public double Spread { get; set; }
 
     public Candle(CandleData data)
     {
@@ -51,6 +52,7 @@ public class Candle
         BodyBottomPercentage = (BodyLower - Mid_L) / FullRange * 100;
         BodyTopPercentage = (Mid_H - BodyUpper) / FullRange * 100;
         MidPoint = FullRange / 2 + Mid_L;
+        Spread = Ask_C - Bid_C;
     }
 
     public Candle() { }
