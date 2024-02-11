@@ -50,7 +50,7 @@ public static class SimulationEndpoints
     }
 
     private static async Task<IResult> CalculateSimulationResults(ISender sender,
-        [AsParameters] StrategyResultRequest request)
+        [AsParameters] IndicatorResultRequest request)
     {
         try
         {

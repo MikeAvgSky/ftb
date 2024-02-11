@@ -4,7 +4,7 @@ public class IndicatorResult
 {
     public string Instrument { get; set; }
     public string Granularity { get; set; }
-    public string Strategy { get; set; }
+    public string Indicator { get; set; }
     public int TradeCount { get; set; }
     public double TotalGain { get; set; }
     public double MeanGain { get; set; }

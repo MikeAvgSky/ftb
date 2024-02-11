@@ -4,7 +4,7 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 {
     public Task<IResult> Handle(RsiEmaRequest request, CancellationToken cancellationToken)
     {
-        var rsiList = new List<FileData<IEnumerable<RsiResult>>>();
+        var rsiList = new List<FileData<IEnumerable<RsiEmaResult>>>();
 
         foreach (var file in request.Files)
         {
@@ -16,12 +16,14 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var rsi = candles.CalcRsi(request.RsiWindow ?? 14).ToArray();
+            var rsiWindow = request.RsiWindow ?? 14;
 
-            var ema = candles.Select(c => c.Mid_C).CalcEma(request.EmaWindow ?? 200).ToArray();
+            var emaWindow = request.EmaWindow ?? 200;
 
-            rsiList.Add(new FileData<IEnumerable<RsiResult>>(
-                $"{instrument}_{granularity}_RSI_EMA.csv",
+            var rsi = candles.CalcRsiEma(rsiWindow, emaWindow);
+
+            rsiList.Add(new FileData<IEnumerable<RsiEmaResult>>(
+                $"{instrument}_{granularity}_RSI_{rsiWindow}_EMA_{emaWindow}.csv",
                 request.ShowTradesOnly ? rsi.Where(ma => ma.Signal != Signal.None) : rsi));
         }
 

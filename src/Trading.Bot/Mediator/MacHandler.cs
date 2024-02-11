@@ -26,7 +26,7 @@ public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IRes
 
             foreach (var window in mergedWindows)
             {
-                var movingAvgCross = candles.CalcMac(window.Item1, window.Item2, request.RiskReward ?? 1.5);
+                var movingAvgCross = candles.CalcMac(window.Item1, window.Item2);
 
                 movingAvgCrossList.Add(new FileData<IEnumerable<MacResult>>(
                     $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}.csv",

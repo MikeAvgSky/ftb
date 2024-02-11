@@ -1,11 +1,11 @@
 ﻿namespace Trading.Bot.Mediator;
 
-public sealed class StrategyResultHandler : IRequestHandler<StrategyResultRequest, IResult>
+public sealed class IndicatorResultHandler : IRequestHandler<IndicatorResultRequest, IResult>
 {
     internal const string FilenameRegex =
-        @"^(?<instrument>[A-Z_-]{7})_(?<granularity>[A-Z0-9]{2})_(?<strategy>[A-Z0-9_-]+).csv";
+        @"^(?<instrument>[A-Z_-]{7})_(?<granularity>[A-Z0-9]{2})_(?<indicator>[A-Z0-9_-]+).csv";
 
-    public Task<IResult> Handle(StrategyResultRequest request, CancellationToken cancellationToken)
+    public Task<IResult> Handle(IndicatorResultRequest request, CancellationToken cancellationToken)
     {
         var results = new List<IndicatorResult>();
 
@@ -21,16 +21,17 @@ public sealed class StrategyResultHandler : IRequestHandler<StrategyResultReques
             {
                 var s when s.StartsWith("MA") => file.GetObjectFromCsv<MacResult>(),
                 var s when s.StartsWith("BB") => file.GetObjectFromCsv<BollingerBandsResult>(),
+                var s when s.Contains("RSI") && s.Contains("EMA") => file.GetObjectFromCsv<RsiEmaResult>(),
                 _ => Enumerable.Empty<Indicator>()
             }).ToList();
 
-            if (!strategy.Any()) return Task.FromResult(Results.BadRequest("Strategy is not valid"));
+            if (!strategy.Any()) return Task.FromResult(Results.BadRequest("Indicator is not valid"));
 
             var result = new IndicatorResult
             {
                 Instrument = match.Groups["instrument"].Value,
                 Granularity = match.Groups["granularity"].Value,
-                Strategy = match.Groups["strategy"].Value,
+                Indicator = match.Groups["indicator"].Value,
                 TradeCount = strategy.Count(s => s.Signal != Signal.None),
                 TotalGain = strategy.Select(s => s.Gain).Sum(),
                 MeanGain = strategy.Select(s => s.Gain).Average(),
@@ -48,7 +49,7 @@ public sealed class StrategyResultHandler : IRequestHandler<StrategyResultReques
     }
 }
 
-public record StrategyResultRequest : IHttpRequest
+public record IndicatorResultRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; }
     public bool Download { get; set; }

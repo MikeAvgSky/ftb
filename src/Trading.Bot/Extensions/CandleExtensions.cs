@@ -85,13 +85,13 @@ public static class CandleExtensions
                candle.BodyBottomPercentage > TweezerBottomBody;
     }
 
-    public static bool IsMorningStar(this Candle candle, Candle[] prevCandles, int direction = 1)
+    public static bool IsMorningStar(this Candle candle, Candle[] lastTwoCandles, int direction = 1)
     {
-        if (candle is null || !prevCandles.Any() || prevCandles.Length > 2) return false;
+        if (candle is null || lastTwoCandles is null || lastTwoCandles.Length != 2) return false;
 
-        var prev2Candle = prevCandles.OrderBy(c => c.Time).First();
+        var prev2Candle = lastTwoCandles.OrderBy(c => c.Time).First();
 
-        var prevCandle = prevCandles.OrderBy(c => c.Time).Last();
+        var prevCandle = lastTwoCandles.OrderBy(c => c.Time).Last();
 
         return prev2Candle.BodyPercentage > MorningStarPrev2Body &&
                prevCandle.BodyPercentage < MorningStarPrevBody &&
