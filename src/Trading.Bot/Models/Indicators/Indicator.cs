@@ -2,6 +2,7 @@
 
 public class Indicator
 {
+    public Candle Candle { get; set; }
     public Signal Signal { get; set; }
     public double Gain { get; set; }
     public double TakeProfit { get; set; }

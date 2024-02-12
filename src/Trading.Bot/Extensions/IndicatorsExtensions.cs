@@ -157,6 +157,8 @@ public static class IndicatorsExtensions
 
         for (var i = 0; i < length; i++)
         {
+            mac[i].Candle = candles[i];
+
             mac[i].MaShort = maShort[i];
 
             mac[i].MaLong = maLong[i];
@@ -212,6 +214,8 @@ public static class IndicatorsExtensions
 
         for (var i = 0; i < length; i++)
         {
+            bollingerBands[i].Candle = candles[i];
+
             bollingerBands[i].BollingerSma = bollingerBandsSma[i];
 
             bollingerBands[i].BollingerTop = bollingerBands[i].BollingerSma + standardDeviation[i] * stdDev;
@@ -267,6 +271,8 @@ public static class IndicatorsExtensions
 
             var trueRanges = new[] { tr1, tr2, tr3 };
 
+            atr[i].Candle = candles[i];
+
             atr[i].MaxTr = trueRanges.Max();
         }
 
@@ -292,6 +298,8 @@ public static class IndicatorsExtensions
 
         for (var i = 0; i < length; i++)
         {
+            keltner[i].Candle = candles[i];
+
             keltner[i].Ema = ema[i];
 
             keltner[i].KeltnerTop = atr[i].Atr * 2 + ema[i];
@@ -340,6 +348,8 @@ public static class IndicatorsExtensions
 
         for (var i = 0; i < length; i++)
         {
+            rsi[i].Candle = candles[i];
+
             rsi[i].AverageGain = gains_rma[i];
 
             rsi[i].AverageLoss = losses_rma[i];
@@ -364,6 +374,8 @@ public static class IndicatorsExtensions
 
         for (var i = 0; i < length; i++)
         {
+            macd[i].Candle = candles[i];
+
             macd[i].Macd = emaShort[i] - emaLong[i];
         }
 
@@ -391,6 +403,8 @@ public static class IndicatorsExtensions
 
         for (var i = 0; i < length; i++)
         {
+            rsiEma[i].Candle = candles[i];
+
             rsiEma[i].Rsi = rsi[i].Rsi;
 
             rsiEma[i].Ema = ema[i];
@@ -434,6 +448,8 @@ public static class IndicatorsExtensions
 
         for (var i = 0; i < length; i++)
         {
+            macdEma[i].Candle = candles[i];
+
             macdEma[i].MacdDelta = macd[i].Macd - macd[i].SignalLine;
 
             macdEma[i].MacdDeltaPrev = i == 0 ? 0.0 : macd[i - 1].Macd - macd[i - 1].SignalLine;
