@@ -425,12 +425,16 @@ public static class IndicatorsExtensions
                 _ => 0.0
             };
 
+            rsiEma[i].Gain = Math.Abs(rsiEma[i].TakeProfit - candles[i].Ask_C);
+
             rsiEma[i].StopLoss = rsiEma[i].Signal switch
             {
                 Signal.Buy => candles[i].Ask_O,
                 Signal.Sell => candles[i].Bid_O,
                 _ => 0.0
             };
+
+            rsiEma[i].Loss = Math.Abs(candles[i].Bid_C - rsiEma[i].StopLoss);
         }
 
         return rsiEma;
@@ -477,20 +481,24 @@ public static class IndicatorsExtensions
                 _ => 0.0
             };
 
+            macdEma[i].Gain = Math.Abs(macdEma[i].TakeProfit - candles[i].Ask_C);
+
             macdEma[i].StopLoss = macdEma[i].Signal switch
             {
                 Signal.Buy => candles[i].Ask_O,
                 Signal.Sell => candles[i].Bid_O,
                 _ => 0.0
             };
+
+            macdEma[i].Loss = Math.Abs(candles[i].Bid_C - macdEma[i].StopLoss);
         }
 
         return macdEma;
     }
 
-    public static TradeResult[] CalcTradeResults(this Candle[] candles, Indicator[] indicators)
+    public static TradeResult[] CalcTradeResults(this Indicator[] indicators)
     {
-        var length = candles.Length;
+        var length = indicators.Length;
 
         var openTrades = new List<TradeResult>();
 
@@ -504,20 +512,20 @@ public static class IndicatorsExtensions
                 {
                     Running = true,
                     StartIndex = i,
-                    StartPrice = indicators[i].Signal == Signal.Buy ? candles[i].Ask_C : candles[i].Bid_C,
-                    TriggerPrice = indicators[i].Signal == Signal.Buy ? candles[i].Ask_C : candles[i].Bid_C,
+                    StartPrice = indicators[i].Signal == Signal.Buy ? indicators[i].Candle.Ask_C : indicators[i].Candle.Bid_C,
+                    TriggerPrice = indicators[i].Signal == Signal.Buy ? indicators[i].Candle.Ask_C : indicators[i].Candle.Bid_C,
                     Signal = indicators[i].Signal,
                     TakeProfit = indicators[i].TakeProfit,
                     StopLoss = indicators[i].StopLoss,
                     Result = 0.0,
-                    StartTime = candles[i].Time,
-                    EndTime = candles[i].Time
+                    StartTime = indicators[i].Candle.Time,
+                    EndTime = indicators[i].Candle.Time
                 });
             }
 
             foreach (var trade in openTrades)
             {
-                trade.UpdateTrade(candles[i]);
+                UpdateTrade(trade, indicators[i].Candle);
 
                 if (!trade.Running)
                 {
@@ -529,7 +537,7 @@ public static class IndicatorsExtensions
         return closedTrades.ToArray();
     }
 
-    private static void UpdateTrade(this TradeResult trade, Candle candle)
+    private static void UpdateTrade(TradeResult trade, Candle candle)
     {
         if (trade.Signal == Signal.Buy)
         {
