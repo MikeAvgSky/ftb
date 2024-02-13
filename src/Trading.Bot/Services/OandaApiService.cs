@@ -65,27 +65,28 @@ public class OandaApiService
     public async Task<ApiResponse<AccountResponse>> GetOandaAccountSummary() =>
         await GetAsync<AccountResponse>($"accounts/{_accountId}/summary", "account");
 
-    public async Task<IEnumerable<Instrument>> GetInstrumentsFromOanda(string instruments)
+    public async Task<Instrument[]> GetInstrumentsFromOanda(string instruments)
     {
         var endpoint = BuildInstrumentsEndpoint(instruments);
 
         var instrumentResponse = await GetAsync<List<InstrumentResponse>>(endpoint, "instruments");
 
         return instrumentResponse.StatusCode == HttpStatusCode.OK
-            ? instrumentResponse.Value.Select(MapToInstrument)
-            : Enumerable.Empty<Instrument>();
+            ? instrumentResponse.Value.MapToInstruments()
+            : Array.Empty<Instrument>();
     }
 
-    public async Task<IEnumerable<Candle>> GetCandlesFromOanda(string instrument, string granularity,
+    public async Task<Candle[]> GetCandlesFromOanda(string instrument, string granularity,
         string price, int count, DateTime fromDate, DateTime toDate)
     {
-        var endpoint = BuildCandlesEndpoint(instrument, granularity, price, count, fromDate, toDate);
+        var endpoint = BuildCandlesEndpoint(instrument, granularity, price, count, 
+            fromDate, toDate);
 
         var candleResponse =  await GetAsync<CandleResponse>(endpoint);
 
         return candleResponse.StatusCode == HttpStatusCode.OK
-            ? candleResponse.Value.Candles.Where(c => c.Complete).Select(MapToCandle)
-            : Enumerable.Empty<Candle>();
+            ? candleResponse.Value.Candles.MapToCandles()
+            : Array.Empty<Candle>();
     }
 
     public async Task<ApiResponse<List<PricingResponse>>> GetPricesFromOanda(string instruments) =>
@@ -136,15 +137,5 @@ public class OandaApiService
         }
 
         return endpoint;
-    }
-
-    private static Candle MapToCandle(CandleData candleData)
-    {
-        return new Candle(candleData);
-    }
-
-    private static Instrument MapToInstrument(InstrumentResponse ir)
-    {
-        return new Instrument(ir.Name, ir.Type, ir.DisplayName, ir.PipLocation, ir.TradeUnitsPrecision, ir.MarginRate);
     }
 }

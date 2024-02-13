@@ -1,8 +1,8 @@
 ﻿namespace Trading.Bot.Models.Indicators;
 
-public class KeltnerResult : Indicator
+public class KeltnerResult : IndicatorBase
 {
     public double Ema { get; set; }
-    public double KeltnerTop { get; set; }
-    public double KeltnerBottom { get; set; }
+    public double UpperBand { get; set; }
+    public double LowerBand { get; set; }
 }

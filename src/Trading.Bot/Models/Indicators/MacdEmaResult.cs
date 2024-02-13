@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Models.Indicators;
 
-public class MacdEmaResult : Indicator
+public class MacdEmaResult : IndicatorBase
 {
     public double MacdDelta { get; set; }
     public double MacdDeltaPrev { get; set; }

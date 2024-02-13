@@ -4,7 +4,7 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
 {
     public Task<IResult> Handle(BollingerBandsRequest request, CancellationToken cancellationToken)
     {
-        var bollingerBandsList = new List<FileData<IEnumerable<BollingerBandsResult>>>();
+        var bollingerBandsList = new List<FileData<IEnumerable<object>>>();
 
         foreach (var file in request.Files)
         {
@@ -22,9 +22,14 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
 
             var bollingerBands = candles.CalcBollingerBands(window, stdDev);
 
-            bollingerBandsList.Add(new FileData<IEnumerable<BollingerBandsResult>>(
+            var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray());
+
+            bollingerBandsList.Add(new FileData<IEnumerable<object>>(
             $"{instrument}_{granularity}_BB_{window}_{stdDev}.csv",
             request.ShowTradesOnly ? bollingerBands.Where(ma => ma.Signal != Signal.None) : bollingerBands));
+
+            bollingerBandsList.Add(new FileData<IEnumerable<object>>(
+                $"{instrument}_{granularity}_BB_{window}_{stdDev}_SIM.csv", tradingSim));
         }
 
         if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);

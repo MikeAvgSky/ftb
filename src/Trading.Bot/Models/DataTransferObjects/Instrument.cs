@@ -9,13 +9,13 @@ public class Instrument
     public int TradeUnitsPrecision { get; }
     public double MarginRate { get; }
 
-    public Instrument(string name, string type, string displayName, int pipLocation, int tradeUnitsPrecision, double marginRate)
+    public Instrument(InstrumentResponse instrument)
     {
-        Name = name;
-        Type = type;
-        DisplayName = displayName;
-        PipLocation = Math.Pow(10, pipLocation);
-        TradeUnitsPrecision = tradeUnitsPrecision;
-        MarginRate = marginRate;
+        Name = instrument.Name;
+        Type = instrument.Type;
+        DisplayName = instrument.DisplayName;
+        PipLocation = Math.Pow(10, instrument.PipLocation);
+        TradeUnitsPrecision = instrument.TradeUnitsPrecision;
+        MarginRate = instrument.MarginRate;
     }
 }

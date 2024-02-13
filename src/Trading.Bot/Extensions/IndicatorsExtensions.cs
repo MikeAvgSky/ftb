@@ -3,7 +3,6 @@
 public static class IndicatorsExtensions
 {
     private const double RsiLimit = 50.0;
-    private const double LossFactor = -1.0;
     private const double ProfitFactor = 1.5;
 
     public static IEnumerable<double> CalcCma(this IEnumerable<double> sequence)
@@ -153,24 +152,26 @@ public static class IndicatorsExtensions
 
         var length = candles.Length;
 
-        var mac = new MacResult[length];
+        var result = new MacResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            mac[i].Candle = candles[i];
+            result[i] ??= new MacResult();
 
-            mac[i].MaShort = maShort[i];
+            result[i].Candle = candles[i];
 
-            mac[i].MaLong = maLong[i];
+            result[i].MaShort = maShort[i];
 
-            mac[i].Delta = maShort[i] - maLong[i];
+            result[i].MaLong = maLong[i];
 
-            mac[i].DeltaPrev = i > 0 ? mac[i - 1].Delta : 0;
+            result[i].Delta = maShort[i] - maLong[i];
 
-            mac[i].Signal = mac[i].Delta switch
+            result[i].DeltaPrev = i > 0 ? result[i - 1].Delta : 0;
+
+            result[i].Signal = result[i].Delta switch
             {
-                >= 0 when mac[i].DeltaPrev < 0 => Signal.Buy,
-                < 0 when mac[i].DeltaPrev >= 0 => Signal.Sell,
+                >= 0 when result[i].DeltaPrev < 0 => Signal.Buy,
+                < 0 when result[i].DeltaPrev >= 0 => Signal.Sell,
                 _ => Signal.None
             };
 
@@ -178,89 +179,93 @@ public static class IndicatorsExtensions
                 ? candles[i + 1].Mid_C - candles[i].Mid_C
                 : candles[i].Mid_C;
 
-            mac[i].Gain = Math.Abs(diff * (int)mac[i].Signal);
+            result[i].Gain = Math.Abs(diff * (int)result[i].Signal);
 
-            mac[i].TakeProfit = mac[i].Signal switch
+            result[i].TakeProfit = result[i].Signal switch
             {
-                Signal.Buy => candles[i].Mid_C + mac[i].Gain,
-                Signal.Sell => candles[i].Mid_C - mac[i].Gain,
+                Signal.Buy => candles[i].Mid_C + result[i].Gain,
+                Signal.Sell => candles[i].Mid_C - result[i].Gain,
                 _ => 0.0
             };
 
-            mac[i].StopLoss = mac[i].Signal switch
+            result[i].StopLoss = result[i].Signal switch
             {
-                Signal.Buy => candles[i].Mid_C - mac[i].Gain / ProfitFactor,
-                Signal.Sell => candles[i].Mid_C + mac[i].Gain / ProfitFactor,
+                Signal.Buy => candles[i].Mid_C - result[i].Gain / ProfitFactor,
+                Signal.Sell => candles[i].Mid_C + result[i].Gain / ProfitFactor,
                 _ => 0.0
             };
 
-            mac[i].Loss = Math.Abs(candles[i].Mid_C - mac[i].StopLoss);
+            result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
 
-        return mac;
+        return result;
     }
 
     public static BollingerBandsResult[] CalcBollingerBands(this Candle[] candles, int window = 20, int stdDev = 2)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
-        var standardDeviation = typicalPrice.CalcRolStdDev(window, stdDev).ToArray();
+        var rolStdDev = typicalPrice.CalcRolStdDev(window, stdDev).ToArray();
 
-        var bollingerBandsSma = typicalPrice.CalcSma(window).ToArray();
+        var sma = typicalPrice.CalcSma(window).ToArray();
 
         var length = candles.Length;
 
-        var bollingerBands = new BollingerBandsResult[length];
+        var result = new BollingerBandsResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            bollingerBands[i].Candle = candles[i];
+            result[i] ??= new BollingerBandsResult();
 
-            bollingerBands[i].BollingerSma = bollingerBandsSma[i];
+            result[i].Candle = candles[i];
 
-            bollingerBands[i].BollingerTop = bollingerBands[i].BollingerSma + standardDeviation[i] * stdDev;
+            result[i].Sma = sma[i];
 
-            bollingerBands[i].BollingerBottom = bollingerBands[i].BollingerSma - standardDeviation[i] * stdDev;
+            result[i].UpperBand = sma[i] + rolStdDev[i] * stdDev;
 
-            bollingerBands[i].Signal = candles[i] switch
+            result[i].LowerBand = sma[i] - rolStdDev[i] * stdDev;
+
+            result[i].Signal = candles[i] switch
             {
-                var candle when candle.Mid_C < bollingerBands[i].BollingerBottom &&
-                                candle.Mid_O > bollingerBands[i].BollingerBottom => Signal.Buy,
-                var candle when candle.Mid_C > bollingerBands[i].BollingerTop &&
-                                candle.Mid_O < bollingerBands[i].BollingerTop => Signal.Sell,
+                var candle when candle.Mid_C < result[i].LowerBand &&
+                                candle.Mid_O > result[i].LowerBand => Signal.Buy,
+                var candle when candle.Mid_C > result[i].UpperBand &&
+                                candle.Mid_O < result[i].UpperBand => Signal.Sell,
                 _ => Signal.None
             };
 
-            bollingerBands[i].Gain = Math.Abs(candles[i].Mid_C - bollingerBands[i].BollingerSma);
+            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Sma);
 
-            bollingerBands[i].TakeProfit = bollingerBands[i].Signal switch
+            result[i].TakeProfit = result[i].Signal switch
             {
-                Signal.Buy => candles[i].Mid_C + bollingerBands[i].Gain,
-                Signal.Sell => candles[i].Mid_C - bollingerBands[i].Gain,
+                Signal.Buy => candles[i].Mid_C + result[i].Gain,
+                Signal.Sell => candles[i].Mid_C - result[i].Gain,
                 _ => 0.0
             };
 
-            bollingerBands[i].StopLoss = bollingerBands[i].Signal switch
+            result[i].StopLoss = result[i].Signal switch
             {
-                Signal.Buy => candles[i].Mid_C - bollingerBands[i].Gain / ProfitFactor,
-                Signal.Sell => candles[i].Mid_C + bollingerBands[i].Gain / ProfitFactor,
+                Signal.Buy => candles[i].Mid_C - result[i].Gain / ProfitFactor,
+                Signal.Sell => candles[i].Mid_C + result[i].Gain / ProfitFactor,
                 _ => 0.0
             };
 
-            bollingerBands[i].Loss = Math.Abs(candles[i].Mid_C - bollingerBands[i].StopLoss);
+            result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
 
-        return bollingerBands;
+        return result;
     }
 
     public static AtrResult[] CalcAtr(this Candle[] candles, int window = 14)
     {
         var length = candles.Length;
 
-        var atr = new AtrResult[length];
+        var result = new AtrResult[length];
 
         for (var i = 0; i < length; i++)
         {
+            result[i] ??= new AtrResult();
+
             var prevMidC = i == 0 ? candles[i].Mid_C : candles[i - 1].Mid_C;
 
             var tr1 = candles[i].Mid_H - candles[i].Mid_L;
@@ -271,19 +276,19 @@ public static class IndicatorsExtensions
 
             var trueRanges = new[] { tr1, tr2, tr3 };
 
-            atr[i].Candle = candles[i];
+            result[i].Candle = candles[i];
 
-            atr[i].MaxTr = trueRanges.Max();
+            result[i].MaxTr = trueRanges.Max();
         }
 
-        var maxTra = atr.Select(x => x.MaxTr).CalcSma(window).ToArray();
+        var maxTra = result.Select(x => x.MaxTr).CalcSma(window).ToArray();
 
         for (var i = 0; i < length; i++)
         {
-            atr[i].Atr = maxTra[i];
+            result[i].Atr = maxTra[i];
         }
 
-        return atr;
+        return result;
     }
 
     public static KeltnerResult[] CalcKeltner(this Candle[] candles, int emaWindow = 20, int atrWindow = 10)
@@ -294,20 +299,22 @@ public static class IndicatorsExtensions
 
         var length = candles.Length;
 
-        var keltner = new KeltnerResult[length];
+        var result = new KeltnerResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            keltner[i].Candle = candles[i];
+            result[i] ??= new KeltnerResult();
 
-            keltner[i].Ema = ema[i];
+            result[i].Candle = candles[i];
 
-            keltner[i].KeltnerTop = atr[i].Atr * 2 + ema[i];
+            result[i].Ema = ema[i];
 
-            keltner[i].KeltnerBottom = keltner[i].Ema - atr[i].Atr * 2;
+            result[i].UpperBand = atr[i].Atr * 2 + ema[i];
+
+            result[i].LowerBand = result[i].Ema - atr[i].Atr * 2;
         }
 
-        return keltner;
+        return result;
     }
 
     public static RsiResult[] CalcRsi(this Candle[] candles, int window = 14)
@@ -344,22 +351,24 @@ public static class IndicatorsExtensions
 
         var losses_rma = losses.CalcRma(window).ToArray();
 
-        var rsi = new RsiResult[length];
+        var result = new RsiResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            rsi[i].Candle = candles[i];
+            result[i] ??= new RsiResult();
 
-            rsi[i].AverageGain = gains_rma[i];
+            result[i].Candle = candles[i];
 
-            rsi[i].AverageLoss = losses_rma[i];
+            result[i].AverageGain = gains_rma[i];
 
-            var rs = rsi[i].AverageGain / rsi[i].AverageLoss;
+            result[i].AverageLoss = losses_rma[i];
 
-            rsi[i].Rsi = 100.0 - 100.0 / (1.0 + rs);
+            var rs = result[i].AverageGain / result[i].AverageLoss;
+
+            result[i].Rsi = 100.0 - 100.0 / (1.0 + rs);
         }
 
-        return rsi;
+        return result;
     }
 
     public static MacdResult[] CalcMacd(this Candle[] candles, int shortWindow = 12, int longWindow = 26, int signal = 9)
@@ -370,25 +379,27 @@ public static class IndicatorsExtensions
 
         var length = candles.Length;
 
-        var macd = new MacdResult[length];
+        var result = new MacdResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            macd[i].Candle = candles[i];
+            result[i] ??= new MacdResult();
 
-            macd[i].Macd = emaShort[i] - emaLong[i];
+            result[i].Candle = candles[i];
+
+            result[i].Macd = emaShort[i] - emaLong[i];
         }
 
-        var ema = macd.Select(m => m.Macd).CalcEma(signal).ToArray();
+        var ema = result.Select(m => m.Macd).CalcEma(signal).ToArray();
 
         for (var i = 0; i < length; i++)
         {
-            macd[i].SignalLine = ema[i];
+            result[i].SignalLine = ema[i];
 
-            macd[i].Histogram = macd[i].Macd - macd[i].SignalLine;
+            result[i].Histogram = result[i].Macd - result[i].SignalLine;
         }
 
-        return macd;
+        return result;
     }
 
     public static RsiEmaResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200)
@@ -399,45 +410,47 @@ public static class IndicatorsExtensions
 
         var length = candles.Length;
 
-        var rsiEma = new RsiEmaResult[length];
+        var result = new RsiEmaResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            rsiEma[i].Candle = candles[i];
+            result[i] ??= new RsiEmaResult();
 
-            rsiEma[i].Rsi = rsi[i].Rsi;
+            result[i].Candle = candles[i];
 
-            rsiEma[i].Ema = ema[i];
+            result[i].Rsi = rsi[i].Rsi;
+
+            result[i].Ema = ema[i];
 
             var engulfing = i > 0 && candles[i].IsEngulfingCandle(candles[i - 1]);
 
-            rsiEma[i].Signal = engulfing switch
+            result[i].Signal = engulfing switch
             {
-                true when candles[i].Direction == 1 && candles[i].Mid_L > rsiEma[i].Ema && rsiEma[i].Rsi > RsiLimit => Signal.Buy,
-                true when candles[i].Direction == -1 && candles[i].Mid_H < rsiEma[i].Ema && rsiEma[i].Rsi < RsiLimit => Signal.Sell,
+                true when candles[i].Direction == 1 && candles[i].Mid_L > result[i].Ema && result[i].Rsi > RsiLimit => Signal.Buy,
+                true when candles[i].Direction == -1 && candles[i].Mid_H < result[i].Ema && result[i].Rsi < RsiLimit => Signal.Sell,
                 _ => Signal.None
             };
 
-            rsiEma[i].TakeProfit = rsiEma[i].Signal switch
+            result[i].TakeProfit = result[i].Signal switch
             {
                 Signal.Buy => (candles[i].Ask_C - candles[i].Ask_O) * ProfitFactor + candles[i].Ask_C,
                 Signal.Sell => (candles[i].Bid_C - candles[i].Bid_O) * ProfitFactor + candles[i].Bid_C,
                 _ => 0.0
             };
 
-            rsiEma[i].Gain = Math.Abs(rsiEma[i].TakeProfit - candles[i].Ask_C);
+            result[i].Gain = Math.Abs(result[i].TakeProfit - candles[i].Ask_C);
 
-            rsiEma[i].StopLoss = rsiEma[i].Signal switch
+            result[i].StopLoss = result[i].Signal switch
             {
                 Signal.Buy => candles[i].Ask_O,
                 Signal.Sell => candles[i].Bid_O,
                 _ => 0.0
             };
 
-            rsiEma[i].Loss = Math.Abs(candles[i].Bid_C - rsiEma[i].StopLoss);
+            result[i].Loss = Math.Abs(candles[i].Bid_C - result[i].StopLoss);
         }
 
-        return rsiEma;
+        return result;
     }
 
     public static MacdEmaResult[] CalcMacdEma(this Candle[] candles, int emaWindow = 100)
@@ -448,127 +461,53 @@ public static class IndicatorsExtensions
 
         var length = candles.Length;
 
-        var macdEma = new MacdEmaResult[length];
+        var result = new MacdEmaResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            macdEma[i].Candle = candles[i];
+            result[i] ??= new MacdEmaResult();
 
-            macdEma[i].MacdDelta = macd[i].Macd - macd[i].SignalLine;
+            result[i].Candle = candles[i];
 
-            macdEma[i].MacdDeltaPrev = i == 0 ? 0.0 : macd[i - 1].Macd - macd[i - 1].SignalLine;
+            result[i].MacdDelta = macd[i].Macd - macd[i].SignalLine;
 
-            macdEma[i].Direction = macdEma[i].MacdDelta switch
+            result[i].MacdDeltaPrev = i == 0 ? 0.0 : macd[i - 1].Macd - macd[i - 1].SignalLine;
+
+            result[i].Direction = result[i].MacdDelta switch
             {
-                > 0 when macdEma[i].MacdDeltaPrev < 0 => 1,
-                < 0 when macdEma[i].MacdDeltaPrev > 0 => -1,
+                > 0 when result[i].MacdDeltaPrev < 0 => 1,
+                < 0 when result[i].MacdDeltaPrev > 0 => -1,
                 _ => 0
             };
 
-            macdEma[i].Ema = ema[i];
+            result[i].Ema = ema[i];
 
-            macdEma[i].Signal = macdEma[i].Direction switch
+            result[i].Signal = result[i].Direction switch
             {
-                1 when candles[i].Mid_L > macdEma[i].Ema => Signal.Buy,
-                -1 when candles[i].Mid_H < macdEma[i].Ema => Signal.Sell,
+                1 when candles[i].Mid_L > result[i].Ema => Signal.Buy,
+                -1 when candles[i].Mid_H < result[i].Ema => Signal.Sell,
                 _ => Signal.None
             };
 
-            macdEma[i].TakeProfit = macdEma[i].Signal switch
+            result[i].TakeProfit = result[i].Signal switch
             {
                 Signal.Buy => (candles[i].Ask_C - candles[i].Ask_O) * ProfitFactor + candles[i].Ask_C,
                 Signal.Sell => (candles[i].Bid_C - candles[i].Bid_O) * ProfitFactor + candles[i].Bid_C,
                 _ => 0.0
             };
 
-            macdEma[i].Gain = Math.Abs(macdEma[i].TakeProfit - candles[i].Ask_C);
+            result[i].Gain = Math.Abs(result[i].TakeProfit - candles[i].Ask_C);
 
-            macdEma[i].StopLoss = macdEma[i].Signal switch
+            result[i].StopLoss = result[i].Signal switch
             {
                 Signal.Buy => candles[i].Ask_O,
                 Signal.Sell => candles[i].Bid_O,
                 _ => 0.0
             };
 
-            macdEma[i].Loss = Math.Abs(candles[i].Bid_C - macdEma[i].StopLoss);
+            result[i].Loss = Math.Abs(candles[i].Bid_C - result[i].StopLoss);
         }
 
-        return macdEma;
-    }
-
-    public static TradeResult[] CalcTradeResults(this Indicator[] indicators)
-    {
-        var length = indicators.Length;
-
-        var openTrades = new List<TradeResult>();
-
-        var closedTrades = new List<TradeResult>();
-
-        for (var i = 0; i < length; i++)
-        {
-            if (indicators[i].Signal != Signal.None)
-            {
-                openTrades.Add(new TradeResult
-                {
-                    Running = true,
-                    StartIndex = i,
-                    StartPrice = indicators[i].Signal == Signal.Buy ? indicators[i].Candle.Ask_C : indicators[i].Candle.Bid_C,
-                    TriggerPrice = indicators[i].Signal == Signal.Buy ? indicators[i].Candle.Ask_C : indicators[i].Candle.Bid_C,
-                    Signal = indicators[i].Signal,
-                    TakeProfit = indicators[i].TakeProfit,
-                    StopLoss = indicators[i].StopLoss,
-                    Result = 0.0,
-                    StartTime = indicators[i].Candle.Time,
-                    EndTime = indicators[i].Candle.Time
-                });
-            }
-
-            foreach (var trade in openTrades)
-            {
-                UpdateTrade(trade, indicators[i].Candle);
-
-                if (!trade.Running)
-                {
-                    closedTrades.Add(trade);
-                }
-            }
-        }
-
-        return closedTrades.ToArray();
-    }
-
-    private static void UpdateTrade(TradeResult trade, Candle candle)
-    {
-        if (trade.Signal == Signal.Buy)
-        {
-            if (candle.Bid_H >= trade.TakeProfit)
-            {
-                CloseTrade(trade, ProfitFactor, candle.Time, candle.Bid_H);
-            }
-            else if (candle.Bid_L <= trade.StopLoss)
-            {
-                CloseTrade(trade, LossFactor, candle.Time, candle.Bid_L);
-            }
-        }
-
-        if (trade.Signal == Signal.Sell)
-        {
-            if (candle.Ask_L <= trade.TakeProfit)
-            {
-                CloseTrade(trade, ProfitFactor, candle.Time, candle.Ask_L);
-            }
-            else if (candle.Ask_H >= trade.StopLoss)
-            {
-                CloseTrade(trade, LossFactor, candle.Time, candle.Ask_H);
-            }
-        }
-    }
-
-    private static void CloseTrade(TradeResult trade, double result, DateTime endTime, double triggerPrice)
-    {
-        trade.Running = false;
-        trade.Result = result;
-        trade.EndTime = endTime;
-        trade.TriggerPrice = triggerPrice;
+        return result;
     }
 }

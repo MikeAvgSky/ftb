@@ -22,7 +22,7 @@ public sealed class IndicatorResultHandler : IRequestHandler<IndicatorResultRequ
                 var s when s.StartsWith("MA") => file.GetObjectFromCsv<MacResult>(),
                 var s when s.StartsWith("BB") => file.GetObjectFromCsv<BollingerBandsResult>(),
                 var s when s.Contains("RSI") && s.Contains("EMA") => file.GetObjectFromCsv<RsiEmaResult>(),
-                _ => Enumerable.Empty<Indicator>()
+                _ => Enumerable.Empty<IndicatorBase>()
             }).ToList();
 
             if (!strategy.Any()) return Task.FromResult(Results.BadRequest("Indicator is not valid"));

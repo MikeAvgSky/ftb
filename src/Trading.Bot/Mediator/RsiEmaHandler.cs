@@ -4,7 +4,7 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 {
     public Task<IResult> Handle(RsiEmaRequest request, CancellationToken cancellationToken)
     {
-        var rsiList = new List<FileData<IEnumerable<RsiEmaResult>>>();
+        var rsiList = new List<FileData<IEnumerable<object>>>();
 
         foreach (var file in request.Files)
         {
@@ -22,9 +22,14 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
             var rsi = candles.CalcRsiEma(rsiWindow, emaWindow);
 
-            rsiList.Add(new FileData<IEnumerable<RsiEmaResult>>(
+            var tradingSim = TradeResult.SimulateTrade(rsi.Cast<IndicatorBase>().ToArray());
+
+            rsiList.Add(new FileData<IEnumerable<object>>(
                 $"{instrument}_{granularity}_RSI_{rsiWindow}_EMA_{emaWindow}.csv",
                 request.ShowTradesOnly ? rsi.Where(ma => ma.Signal != Signal.None) : rsi));
+
+            rsiList.Add(new FileData<IEnumerable<object>>(
+                $"{instrument}_{granularity}_RSI_{rsiWindow}_EMA_{emaWindow}_SIM.csv", tradingSim));
         }
 
         if (!rsiList.Any()) return Task.FromResult(Results.Empty);

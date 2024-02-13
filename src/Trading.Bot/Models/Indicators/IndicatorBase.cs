@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Models.Indicators;
 
-public class Indicator
+public class IndicatorBase
 {
     public Candle Candle { get; set; }
     public Signal Signal { get; set; }

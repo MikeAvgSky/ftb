@@ -4,7 +4,7 @@ public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IRes
 {
     public Task<IResult> Handle(MovingAverageCrossRequest request, CancellationToken cancellationToken)
     {
-        var movingAvgCrossList = new List<FileData<IEnumerable<MacResult>>>();
+        var movingAvgCrossList = new List<FileData<IEnumerable<object>>>();
 
         foreach (var file in request.Files)
         {
@@ -28,7 +28,7 @@ public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IRes
             {
                 var movingAvgCross = candles.CalcMac(window.Item1, window.Item2);
 
-                movingAvgCrossList.Add(new FileData<IEnumerable<MacResult>>(
+                movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
                     $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}.csv",
                     request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Signal != Signal.None) : movingAvgCross));
             }
