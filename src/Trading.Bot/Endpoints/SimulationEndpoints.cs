@@ -4,11 +4,11 @@ public static class SimulationEndpoints
 {
     public static void MapSimulationEndpoints(this IEndpointRouteBuilder builder)
     {
-        builder.MapPost("api/simulation/ma_cross", SimulateMovingAverageCross);
-        builder.MapPost("api/simulation/bb", SimulateBollingerBands);
-        builder.MapPost("api/simulation/rsi_ema", SimulateRsiEma);
-        builder.MapPost("api/simulation/macd_ema", SimulateMacdEma);
-        builder.MapPost("api/simulation/results", CalculateSimulationResults);
+        builder.MapPost("api/simulation/ma_cross", SimulateMovingAverageCross).DisableAntiforgery();
+        builder.MapPost("api/simulation/bb", SimulateBollingerBands).DisableAntiforgery();
+        builder.MapPost("api/simulation/rsi_ema", SimulateRsiEma).DisableAntiforgery();
+        builder.MapPost("api/simulation/macd_ema", SimulateMacdEma).DisableAntiforgery();
+        builder.MapPost("api/simulation/results", CalculateSimulationResults).DisableAntiforgery();
     }
 
     private static async Task<IResult> SimulateMovingAverageCross(ISender sender,

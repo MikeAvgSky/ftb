@@ -4,7 +4,7 @@ public static class InstrumentEndpoints
 {
     public static void MapInstrumentEndpoints(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet("api/instruments", GetInstrumentCollection);
+        builder.MapGet("api/instruments", GetInstrumentCollection).DisableAntiforgery();
     }
 
     private static async Task<IResult> GetInstrumentCollection(ISender sender,

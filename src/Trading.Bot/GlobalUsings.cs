@@ -13,7 +13,6 @@ global using CsvHelper;
 global using CsvHelper.TypeConversion;
 global using MediatR;
 global using Trading.Bot.Extensions;
-global using Trading.Bot.Models;
 global using Trading.Bot.Models.Enums;
 global using Trading.Bot.Models.Interfaces;
 global using Trading.Bot.Models.ApiResponses;

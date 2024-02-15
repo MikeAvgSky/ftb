@@ -4,7 +4,7 @@ public static class CandleEndpoints
 {
     public static void MapCandleEndpoints(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet("api/candles/{currencies}", GetCandles);
+        builder.MapGet("api/candles/{currencies}", GetCandles).DisableAntiforgery();
     }
 
     private static async Task<IResult> GetCandles(ISender sender, 

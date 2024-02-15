@@ -4,7 +4,7 @@ public static class AccountEndpoints
 {
     public static void MapAccountEndpoints(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet("api/account", GetAccountSummary);
+        builder.MapGet("api/account", GetAccountSummary).DisableAntiforgery();
     }
 
     private static async Task<IResult> GetAccountSummary(ISender sender,
