@@ -200,13 +200,35 @@ public class OandaApiService
             : null;
     }
 
-    public async Task<bool> CloseTrade(int tradeId)
+    public async Task<bool> CloseTrade(string tradeId)
     {
         var endpoint = $"accounts/{_accountId}/trades/{tradeId}/close";
 
         var response = await PutAsync<OrderFillTransaction>(endpoint, "orderFillTransaction");
 
         return response.StatusCode == HttpStatusCode.OK && response.Value is not null;
+    }
+
+    public async Task<TradeResponse[]> GetOpenTrades()
+    {
+        var endpoint = $"accounts/{_accountId}/openTrades";
+
+        var response = await GetAsync<TradeResponse[]>(endpoint, "trades");
+
+        return response.StatusCode == HttpStatusCode.OK
+            ? response.Value
+            : Array.Empty<TradeResponse>();
+    }
+
+    public async Task<TradeResponse> GetTrade(string tradeId)
+    {
+        var endpoint = $"accounts/{_accountId}/trades/{tradeId}";
+
+        var response = await GetAsync<TradeResponse>(endpoint, "trade");
+
+        return response.StatusCode == HttpStatusCode.OK
+            ? response.Value
+            : null;
     }
 
     private string BuildInstrumentsEndpoint(string instruments)
