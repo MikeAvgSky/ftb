@@ -11,18 +11,15 @@ public sealed class AccountSummaryHandler : IRequestHandler<AccountSummaryReques
 
     public async Task<IResult> Handle(AccountSummaryRequest request, CancellationToken cancellationToken)
     {
-        var apiResponse = await _apiService.GetOandaAccountSummary();
+        var apiResponse = await _apiService.GetAccountSummary();
 
-        if (apiResponse.StatusCode == HttpStatusCode.OK)
-        {
-            var bytes = new List<AccountResponse> { apiResponse.Value }.GetCsvBytes();
+        if (apiResponse is null) return Results.Empty;
 
-            return request.Download
-                ? Results.File(bytes, "text/csv", "instruments.csv")
-                : Results.Ok(apiResponse.Value);
-        }
+        var bytes = new List<AccountResponse> { apiResponse }.GetCsvBytes();
 
-        return Results.Empty;
+        return request.Download
+            ? Results.File(bytes, "text/csv", "instruments.csv")
+            : Results.Ok(apiResponse);
     }
 }
 

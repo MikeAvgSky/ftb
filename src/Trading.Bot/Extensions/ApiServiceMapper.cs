@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Extensions;
 
-public static class ApiServiceExtensions
+public static class ApiServiceMapper
 {
     public static Candle[] MapToCandles(this CandleData[] candles)
     {
@@ -16,9 +16,9 @@ public static class ApiServiceExtensions
         return result;
     }
 
-    public static Instrument[] MapToInstruments(this List<InstrumentResponse> instruments)
+    public static Instrument[] MapToInstruments(this InstrumentResponse[] instruments)
     {
-        var length = instruments.Count;
+        var length = instruments.Length;
 
         var result = new Instrument[length];
 

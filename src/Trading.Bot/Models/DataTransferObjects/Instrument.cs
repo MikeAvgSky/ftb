@@ -6,6 +6,7 @@ public class Instrument
     public string Type { get; }
     public string DisplayName { get; }
     public double PipLocation { get; }
+    public int DisplayPrecision { get; }
     public int TradeUnitsPrecision { get; }
     public double MarginRate { get; }
 
@@ -15,6 +16,7 @@ public class Instrument
         Type = instrument.Type;
         DisplayName = instrument.DisplayName;
         PipLocation = Math.Pow(10, instrument.PipLocation);
+        DisplayPrecision = instrument.DisplayPrecision;
         TradeUnitsPrecision = instrument.TradeUnitsPrecision;
         MarginRate = instrument.MarginRate;
     }

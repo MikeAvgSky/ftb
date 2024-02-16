@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Extensions;
 
-public static class CandleIndicatorsExtensions
+public static class CandleIndicators
 {
     private const double RsiLimit = 50.0;
     private const double ProfitFactor = 1.5;

@@ -11,7 +11,7 @@ public sealed class InstrumentsHandler : IRequestHandler<InstrumentsRequest, IRe
 
     public async Task<IResult> Handle(InstrumentsRequest request, CancellationToken cancellationToken)
     {
-        var instrumentList = (await _apiService.GetInstrumentsFromOanda(request.Instruments)).ToList();
+        var instrumentList = (await _apiService.GetInstruments(request.Instruments)).ToList();
 
         if (!string.IsNullOrEmpty(request.Type))
         {

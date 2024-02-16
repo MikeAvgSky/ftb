@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Extensions;
 
-public static class CandleCalculationsExtensions
+public static class MovingAverages
 {
     public static IEnumerable<double> CalcCma(this IEnumerable<double> sequence)
     {

@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Extensions;
 
-public static class CandlePatternsExtensions
+public static class CandlePatterns
 {
     private const double HangingManBody = 15.0;
     private const double HangingManHeight = 75.0;

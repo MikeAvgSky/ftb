@@ -21,27 +21,7 @@ public class OandaApiService
 
             if (response.IsSuccessStatusCode)
             {
-                var stringResponse = await response.Content.ReadAsStringAsync();
-
-                T value;
-
-                if (dataKey == default)
-                {
-                    value = Deserialize<T>(stringResponse);
-
-                    return new ApiResponse<T>(response.StatusCode, value);
-                }
-
-                var dictResponse = JsonSerializer.Deserialize<Dictionary<string, object>>(stringResponse);
-
-                if (dictResponse.ContainsKey(dataKey))
-                {
-                    value = Deserialize<T>(JsonSerializer.Serialize(dictResponse[dataKey]));
-
-                    return new ApiResponse<T>(response.StatusCode, value);
-                }
-
-                return new ApiResponse<T>(HttpStatusCode.NotFound, default);
+                return await HandleApiResponse<T>(dataKey, response);
             }
 
             return new ApiResponse<T>(response.StatusCode, default);
@@ -50,6 +30,107 @@ public class OandaApiService
         {
             return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
         }
+    }
+
+    private async Task<ApiResponse<T>> PostAsync<T>(string endpoint, object body = default, string dataKey = default) where T : class
+    {
+        try
+        {
+            HttpResponseMessage response;
+
+            if (body == default)
+            {
+                response = await _httpClient.PostAsync(endpoint, new StringContent(string.Empty));
+            }
+            else
+            {
+                var content =
+                    new StringContent(
+                        JsonSerializer.Serialize(body,
+                            new JsonSerializerOptions
+                            {
+                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                            }),
+                        Encoding.UTF8, "application/json");
+
+                response = await _httpClient.PostAsync(endpoint, content);
+            }
+            
+            if (response.IsSuccessStatusCode)
+            {
+                return await HandleApiResponse<T>(dataKey, response);
+            }
+
+            return new ApiResponse<T>(response.StatusCode, default);
+        }
+        catch (Exception)
+        {
+            return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
+        }
+    }
+
+    private async Task<ApiResponse<T>> PutAsync<T>(string endpoint, object body = default, string dataKey = default) where T : class
+    {
+        try
+        {
+            HttpResponseMessage response;
+
+            if (body == default)
+            {
+                response = await _httpClient.PutAsync(endpoint, new StringContent(string.Empty));
+            }
+            else
+            {
+                var content =
+                    new StringContent(
+                        JsonSerializer.Serialize(body,
+                            new JsonSerializerOptions
+                            {
+                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                            }),
+                        Encoding.UTF8, "application/json");
+
+                response = await _httpClient.PutAsync(endpoint, content);
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await HandleApiResponse<T>(dataKey, response);
+            }
+
+            return new ApiResponse<T>(response.StatusCode, default);
+        }
+        catch (Exception)
+        {
+            return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
+        }
+    }
+
+    private static async Task<ApiResponse<T>> HandleApiResponse<T>(string dataKey, HttpResponseMessage response) where T : class
+    {
+        var stringResponse = await response.Content.ReadAsStringAsync();
+
+        T value;
+
+        if (dataKey == default)
+        {
+            value = Deserialize<T>(stringResponse);
+
+            return new ApiResponse<T>(response.StatusCode, value);
+        }
+
+        var dictResponse = JsonSerializer.Deserialize<Dictionary<string, object>>(stringResponse);
+
+        if (dictResponse.ContainsKey(dataKey))
+        {
+            value = Deserialize<T>(JsonSerializer.Serialize(dictResponse[dataKey]));
+
+            return new ApiResponse<T>(response.StatusCode, value);
+        }
+
+        return new ApiResponse<T>(HttpStatusCode.NotFound, default);
     }
 
     private static T Deserialize<T>(string stringResponse) where T : class
@@ -62,35 +143,71 @@ public class OandaApiService
             });
     }
 
-    public async Task<ApiResponse<AccountResponse>> GetOandaAccountSummary() =>
-        await GetAsync<AccountResponse>($"accounts/{_accountId}/summary", "account");
+    public async Task<AccountResponse> GetAccountSummary()
+    {
+        var endpoint = $"accounts/{_accountId}/summary";
 
-    public async Task<Instrument[]> GetInstrumentsFromOanda(string instruments)
+        var response = await GetAsync<AccountResponse>(endpoint, "account");
+
+        return response.StatusCode == HttpStatusCode.OK
+            ? response.Value
+            : null;
+    }
+
+    public async Task<PricingResponse[]> GetPrices(string instruments)
+    {
+        var endpoint = $"accounts/{_accountId}/pricing?instruments={instruments}";
+
+        var response = await GetAsync<PricingResponse[]>(endpoint, "prices");
+
+        return response.StatusCode == HttpStatusCode.OK
+            ? response.Value
+            : Array.Empty<PricingResponse>();
+    }
+
+    public async Task<Instrument[]> GetInstruments(string instruments)
     {
         var endpoint = BuildInstrumentsEndpoint(instruments);
 
-        var instrumentResponse = await GetAsync<List<InstrumentResponse>>(endpoint, "instruments");
+        var response = await GetAsync<InstrumentResponse[]>(endpoint, "instruments");
 
-        return instrumentResponse.StatusCode == HttpStatusCode.OK
-            ? instrumentResponse.Value.MapToInstruments()
+        return response.StatusCode == HttpStatusCode.OK
+            ? response.Value.MapToInstruments()
             : Array.Empty<Instrument>();
     }
 
-    public async Task<Candle[]> GetCandlesFromOanda(string instrument, string granularity,
+    public async Task<Candle[]> GetCandles(string instrument, string granularity,
         string price, int count, DateTime fromDate, DateTime toDate)
     {
         var endpoint = BuildCandlesEndpoint(instrument, granularity, price, count, 
             fromDate, toDate);
 
-        var candleResponse =  await GetAsync<CandleResponse>(endpoint);
+        var response =  await GetAsync<CandleResponse>(endpoint);
 
-        return candleResponse.StatusCode == HttpStatusCode.OK
-            ? candleResponse.Value.Candles.MapToCandles()
+        return response.StatusCode == HttpStatusCode.OK
+            ? response.Value.Candles.MapToCandles()
             : Array.Empty<Candle>();
     }
 
-    public async Task<ApiResponse<List<PricingResponse>>> GetPricesFromOanda(string instruments) =>
-        await GetAsync<List<PricingResponse>>($"accounts/{_accountId}/pricing?instruments={instruments}");
+    public async Task<OrderFillTransaction> PlaceTrade(Order orderRequest)
+    {
+        var endpoint = $"accounts/{_accountId}/orders";
+
+        var response = await PostAsync<OrderFillTransaction>(endpoint, orderRequest, "orderFillTransaction");
+
+        return response.StatusCode == HttpStatusCode.OK
+            ? response.Value
+            : null;
+    }
+
+    public async Task<bool> CloseTrade(int tradeId)
+    {
+        var endpoint = $"accounts/{_accountId}/trades/{tradeId}/close";
+
+        var response = await PutAsync<OrderFillTransaction>(endpoint, "orderFillTransaction");
+
+        return response.StatusCode == HttpStatusCode.OK && response.Value is not null;
+    }
 
     private string BuildInstrumentsEndpoint(string instruments)
     {

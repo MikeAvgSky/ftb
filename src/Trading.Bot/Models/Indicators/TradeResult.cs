@@ -4,6 +4,7 @@ public class TradeResult
 {
     public bool Running { get; set; }
     public int StartIndex { get; set; }
+    public int EndIndex { get; set; }
     public double StartPrice { get; set; }
     public double TriggerPrice { get; set; }
     public Signal Signal { get; set; }
