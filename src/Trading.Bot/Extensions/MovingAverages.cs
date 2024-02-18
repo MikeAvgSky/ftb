@@ -101,7 +101,7 @@ public static class MovingAverages
         }
     }
 
-    public static double CalcStdDev(this IEnumerable<double> sequence, int std)
+    public static double CalcStdDev(this IEnumerable<double> sequence, double std)
     {
         if (sequence == null)
         {
@@ -122,7 +122,7 @@ public static class MovingAverages
         return Math.Sqrt(sum / list.Length);
     }
 
-    public static IEnumerable<double> CalcRolStdDev(this IEnumerable<double> sequence, int window, int std)
+    public static IEnumerable<double> CalcRolStdDev(this IEnumerable<double> sequence, int window, double std)
     {
         var queue = new Queue<double>(window);
 

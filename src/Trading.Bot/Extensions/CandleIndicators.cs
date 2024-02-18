@@ -64,7 +64,7 @@ public static class CandleIndicators
         return result;
     }
 
-    public static BollingerBandsResult[] CalcBollingerBands(this Candle[] candles, int window = 20, int stdDev = 2)
+    public static BollingerBandsResult[] CalcBollingerBands(this Candle[] candles, int window = 20, double stdDev = 2)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 

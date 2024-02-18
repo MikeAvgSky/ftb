@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Models.ApiResponses;
 
-public class OrderFillTransaction
+public class OrderFilledResponse
 {
     public double AccountBalance { get; set; }
     public string AccountID { get; set; }

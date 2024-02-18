@@ -176,8 +176,8 @@ public class OandaApiService
             : Array.Empty<Instrument>();
     }
 
-    public async Task<Candle[]> GetCandles(string instrument, string granularity,
-        string price, int count, DateTime fromDate, DateTime toDate)
+    public async Task<Candle[]> GetCandles(string instrument, string granularity = default,
+        string price = default, int count = 500, DateTime fromDate = default, DateTime toDate = default)
     {
         var endpoint = BuildCandlesEndpoint(instrument, granularity, price, count, 
             fromDate, toDate);
@@ -189,11 +189,22 @@ public class OandaApiService
             : Array.Empty<Candle>();
     }
 
-    public async Task<OrderFillTransaction> PlaceTrade(Order orderRequest)
+    public async Task<DateTime> GetLastCandleTime(string instrument, string granularity = default)
+    {
+        var endpoint = BuildCandlesEndpoint(instrument, granularity, count: 1);
+
+        var response = await GetAsync<CandleResponse>(endpoint);
+
+        return response.StatusCode == HttpStatusCode.OK
+            ? response.Value.Candles.Last().Time
+            : default;
+    }
+
+    public async Task<OrderFilledResponse> PlaceTrade(Order orderRequest)
     {
         var endpoint = $"accounts/{_accountId}/orders";
 
-        var response = await PostAsync<OrderFillTransaction>(endpoint, orderRequest, "orderFillTransaction");
+        var response = await PostAsync<OrderFilledResponse>(endpoint, orderRequest, "orderFillTransaction");
 
         return response.StatusCode == HttpStatusCode.OK
             ? response.Value
@@ -204,7 +215,7 @@ public class OandaApiService
     {
         var endpoint = $"accounts/{_accountId}/trades/{tradeId}/close";
 
-        var response = await PutAsync<OrderFillTransaction>(endpoint, "orderFillTransaction");
+        var response = await PutAsync<OrderFilledResponse>(endpoint, "orderFillTransaction");
 
         return response.StatusCode == HttpStatusCode.OK && response.Value is not null;
     }
@@ -243,8 +254,8 @@ public class OandaApiService
         return endpoint;
     }
 
-    private static string BuildCandlesEndpoint(string instrument, string granularity, string price, int count,
-        DateTime fromDate, DateTime toDate)
+    private static string BuildCandlesEndpoint(string instrument, string granularity = default, 
+        string price = default, int count = 500, DateTime fromDate = default, DateTime toDate = default)
     {
         var endpoint = $"instruments/{instrument}/candles";
 

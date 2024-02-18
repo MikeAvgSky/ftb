@@ -10,8 +10,8 @@ public class Order
     public StopLossOnFill StopLossOnFill { get; set; }
     public TakeProfitOnFill TakeProfitOnFill { get; set; }
 
-    public Order(Instrument instrument, double units, Signal signal,
-        string type = "MARKET", string timeInForce = "FOK", string positionFill = "DEFAULT", double stopLoss = 0, double takeProfit = 0)
+    public Order(Instrument instrument, double units, Signal signal, double stopLoss = 0, double takeProfit = 0,
+        string type = "MARKET", string timeInForce = "FOK", string positionFill = "DEFAULT")
     {
         Type = type;
         Instrument = instrument.Name;

@@ -7,6 +7,12 @@ var constants = builder.Configuration.GetSection(nameof(Constants)).Get<Constant
 
 builder.Services.AddSingleton(constants);
 
+var tradeConfiguration = builder.Configuration.GetSection(nameof(TradeConfiguration)).Get<TradeConfiguration>();
+
+builder.Services.AddSingleton(tradeConfiguration);
+
+builder.Services.AddHostedService<TradingService>();
+
 var retryPolicy = HttpPolicyExtensions
     .HandleTransientHttpError()
     .OrResult(msg => msg.StatusCode == HttpStatusCode.TooManyRequests)
@@ -20,7 +26,7 @@ builder.Services.AddHttpClient<OandaApiService>(httpClient =>
 
     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-}).AddPolicyHandler(retryPolicy);
+}).AddPolicyHandler(retryPolicy).SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
 builder.Services.AddMediatR(c =>
 {
