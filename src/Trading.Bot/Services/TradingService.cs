@@ -21,9 +21,10 @@ public class TradingService : BackgroundService
         {
             _lastCandleTimings[settings.Instrument] =
                 await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
-
-            _instruments.AddRange(await _apiService.GetInstruments(settings.Instrument));
         }
+
+        _instruments.AddRange(await _apiService.GetInstruments(string.Join(",",
+            _tradeConfiguration.TradeSettings.Select(s => s.Instrument))));
 
         while (!stoppingToken.IsCancellationRequested &&
                await _timer.WaitForNextTickAsync(stoppingToken))
@@ -67,7 +68,7 @@ public class TradingService : BackgroundService
 
             var calcResult = candles.CalcBollingerBands(settings.MovingAverage, settings.StandardDeviation).Last();
 
-            if (calcResult.Signal != Signal.None){}
+            if (calcResult.Signal != Signal.None)
                 await TryPlaceTrade(settings, calcResult);
         });
 
@@ -76,15 +77,44 @@ public class TradingService : BackgroundService
 
     private async Task TryPlaceTrade(TradeSettings settings, IndicatorBase indicator)
     {
-        var openTrades = await _apiService.GetOpenTrades();
-
-        if (openTrades.All(ot => ot.Instrument != settings.Instrument)) return;
+        if (!await CanPlaceTrade(settings)) return;
 
         var instrument = _instruments.FirstOrDefault(i => i.Name == settings.Instrument);
 
         if (instrument is null) return;
 
+        var tradeUnits = await GetTradeUnits(settings, indicator);
+
         await _apiService.PlaceTrade(
-            new Order(instrument, 100, indicator.Signal, indicator.StopLoss, indicator.TakeProfit));
+            new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, indicator.TakeProfit));
+    }
+
+    private async Task<double> GetTradeUnits(TradeSettings settings, IndicatorBase indicator)
+    {
+        var price = (await _apiService.GetPrices(settings.Instrument)).FirstOrDefault();
+
+        if (price is null) return 0.0;
+
+        var conversionFactor = indicator.Signal switch
+        {
+            Signal.Buy => price.QuoteHomeConversionFactors.PositiveUnits,
+            Signal.Sell => price.QuoteHomeConversionFactors.NegativeUnits,
+            _ => 1.0
+        };
+
+        var pipLocation = _instruments.FirstOrDefault(i => i.Name == settings.Instrument)?.PipLocation ?? 1.0;
+
+        var numPips = indicator.Loss / pipLocation;
+
+        var perPipLoss = _tradeConfiguration.TradeRisk / numPips;
+
+        return perPipLoss / (conversionFactor * pipLocation);
+    }
+
+    private async Task<bool> CanPlaceTrade(TradeSettings settings)
+    {
+        var openTrades = await _apiService.GetOpenTrades();
+
+        return openTrades.All(ot => ot.Instrument != settings.Instrument);
     }
 }
