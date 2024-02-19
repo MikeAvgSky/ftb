@@ -11,7 +11,10 @@ var tradeConfiguration = builder.Configuration.GetSection(nameof(TradeConfigurat
 
 builder.Services.AddSingleton(tradeConfiguration);
 
-builder.Services.AddHostedService<TradingService>();
+if (constants.RunBot)
+{
+    builder.Services.AddHostedService<TradingService>();
+}
 
 var retryPolicy = HttpPolicyExtensions
     .HandleTransientHttpError()

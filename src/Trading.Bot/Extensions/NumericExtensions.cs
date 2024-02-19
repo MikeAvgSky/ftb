@@ -157,7 +157,12 @@ public static class NumericExtensions
 
         var average = list.Average();
 
-        var sum = list.Sum(d => Math.Pow(d - average, std));
+        double sum = 0;
+
+        for (var i = 0; i < length; i++)
+        {
+            sum += Math.Pow(Math.Abs(list[i] - average), std);
+        }
 
         return Math.Sqrt(sum / length).NaN2Zero();
     }

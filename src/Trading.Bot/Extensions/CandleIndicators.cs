@@ -63,7 +63,7 @@ public static class CandleIndicators
     }
 
     public static BollingerBandsResult[] CalcBollingerBands(this Candle[] candles, int window = 20, double stdDev = 2, 
-        double profitFactor = 1.5)
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
@@ -87,16 +87,20 @@ public static class CandleIndicators
 
             result[i].LowerBand = sma[i] - rolStdDev[i] * stdDev;
 
+            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Sma);
+
             result[i].Signal = i < window ? Signal.None : candles[i] switch
             {
                 var candle when candle.Mid_C < result[i].LowerBand &&
-                                candle.Mid_O > result[i].LowerBand => Signal.Buy,
+                                candle.Mid_O > result[i].LowerBand &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Buy,
                 var candle when candle.Mid_C > result[i].UpperBand &&
-                                candle.Mid_O < result[i].UpperBand => Signal.Sell,
+                                candle.Mid_O < result[i].UpperBand &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
             };
-
-            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Sma);
 
             result[i].TakeProfit = result[i].Signal switch
             {
@@ -107,8 +111,8 @@ public static class CandleIndicators
 
             result[i].StopLoss = result[i].Signal switch
             {
-                Signal.Buy => candles[i].Mid_C - result[i].Gain / profitFactor,
-                Signal.Sell => candles[i].Mid_C + result[i].Gain / profitFactor,
+                Signal.Buy => candles[i].Mid_C - result[i].Gain / riskReward,
+                Signal.Sell => candles[i].Mid_C + result[i].Gain / riskReward,
                 _ => 0.0
             };
 

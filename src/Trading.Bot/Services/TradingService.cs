@@ -62,11 +62,12 @@ public class TradingService : BackgroundService
             var settings = _tradeConfiguration.TradeSettings.First(s => s.Instrument == instrument);
 
             var candles =
-                await _apiService.GetCandles(instrument, settings.Granularity, count: settings.MovingAverage + 1);
+                await _apiService.GetCandles(instrument, settings.Granularity, count: settings.MovingAverage * 2);
 
             if (!candles.Any()) return;
 
-            var calcResult = candles.CalcBollingerBands(settings.MovingAverage, settings.StandardDeviation).Last();
+            var calcResult = candles.CalcBollingerBands(settings.MovingAverage, settings.StandardDeviation,
+                settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
             if (calcResult.Signal != Signal.None)
                 await TryPlaceTrade(settings, calcResult);

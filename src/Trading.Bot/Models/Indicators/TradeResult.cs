@@ -62,7 +62,7 @@ public class TradeResult
 
     private static void UpdateTrade(TradeResult trade, IndicatorBase indicator)
     {
-        if (trade.Signal == Signal.Buy)
+        if (indicator.Signal == Signal.Buy)
         {
             if (indicator.Candle.Bid_H >= trade.TakeProfit)
             {
@@ -70,11 +70,11 @@ public class TradeResult
             }
             else if (indicator.Candle.Bid_L <= trade.StopLoss)
             {
-                CloseTrade(trade, indicator.Loss, indicator.Candle.Time, indicator.Candle.Bid_L);
+                CloseTrade(trade, indicator.Loss * -1, indicator.Candle.Time, indicator.Candle.Bid_L);
             }
         }
 
-        if (trade.Signal == Signal.Sell)
+        if (indicator.Signal == Signal.Sell)
         {
             if (indicator.Candle.Ask_L <= trade.TakeProfit)
             {
@@ -82,7 +82,7 @@ public class TradeResult
             }
             else if (indicator.Candle.Ask_H >= trade.StopLoss)
             {
-                CloseTrade(trade, indicator.Loss, indicator.Candle.Time, indicator.Candle.Ask_H);
+                CloseTrade(trade, indicator.Loss * -1, indicator.Candle.Time, indicator.Candle.Ask_H);
             }
         }
     }
