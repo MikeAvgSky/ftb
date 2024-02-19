@@ -4,7 +4,6 @@ public class TradeResult
 {
     public bool Running { get; set; }
     public int StartIndex { get; set; }
-    public int EndIndex { get; set; }
     public double StartPrice { get; set; }
     public double TriggerPrice { get; set; }
     public Signal Signal { get; set; }
@@ -13,10 +12,6 @@ public class TradeResult
     public double Result { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
-
-    private const double LossFactor = -1.0;
-
-    private const double ProfitFactor = 1.5;
 
     public static TradeResult[] SimulateTrade(IndicatorBase[] indicators)
     {
@@ -51,7 +46,7 @@ public class TradeResult
 
             foreach (var trade in openTrades)
             {
-                UpdateTrade(trade, indicators[i].Candle);
+                UpdateTrade(trade, indicators[i]);
 
                 if (!trade.Running)
                 {
@@ -65,29 +60,29 @@ public class TradeResult
         return closedTrades.ToArray();
     }
 
-    private static void UpdateTrade(TradeResult trade, Candle candle)
+    private static void UpdateTrade(TradeResult trade, IndicatorBase indicator)
     {
         if (trade.Signal == Signal.Buy)
         {
-            if (candle.Bid_H >= trade.TakeProfit)
+            if (indicator.Candle.Bid_H >= trade.TakeProfit)
             {
-                CloseTrade(trade, ProfitFactor, candle.Time, candle.Bid_H);
+                CloseTrade(trade, indicator.Gain, indicator.Candle.Time, indicator.Candle.Bid_H);
             }
-            else if (candle.Bid_L <= trade.StopLoss)
+            else if (indicator.Candle.Bid_L <= trade.StopLoss)
             {
-                CloseTrade(trade, LossFactor, candle.Time, candle.Bid_L);
+                CloseTrade(trade, indicator.Loss, indicator.Candle.Time, indicator.Candle.Bid_L);
             }
         }
 
         if (trade.Signal == Signal.Sell)
         {
-            if (candle.Ask_L <= trade.TakeProfit)
+            if (indicator.Candle.Ask_L <= trade.TakeProfit)
             {
-                CloseTrade(trade, ProfitFactor, candle.Time, candle.Ask_L);
+                CloseTrade(trade, indicator.Gain, indicator.Candle.Time, indicator.Candle.Ask_L);
             }
-            else if (candle.Ask_H >= trade.StopLoss)
+            else if (indicator.Candle.Ask_H >= trade.StopLoss)
             {
-                CloseTrade(trade, LossFactor, candle.Time, candle.Ask_H);
+                CloseTrade(trade, indicator.Loss, indicator.Candle.Time, indicator.Candle.Ask_H);
             }
         }
     }

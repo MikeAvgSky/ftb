@@ -88,7 +88,7 @@ public static class CandleIndicators
 
             result[i].LowerBand = sma[i] - rolStdDev[i] * stdDev;
 
-            result[i].Signal = candles[i] switch
+            result[i].Signal = i < window ? Signal.None : candles[i] switch
             {
                 var candle when candle.Mid_C < result[i].LowerBand &&
                                 candle.Mid_O > result[i].LowerBand => Signal.Buy,
@@ -287,7 +287,7 @@ public static class CandleIndicators
 
             var engulfing = i > 0 && candles[i].IsEngulfingCandle(candles[i - 1]);
 
-            result[i].Signal = engulfing switch
+            result[i].Signal = i < emaWindow ? Signal.None : engulfing switch
             {
                 true when candles[i].Direction == 1 && candles[i].Mid_L > result[i].Ema && result[i].Rsi > RsiLimit => Signal.Buy,
                 true when candles[i].Direction == -1 && candles[i].Mid_H < result[i].Ema && result[i].Rsi < RsiLimit => Signal.Sell,
@@ -345,7 +345,7 @@ public static class CandleIndicators
 
             result[i].Ema = ema[i];
 
-            result[i].Signal = result[i].Direction switch
+            result[i].Signal = i < emaWindow ? Signal.None : result[i].Direction switch
             {
                 1 when candles[i].Mid_L > result[i].Ema => Signal.Buy,
                 -1 when candles[i].Mid_H < result[i].Ema => Signal.Sell,
