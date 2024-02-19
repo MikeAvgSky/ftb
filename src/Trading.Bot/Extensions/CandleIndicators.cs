@@ -2,10 +2,8 @@
 
 public static class CandleIndicators
 {
-    private const double RsiLimit = 50.0;
-    private const double ProfitFactor = 1.5;
-
-    public static MacResult[] CalcMac(this Candle[] candles, int shortWindow = 10, int longWindow = 20)
+    public static MacResult[] CalcMac(this Candle[] candles, int shortWindow = 10, int longWindow = 20, 
+        double profitFactor = 1.5)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
@@ -53,8 +51,8 @@ public static class CandleIndicators
 
             result[i].StopLoss = result[i].Signal switch
             {
-                Signal.Buy => candles[i].Mid_C - result[i].Gain / ProfitFactor,
-                Signal.Sell => candles[i].Mid_C + result[i].Gain / ProfitFactor,
+                Signal.Buy => candles[i].Mid_C - result[i].Gain / profitFactor,
+                Signal.Sell => candles[i].Mid_C + result[i].Gain / profitFactor,
                 _ => 0.0
             };
 
@@ -64,7 +62,8 @@ public static class CandleIndicators
         return result;
     }
 
-    public static BollingerBandsResult[] CalcBollingerBands(this Candle[] candles, int window = 20, double stdDev = 2)
+    public static BollingerBandsResult[] CalcBollingerBands(this Candle[] candles, int window = 20, double stdDev = 2, 
+        double profitFactor = 1.5)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
@@ -108,8 +107,8 @@ public static class CandleIndicators
 
             result[i].StopLoss = result[i].Signal switch
             {
-                Signal.Buy => candles[i].Mid_C - result[i].Gain / ProfitFactor,
-                Signal.Sell => candles[i].Mid_C + result[i].Gain / ProfitFactor,
+                Signal.Buy => candles[i].Mid_C - result[i].Gain / profitFactor,
+                Signal.Sell => candles[i].Mid_C + result[i].Gain / profitFactor,
                 _ => 0.0
             };
 
@@ -144,7 +143,7 @@ public static class CandleIndicators
             result[i].MaxTr = trueRanges.Max();
         }
 
-        var maxTra = result.Select(x => x.MaxTr).CalcSma(window).ToArray();
+        var maxTra = result.Select(x => x.MaxTr).ToArray().CalcSma(window).ToArray();
 
         for (var i = 0; i < length; i++)
         {
@@ -156,7 +155,9 @@ public static class CandleIndicators
 
     public static KeltnerResult[] CalcKeltner(this Candle[] candles, int emaWindow = 20, int atrWindow = 10)
     {
-        var ema = candles.Select(c => c.Mid_C).CalcEma(emaWindow).ToArray();
+        var prices = candles.Select(c => c.Mid_C).ToArray();
+
+        var ema = prices.CalcEma(emaWindow).ToArray();
 
         var atr = candles.CalcAtr(atrWindow).ToArray();
 
@@ -236,9 +237,11 @@ public static class CandleIndicators
 
     public static MacdResult[] CalcMacd(this Candle[] candles, int shortWindow = 12, int longWindow = 26, int signal = 9)
     {
-        var emaShort = candles.Select(c => c.Mid_C).CalcEma(shortWindow).ToArray();
+        var prices = candles.Select(c => c.Mid_C).ToArray();
 
-        var emaLong = candles.Select(c => c.Mid_C).CalcEma(longWindow).ToArray();
+        var emaShort = prices.CalcEma(shortWindow).ToArray();
+
+        var emaLong = prices.CalcEma(longWindow).ToArray();
 
         var length = candles.Length;
 
@@ -253,7 +256,7 @@ public static class CandleIndicators
             result[i].Macd = emaShort[i] - emaLong[i];
         }
 
-        var ema = result.Select(m => m.Macd).CalcEma(signal).ToArray();
+        var ema = result.Select(m => m.Macd).ToArray().CalcEma(signal).ToArray();
 
         for (var i = 0; i < length; i++)
         {
@@ -265,11 +268,14 @@ public static class CandleIndicators
         return result;
     }
 
-    public static RsiEmaResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200)
+    public static RsiEmaResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200, 
+        double profitFactor = 1.5, double rsiLimit = 50.0)
     {
         var rsi = candles.CalcRsi(rsiWindow);
 
-        var ema = candles.Select(c => c.Mid_C).CalcEma(emaWindow).ToArray();
+        var prices = candles.Select(c => c.Mid_C).ToArray();
+
+        var ema = prices.CalcEma(emaWindow).ToArray();
 
         var length = candles.Length;
 
@@ -289,15 +295,15 @@ public static class CandleIndicators
 
             result[i].Signal = i < emaWindow ? Signal.None : engulfing switch
             {
-                true when candles[i].Direction == 1 && candles[i].Mid_L > result[i].Ema && result[i].Rsi > RsiLimit => Signal.Buy,
-                true when candles[i].Direction == -1 && candles[i].Mid_H < result[i].Ema && result[i].Rsi < RsiLimit => Signal.Sell,
+                true when candles[i].Direction == 1 && candles[i].Mid_L > result[i].Ema && result[i].Rsi > rsiLimit => Signal.Buy,
+                true when candles[i].Direction == -1 && candles[i].Mid_H < result[i].Ema && result[i].Rsi < rsiLimit => Signal.Sell,
                 _ => Signal.None
             };
 
             result[i].TakeProfit = result[i].Signal switch
             {
-                Signal.Buy => (candles[i].Ask_C - candles[i].Ask_O) * ProfitFactor + candles[i].Ask_C,
-                Signal.Sell => (candles[i].Bid_C - candles[i].Bid_O) * ProfitFactor + candles[i].Bid_C,
+                Signal.Buy => (candles[i].Ask_C - candles[i].Ask_O) * profitFactor + candles[i].Ask_C,
+                Signal.Sell => (candles[i].Bid_C - candles[i].Bid_O) * profitFactor + candles[i].Bid_C,
                 _ => 0.0
             };
 
@@ -316,11 +322,13 @@ public static class CandleIndicators
         return result;
     }
 
-    public static MacdEmaResult[] CalcMacdEma(this Candle[] candles, int emaWindow = 100)
+    public static MacdEmaResult[] CalcMacdEma(this Candle[] candles, int emaWindow = 100, double profitFactor = 1.5)
     {
         var macd = candles.CalcMacd();
 
-        var ema = candles.Select(c => c.Mid_C).CalcEma(emaWindow).ToArray();
+        var prices = candles.Select(c => c.Mid_C).ToArray();
+
+        var ema = prices.CalcEma(emaWindow).ToArray();
 
         var length = candles.Length;
 
@@ -354,8 +362,8 @@ public static class CandleIndicators
 
             result[i].TakeProfit = result[i].Signal switch
             {
-                Signal.Buy => (candles[i].Ask_C - candles[i].Ask_O) * ProfitFactor + candles[i].Ask_C,
-                Signal.Sell => (candles[i].Bid_C - candles[i].Bid_O) * ProfitFactor + candles[i].Bid_C,
+                Signal.Buy => (candles[i].Ask_C - candles[i].Ask_O) * profitFactor + candles[i].Ask_C,
+                Signal.Sell => (candles[i].Bid_C - candles[i].Bid_O) * profitFactor + candles[i].Bid_C,
                 _ => 0.0
             };
 

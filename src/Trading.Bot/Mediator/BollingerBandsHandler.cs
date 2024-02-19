@@ -45,7 +45,7 @@ public record BollingerBandsRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; }
     public int? Window { get; set; }
-    public int? StandardDeviation { get; set; }
+    public double? StandardDeviation { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }
