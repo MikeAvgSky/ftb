@@ -17,19 +17,24 @@ public class TradingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        foreach (var settings in _tradeConfiguration.TradeSettings)
-        {
-            _lastCandleTimings[settings.Instrument] =
-                await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
-        }
-
-        _instruments.AddRange(await _apiService.GetInstruments(string.Join(",",
-            _tradeConfiguration.TradeSettings.Select(s => s.Instrument))));
+        await Initialise();
 
         while (!stoppingToken.IsCancellationRequested &&
                await _timer.WaitForNextTickAsync(stoppingToken))
         {
             await ProcessCandles(await GetNewCandles());
+        }
+    }
+
+    private async Task Initialise()
+    {
+        _instruments.AddRange(await _apiService.GetInstruments(string.Join(",",
+            _tradeConfiguration.TradeSettings.Select(s => s.Instrument))));
+
+        foreach (var settings in _tradeConfiguration.TradeSettings)
+        {
+            _lastCandleTimings[settings.Instrument] =
+                await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
         }
     }
 
