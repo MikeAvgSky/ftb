@@ -103,8 +103,8 @@ public class TradingService : BackgroundService
 
         var conversionFactor = indicator.Signal switch
         {
-            Signal.Buy => price.QuoteHomeConversionFactors.PositiveUnits,
-            Signal.Sell => price.QuoteHomeConversionFactors.NegativeUnits,
+            Signal.Buy => price.HomeConversion,
+            Signal.Sell => price.HomeConversion,
             _ => 1.0
         };
 

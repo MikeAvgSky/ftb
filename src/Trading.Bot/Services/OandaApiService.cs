@@ -154,15 +154,15 @@ public class OandaApiService
             : null;
     }
 
-    public async Task<PricingResponse[]> GetPrices(string instruments)
+    public async Task<Price[]> GetPrices(string instruments)
     {
-        var endpoint = $"accounts/{_accountId}/pricing?instruments={instruments}";
+        var endpoint = $"accounts/{_accountId}/pricing?instruments={instruments}&includeHomeConversions=true";
 
-        var response = await GetAsync<PricingResponse[]>(endpoint, "prices");
+        var response = await GetAsync<PricingResponse>(endpoint);
 
         return response.StatusCode == HttpStatusCode.OK
-            ? response.Value
-            : Array.Empty<PricingResponse>();
+            ? response.Value.MapToPrices()
+            : Array.Empty<Price>();
     }
 
     public async Task<Instrument[]> GetInstruments(string instruments)

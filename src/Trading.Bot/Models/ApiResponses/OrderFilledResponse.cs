@@ -29,8 +29,8 @@ public class OrderFilledResponse
 
 public class FullPrice
 {
-    public PricingResponse.Ask[] Asks { get; set; }
-    public PricingResponse.Bid[] Bids { get; set; }
+    public PriceResponse.Ask[] Asks { get; set; }
+    public PriceResponse.Bid[] Bids { get; set; }
     public double CloseoutAsk { get; set; }
     public double CloseoutBid { get; set; }
     public DateTime Timestamp { get; set; }

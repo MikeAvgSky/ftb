@@ -29,4 +29,21 @@ public static class ApiServiceMapper
 
         return result;
     }
+
+    public static Price[] MapToPrices(this PricingResponse pricingResponse)
+    {
+        var length = pricingResponse.Prices.Length;
+
+        var result = new Price[length];
+
+        for (var i = 0; i < length; i++)
+        {
+            var baseInstrument = pricingResponse.Prices[i].Instrument.Split('_')[1];
+
+            result[i] = new Price(pricingResponse.Prices[i],
+                pricingResponse.HomeConversions.First(c => c.Currency == baseInstrument));
+        }
+
+        return result;
+    }
 }
