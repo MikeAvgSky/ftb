@@ -28,9 +28,14 @@ public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IRes
             {
                 var movingAvgCross = candles.CalcMac(window.Item1, window.Item2);
 
+                var tradingSim = TradeResult.SimulateTrade(movingAvgCross.Cast<IndicatorBase>().ToArray());
+
                 movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
                     $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}.csv",
                     request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Signal != Signal.None) : movingAvgCross));
+
+                movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
+                    $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}_SIM.csv", tradingSim));
             }
         }
 
@@ -48,7 +53,6 @@ public record MovingAverageCrossRequest : IHttpRequest
     public IFormFileCollection Files { get; set; }
     public string ShortWindow { get; set; }
     public string LongWindow { get; set; }
-    public double? RiskReward { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }

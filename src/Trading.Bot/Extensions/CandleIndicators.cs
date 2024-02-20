@@ -2,8 +2,8 @@
 
 public static class CandleIndicators
 {
-    public static MacResult[] CalcMac(this Candle[] candles, int shortWindow = 10, int longWindow = 20, 
-        double profitFactor = 1.5)
+    public static MacResult[] CalcMac(this Candle[] candles, int shortWindow = 10, int longWindow = 20,
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
@@ -29,18 +29,20 @@ public static class CandleIndicators
 
             result[i].DeltaPrev = i > 0 ? result[i - 1].Delta : 0;
 
-            result[i].Signal = result[i].Delta switch
+            result[i].Gain = Math.Abs(candles[i].Mid_C - (result[i].Delta >= result[i].DeltaPrev
+                ? result[i].MaShort
+                : result[i].MaLong));
+
+            result[i].Signal = i < longWindow ? Signal.None : result[i].Delta switch
             {
-                >= 0 when result[i].DeltaPrev < 0 => Signal.Buy,
-                < 0 when result[i].DeltaPrev >= 0 => Signal.Sell,
+                >= 0 when result[i].DeltaPrev < 0 &&
+                candles[i].Spread <= maxSpread &&
+                result[i].Gain >= minGain => Signal.Buy,
+                < 0 when result[i].DeltaPrev >= 0 &&
+                candles[i].Spread <= maxSpread &&
+                result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
             };
-
-            var diff = i < length - 1
-                ? candles[i + 1].Mid_C - candles[i].Mid_C
-                : candles[i].Mid_C;
-
-            result[i].Gain = Math.Abs(diff * (int)result[i].Signal);
 
             result[i].TakeProfit = result[i].Signal switch
             {
@@ -51,8 +53,8 @@ public static class CandleIndicators
 
             result[i].StopLoss = result[i].Signal switch
             {
-                Signal.Buy => candles[i].Mid_C - result[i].Gain / profitFactor,
-                Signal.Sell => candles[i].Mid_C + result[i].Gain / profitFactor,
+                Signal.Buy => candles[i].Mid_C - result[i].Gain / riskReward,
+                Signal.Sell => candles[i].Mid_C + result[i].Gain / riskReward,
                 _ => 0.0
             };
 
