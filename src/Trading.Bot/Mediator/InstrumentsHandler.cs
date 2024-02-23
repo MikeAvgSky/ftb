@@ -3,15 +3,19 @@
 public sealed class InstrumentsHandler : IRequestHandler<InstrumentsRequest, IResult>
 {
     private readonly OandaApiService _apiService;
+    private readonly OandaStreamService _streamService;
 
-    public InstrumentsHandler(OandaApiService apiService)
+    public InstrumentsHandler(OandaApiService apiService, OandaStreamService streamService)
     {
         _apiService = apiService;
+        _streamService = streamService;
     }
 
     public async Task<IResult> Handle(InstrumentsRequest request, CancellationToken cancellationToken)
     {
         var instrumentList = (await _apiService.GetInstruments(request.Instruments)).ToList();
+
+        await _streamService.StreamLivePrices(request.Instruments);
 
         if (!string.IsNullOrEmpty(request.Type))
         {

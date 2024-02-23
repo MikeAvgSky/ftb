@@ -1,10 +1,7 @@
 ﻿namespace Trading.Bot.Models.DataTransferObjects;
 
-public class Price
+public class Price : PriceBase
 {
-    public string Instrument { get; set; }
-    public double Bid { get; set; }
-    public double Ask { get; set; }
     public double HomeConversion { get; set; }
 
     public Price(PriceResponse price, HomeConversionResponse conversion)

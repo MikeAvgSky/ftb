@@ -29,9 +29,7 @@ public static class CandleIndicators
 
             result[i].DeltaPrev = i > 0 ? result[i - 1].Delta : 0;
 
-            result[i].Gain = Math.Abs(candles[i].Mid_C - (result[i].Delta >= result[i].DeltaPrev
-                ? result[i].MaShort
-                : result[i].MaLong));
+            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].MaShort);
 
             result[i].Signal = i < longWindow ? Signal.None : result[i].Delta switch
             {

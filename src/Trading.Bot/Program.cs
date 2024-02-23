@@ -23,13 +23,23 @@ var retryPolicy = HttpPolicyExtensions
 
 builder.Services.AddHttpClient<OandaApiService>(httpClient =>
 {
-    httpClient.BaseAddress = new Uri(constants.OandaUrl);
+    httpClient.BaseAddress = new Uri(constants.OandaApiUrl);
 
     httpClient.DefaultRequestHeaders.Add(HeaderNames.Authorization, $"Bearer {constants.ApiKey}");
 
     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-}).AddPolicyHandler(retryPolicy).SetHandlerLifetime(TimeSpan.FromMinutes(5));
+}).AddPolicyHandler(retryPolicy);
+
+builder.Services.AddHttpClient<OandaStreamService>(httpClient =>
+{
+    httpClient.BaseAddress = new Uri(constants.OandaStreamUrl);
+
+    httpClient.DefaultRequestHeaders.Add(HeaderNames.Authorization, $"Bearer {constants.ApiKey}");
+
+    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+}).AddPolicyHandler(retryPolicy);
 
 builder.Services.AddMediatR(c =>
 {
