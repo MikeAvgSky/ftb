@@ -19,11 +19,7 @@ public class TradingService : BackgroundService
     {
         await Initialise();
 
-        while (!stoppingToken.IsCancellationRequested &&
-               await _timer.WaitForNextTickAsync(stoppingToken))
-        {
-            await ProcessCandles(await GetNewCandles());
-        }
+        await StartTrading(stoppingToken);
     }
 
     private async Task Initialise()
@@ -35,6 +31,35 @@ public class TradingService : BackgroundService
         {
             _lastCandleTimings[settings.Instrument] =
                 await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
+        }
+    }
+
+    private async Task StartTrading(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested &&
+               await _timer.WaitForNextTickAsync(stoppingToken))
+        {
+            var instruments = await GetNewCandles();
+
+            if (!instruments.Any()) return;
+
+            var tasks = instruments.Select(async instrument =>
+            {
+                var settings = _tradeConfiguration.TradeSettings.First(s => s.Instrument == instrument);
+
+                var candles =
+                    await _apiService.GetCandles(instrument, settings.Granularity, count: settings.MovingAverage * 2);
+
+                if (!candles.Any()) return;
+
+                var calcResult = candles.CalcBollingerBands(settings.MovingAverage, settings.StandardDeviation,
+                    settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
+
+                if (calcResult.Signal != Signal.None)
+                    await TryPlaceTrade(settings, calcResult);
+            });
+
+            await Task.WhenAll(tasks);
         }
     }
 
@@ -56,29 +81,6 @@ public class TradingService : BackgroundService
         var newCandles = await Task.WhenAll(tasks);
 
         return newCandles.Where(c => !string.IsNullOrEmpty(c)).ToArray();
-    }
-
-    private async Task ProcessCandles(IReadOnlyCollection<string> instruments)
-    {
-        if (!instruments.Any()) return;
-
-        var tasks = instruments.Select(async instrument =>
-        {
-            var settings = _tradeConfiguration.TradeSettings.First(s => s.Instrument == instrument);
-
-            var candles =
-                await _apiService.GetCandles(instrument, settings.Granularity, count: settings.MovingAverage * 2);
-
-            if (!candles.Any()) return;
-
-            var calcResult = candles.CalcBollingerBands(settings.MovingAverage, settings.StandardDeviation,
-                settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
-
-            if (calcResult.Signal != Signal.None)
-                await TryPlaceTrade(settings, calcResult);
-        });
-
-        await Task.WhenAll(tasks);
     }
 
     private async Task TryPlaceTrade(TradeSettings settings, IndicatorBase indicator)

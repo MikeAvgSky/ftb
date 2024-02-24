@@ -31,7 +31,7 @@ builder.Services.AddHttpClient<OandaApiService>(httpClient =>
 
 }).AddPolicyHandler(retryPolicy);
 
-builder.Services.AddHttpClient<OandaStreamService>(httpClient =>
+builder.Services.AddHttpClient<OandaPricingService>(httpClient =>
 {
     httpClient.BaseAddress = new Uri(constants.OandaStreamUrl);
 

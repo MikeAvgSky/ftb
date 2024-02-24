@@ -46,18 +46,4 @@ public static class ApiServiceMapper
 
         return result;
     }
-
-    public static LivePrice[] MapToLivePrices(this PricingResponse pricingResponse)
-    {
-        var length = pricingResponse.Prices.Length;
-
-        var result = new LivePrice[length];
-
-        for (var i = 0; i < length; i++)
-        {
-            result[i] = new LivePrice(pricingResponse.Prices[i]);
-        }
-
-        return result;
-    }
 }
