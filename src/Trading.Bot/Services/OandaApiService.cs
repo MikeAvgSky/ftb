@@ -63,6 +63,7 @@ public class OandaApiService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"An error occurred while posting {Serialize(body)} to {endpoint}");
+
             return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
         }
     }
@@ -94,6 +95,7 @@ public class OandaApiService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"An error occurred while updating {Serialize(body)} from {endpoint}");
+
             return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
         }
     }

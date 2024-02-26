@@ -130,8 +130,11 @@ public static class CustomExtensions
 
     public static DateTime RoundDown(this DateTime time, int minutes)
     {
-        var remainder = time.Minute % minutes;
-        return new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute - remainder, 0);
+        return minutes switch
+        {
+            < 60 => new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute - time.Minute % minutes, 0),
+            >= 60 => new DateTime(time.Year, time.Month, time.Day, time.Hour - time.Hour % (minutes / 60), 0, 0)
+        };
     }
 
     public static DateTime Quantize(this DateTime time, int minutes)

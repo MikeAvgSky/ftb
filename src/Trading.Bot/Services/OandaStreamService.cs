@@ -3,13 +3,15 @@
 public class OandaStreamService
 {
     private readonly HttpClient _httpClient;
+    private readonly LivePriceCache _livePriceCache;
     private readonly ILogger<OandaStreamService> _logger;
     private readonly string _accountId;
-    public readonly Dictionary<string, LivePrice> LivePrices = new();
 
-    public OandaStreamService(HttpClient httpClient, ILogger<OandaStreamService> logger, Constants constants)
+    public OandaStreamService(HttpClient httpClient, LivePriceCache livePriceCache, 
+        ILogger<OandaStreamService> logger, Constants constants)
     {
         _httpClient = httpClient;
+        _livePriceCache = livePriceCache;
         _logger = logger;
         _accountId = constants.AccountId;
     }
@@ -38,13 +40,14 @@ public class OandaStreamService
 
                 if (price is not null && price.Type == "PRICE")
                 {
-                    LivePrices[price.Instrument] = new LivePrice(price);
+                    _livePriceCache.AddToDictionary(new LivePrice(price));
                 }
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while trying to stream live prices");
+
             Environment.Exit(0);
         }
     }

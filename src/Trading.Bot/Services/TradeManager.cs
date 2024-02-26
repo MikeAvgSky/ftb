@@ -3,14 +3,14 @@
 public class TradeManager : BackgroundService
 {
     private readonly OandaApiService _apiService;
-    private readonly StreamProcessor _streamProcessor;
+    private readonly LivePriceCache _livePriceCache;
     private readonly TradeConfiguration _tradeConfiguration;
     private readonly List<Instrument> _instruments = new();
 
-    public TradeManager(OandaApiService apiService, StreamProcessor streamProcessor, TradeConfiguration tradeConfiguration)
+    public TradeManager(OandaApiService apiService, LivePriceCache livePriceCache, TradeConfiguration tradeConfiguration)
     {
         _apiService = apiService;
-        _streamProcessor = streamProcessor;
+        _livePriceCache = livePriceCache;
         _tradeConfiguration = tradeConfiguration;
     }
 
@@ -20,13 +20,13 @@ public class TradeManager : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            while (_streamProcessor.LivePriceQueue.Count != 0)
+            while (_livePriceCache.LivePriceQueue.Count != 0)
             {
-                if (!_streamProcessor.LivePriceQueue.TryDequeue(out var price)) continue;
+                if (!_livePriceCache.LivePriceQueue.TryDequeue(out var price)) continue;
 
                 var settings = _tradeConfiguration.TradeSettings.First(x => x.Instrument == price.Instrument);
 
-                if (!await NewCandleAvailable(settings, price)) continue;
+                if (!await NewCandleAvailable(settings, price, stoppingToken)) continue;
 
                 var candles =
                     await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage * 2);
@@ -44,29 +44,23 @@ public class TradeManager : BackgroundService
         }
     }
 
-    private async Task<bool> NewCandleAvailable(TradeSettings settings, LivePrice price)
+    private async Task<bool> NewCandleAvailable(TradeSettings settings, LivePrice price, CancellationToken stoppingToken)
     {
         var retryCount = 0;
 
         Start:
 
-        while (retryCount < 10)
-        {
-            var currentTime = await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
+        if (retryCount >= 10) return false;
 
-            if (currentTime == default || currentTime != price.Time)
-            {
-                await Task.Delay(1000);
+        var currentTime = await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
 
-                retryCount++;
+        if (currentTime != default && currentTime == price.Time) return true;
 
-                goto Start;
-            }
+        await Task.Delay(1000, stoppingToken);
 
-            return true;
-        }
+        retryCount++;
 
-        return false;
+        goto Start;
     }
 
     private async Task Initialise()
