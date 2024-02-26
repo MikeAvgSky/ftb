@@ -127,4 +127,16 @@ public static class CustomExtensions
 
         return csv.GetRecords<T>().ToArray();
     }
+
+    public static DateTime RoundDown(this DateTime time, int minutes)
+    {
+        var remainder = time.Minute % minutes;
+        return new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute - remainder, 0);
+    }
+
+    public static DateTime Quantize(this DateTime time, int minutes)
+    {
+        var period = time.Minute / minutes * minutes;
+        return new DateTime(time.Year, time.Month, time.Day, time.Hour, period, 0);
+    }
 }

@@ -10,6 +10,8 @@ public static class ApiServiceMapper
 
         for (var i = 0; i < length; i++)
         {
+            if (!candles[i].Complete) continue;
+
             result[i] = new Candle(candles[i]);
         }
 

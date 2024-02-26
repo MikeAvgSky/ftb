@@ -1,16 +1,14 @@
 ﻿namespace Trading.Bot.Services;
 
-public class OandaPricingService
+public class OandaStreamService
 {
     private readonly HttpClient _httpClient;
-    private readonly OandaApiService _apiService;
     private readonly string _accountId;
-    public readonly ConcurrentDictionary<string, List<LivePrice>> LivePrices = new();
+    public readonly Dictionary<string, LivePrice> LivePrices = new();
 
-    public OandaPricingService(HttpClient httpClient, OandaApiService apiService, Constants constants)
+    public OandaStreamService(HttpClient httpClient, Constants constants)
     {
         _httpClient = httpClient;
-        _apiService = apiService;
         _accountId = constants.AccountId;
     }
 
@@ -18,8 +16,6 @@ public class OandaPricingService
     {
         try
         {
-            var inst = await _apiService.GetInstruments(instruments);
-
             var endpoint = $"accounts/{_accountId}/pricing/stream?instruments={instruments}";
 
             var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
@@ -38,9 +34,10 @@ public class OandaPricingService
 
                 var price = Deserialize<PriceResponse>(stringResponse);
 
-                var precision = inst.First(x => x.Name == price.Instrument).DisplayPrecision;
-
-                LivePrices[price.Instrument].Add(new LivePrice(price, precision));
+                if (price is not null && price.Type == "PRICE")
+                {
+                    LivePrices[price.Instrument] = new LivePrice(price);
+                }
             }
         }
         catch (Exception)

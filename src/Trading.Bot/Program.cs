@@ -11,11 +11,6 @@ var tradeConfiguration = builder.Configuration.GetSection(nameof(TradeConfigurat
 
 builder.Services.AddSingleton(tradeConfiguration);
 
-if (constants.RunBot)
-{
-    builder.Services.AddHostedService<TradingService>();
-}
-
 var retryPolicy = HttpPolicyExtensions
     .HandleTransientHttpError()
     .OrResult(msg => msg.StatusCode == HttpStatusCode.TooManyRequests)
@@ -31,7 +26,7 @@ builder.Services.AddHttpClient<OandaApiService>(httpClient =>
 
 }).AddPolicyHandler(retryPolicy);
 
-builder.Services.AddHttpClient<OandaPricingService>(httpClient =>
+builder.Services.AddHttpClient<OandaStreamService>(httpClient =>
 {
     httpClient.BaseAddress = new Uri(constants.OandaStreamUrl);
 
@@ -47,6 +42,13 @@ builder.Services.AddMediatR(c =>
 
     c.RegisterServicesFromAssemblyContaining<Program>();
 });
+
+if (constants.RunBot)
+{
+    builder.Services.AddHostedService<StreamProcessor>();
+
+    builder.Services.AddHostedService<TradeManager>();
+}
 
 builder.Services.AddEndpointsApiExplorer();
 
