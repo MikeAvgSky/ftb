@@ -26,9 +26,7 @@ public class TradeManager : BackgroundService
 
                 var settings = _tradeConfiguration.TradeSettings.First(x => x.Instrument == price.Instrument);
 
-                var currentTime = await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
-
-                if (currentTime == default || currentTime != price.Time) continue;
+                if (!await NewCandleAvailable(settings, price)) continue;
 
                 var candles =
                     await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage * 2);
@@ -39,9 +37,36 @@ public class TradeManager : BackgroundService
                     settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
                 if (calcResult.Signal != Signal.None)
+                {
                     await TryPlaceTrade(settings, calcResult);
+                }
             }
         }
+    }
+
+    private async Task<bool> NewCandleAvailable(TradeSettings settings, LivePrice price)
+    {
+        var retryCount = 0;
+
+        Start:
+
+        while (retryCount < 10)
+        {
+            var currentTime = await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
+
+            if (currentTime == default || currentTime != price.Time)
+            {
+                await Task.Delay(1000);
+
+                retryCount++;
+
+                goto Start;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     private async Task Initialise()

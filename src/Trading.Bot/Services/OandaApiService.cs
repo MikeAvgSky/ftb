@@ -3,13 +3,15 @@
 public class OandaApiService
 {
     private readonly HttpClient _httpClient;
+    private readonly ILogger<OandaApiService> _logger;
     private readonly string _accountId;
     public const string DefaultGranularity = "H1";
     public const string DefaultPrice = "MBA";
 
-    public OandaApiService(HttpClient httpClient, Constants constants)
+    public OandaApiService(HttpClient httpClient, ILogger<OandaApiService> logger, Constants constants)
     {
         _httpClient = httpClient;
+        _logger = logger;
         _accountId = constants.AccountId;
     }
 
@@ -26,8 +28,10 @@ public class OandaApiService
 
             return new ApiResponse<T>(response.StatusCode, default);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, $"An error occurred while getting data from {endpoint}");
+
             return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
         }
     }
@@ -44,15 +48,7 @@ public class OandaApiService
             }
             else
             {
-                var content =
-                    new StringContent(
-                        JsonSerializer.Serialize(body,
-                            new JsonSerializerOptions
-                            {
-                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                            }),
-                        Encoding.UTF8, "application/json");
+                var content = Serialize(body);
 
                 response = await _httpClient.PostAsync(endpoint, content);
             }
@@ -64,8 +60,9 @@ public class OandaApiService
 
             return new ApiResponse<T>(response.StatusCode, default);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, $"An error occurred while posting {Serialize(body)} to {endpoint}");
             return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
         }
     }
@@ -82,15 +79,7 @@ public class OandaApiService
             }
             else
             {
-                var content =
-                    new StringContent(
-                        JsonSerializer.Serialize(body,
-                            new JsonSerializerOptions
-                            {
-                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                            }),
-                        Encoding.UTF8, "application/json");
+                var content = Serialize(body);
 
                 response = await _httpClient.PutAsync(endpoint, content);
             }
@@ -102,10 +91,26 @@ public class OandaApiService
 
             return new ApiResponse<T>(response.StatusCode, default);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, $"An error occurred while updating {Serialize(body)} from {endpoint}");
             return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
         }
+    }
+
+    private static StringContent Serialize(object body)
+    {
+        var content =
+            new StringContent(
+                JsonSerializer.Serialize(body,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    }),
+                Encoding.UTF8, "application/json");
+
+        return content;
     }
 
     private static async Task<ApiResponse<T>> HandleApiResponse<T>(string dataKey, HttpResponseMessage response) where T : class

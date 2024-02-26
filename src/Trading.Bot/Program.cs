@@ -11,30 +11,11 @@ var tradeConfiguration = builder.Configuration.GetSection(nameof(TradeConfigurat
 
 builder.Services.AddSingleton(tradeConfiguration);
 
-var retryPolicy = HttpPolicyExtensions
-    .HandleTransientHttpError()
-    .OrResult(msg => msg.StatusCode == HttpStatusCode.TooManyRequests)
-    .WaitAndRetryAsync(3, retry => TimeSpan.FromSeconds(Math.Pow(2, retry)));
+builder.Services.AddOandaApiService(constants);
 
-builder.Services.AddHttpClient<OandaApiService>(httpClient =>
-{
-    httpClient.BaseAddress = new Uri(constants.OandaApiUrl);
+builder.Services.AddOandaStreamService(constants);
 
-    httpClient.DefaultRequestHeaders.Add(HeaderNames.Authorization, $"Bearer {constants.ApiKey}");
-
-    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-}).AddPolicyHandler(retryPolicy);
-
-builder.Services.AddHttpClient<OandaStreamService>(httpClient =>
-{
-    httpClient.BaseAddress = new Uri(constants.OandaStreamUrl);
-
-    httpClient.DefaultRequestHeaders.Add(HeaderNames.Authorization, $"Bearer {constants.ApiKey}");
-
-    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-}).AddPolicyHandler(retryPolicy);
+builder.Services.AddSerilogLogging(builder.Configuration);
 
 builder.Services.AddMediatR(c =>
 {
