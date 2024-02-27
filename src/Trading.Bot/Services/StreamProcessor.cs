@@ -4,18 +4,20 @@ public class StreamProcessor : BackgroundService
 {
     private readonly OandaStreamService _streamService;
     private readonly LivePriceCache _livePriceCache;
+    private readonly ILogger<StreamProcessor> _logger;
     private readonly TradeConfiguration _tradeConfiguration;
     private readonly Dictionary<string, DateTime> _lastCandleTimings = new();
 
-    public StreamProcessor(OandaStreamService streamService, LivePriceCache livePriceCache, TradeConfiguration tradeConfiguration)
+    public StreamProcessor(OandaStreamService streamService, LivePriceCache livePriceCache, ILogger<StreamProcessor> logger, TradeConfiguration tradeConfiguration)
     {
         _streamService = streamService;
         _livePriceCache = livePriceCache;
+        _logger = logger;
         _tradeConfiguration = tradeConfiguration;
 
         foreach (var tradeSetting in _tradeConfiguration.TradeSettings)
         {
-            _lastCandleTimings[tradeSetting.Instrument] = DateTime.UtcNow.RoundDown(tradeSetting.CandleSpan.Minutes);
+            _lastCandleTimings[tradeSetting.Instrument] = DateTime.UtcNow.RoundDown(tradeSetting.CandleSpan);
         }
     }
 
@@ -29,9 +31,16 @@ public class StreamProcessor : BackgroundService
         {
             foreach (var instrument in instruments)
             {
-                if (_livePriceCache.LivePrices.ContainsKey(instrument))
+                try
                 {
-                    DetectNewCandle(_livePriceCache.LivePrices[instrument]);
+                    if (_livePriceCache.LivePrices.ContainsKey(instrument))
+                    {
+                        DetectNewCandle(_livePriceCache.LivePrices[instrument]);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred when trying to detect a new candle");
                 }
             }
 
@@ -41,17 +50,16 @@ public class StreamProcessor : BackgroundService
 
     private void DetectNewCandle(LivePrice livePrice)
     {
-        var minutes = _tradeConfiguration.TradeSettings.First(x => 
-            x.Instrument == livePrice.Instrument).CandleSpan.TotalMinutes;
+        var candleSpan = _tradeConfiguration.TradeSettings.First(x => 
+            x.Instrument == livePrice.Instrument).CandleSpan;
 
-        var current = livePrice.Time.RoundDown((int)minutes);
+        var current = livePrice.Time.RoundDown(candleSpan);
 
-        if (current > _lastCandleTimings[livePrice.Instrument])
-        {
-            _lastCandleTimings[livePrice.Instrument] = current;
+        if (current <= _lastCandleTimings[livePrice.Instrument]) return;
 
-            _livePriceCache.AddToQueue(livePrice);
-        }
+        _lastCandleTimings[livePrice.Instrument] = current;
+
+        _livePriceCache.AddToQueue(livePrice);
     }
 
     private void Initialize(CancellationToken stoppingToken)

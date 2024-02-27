@@ -128,18 +128,26 @@ public static class CustomExtensions
         return csv.GetRecords<T>().ToArray();
     }
 
-    public static DateTime RoundDown(this DateTime time, int minutes)
+    public static DateTime RoundDown(this DateTime time, TimeSpan candleSpan)
     {
-        return minutes switch
+        if (candleSpan.Days != 0)
         {
-            < 60 => new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute - time.Minute % minutes, 0),
-            >= 60 => new DateTime(time.Year, time.Month, time.Day, time.Hour - time.Hour % (minutes / 60), 0, 0)
-        };
-    }
+            return new DateTime(time.Year, time.Month, time.Day - time.Day % candleSpan.Days,
+                0, 0, 0);
+        }
 
-    public static DateTime Quantize(this DateTime time, int minutes)
-    {
-        var period = time.Minute / minutes * minutes;
-        return new DateTime(time.Year, time.Month, time.Day, time.Hour, period, 0);
+        if (candleSpan.Hours != 0)
+        {
+            return new DateTime(time.Year, time.Month, time.Day, 
+                time.Hour - time.Hour % candleSpan.Hours, 0, 0);
+        }
+
+        if (candleSpan.Minutes != 0)
+        {
+            return new DateTime(time.Year, time.Month, time.Day, time.Hour,
+                time.Minute - time.Minute % candleSpan.Minutes, 0);
+        }
+
+        return time;
     }
 }

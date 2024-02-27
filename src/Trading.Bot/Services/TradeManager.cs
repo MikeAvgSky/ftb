@@ -4,42 +4,81 @@ public class TradeManager : BackgroundService
 {
     private readonly OandaApiService _apiService;
     private readonly LivePriceCache _livePriceCache;
+    private readonly ILogger<TradeManager> _logger;
     private readonly TradeConfiguration _tradeConfiguration;
+    private readonly SemaphoreSlim _semaphore;
     private readonly List<Instrument> _instruments = new();
 
-    public TradeManager(OandaApiService apiService, LivePriceCache livePriceCache, TradeConfiguration tradeConfiguration)
+    public TradeManager(OandaApiService apiService, LivePriceCache livePriceCache, ILogger<TradeManager> logger, TradeConfiguration tradeConfiguration)
     {
         _apiService = apiService;
         _livePriceCache = livePriceCache;
+        _logger = logger;
         _tradeConfiguration = tradeConfiguration;
+        _semaphore = new SemaphoreSlim(_tradeConfiguration.TradeSettings.Length);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Initialise();
 
+        await StartTrading(stoppingToken);
+    }
+
+    private async Task StartTrading(CancellationToken stoppingToken)
+    {
+        var tasks = new List<Task>();
+
         while (!stoppingToken.IsCancellationRequested)
         {
             while (_livePriceCache.LivePriceQueue.Count != 0)
             {
-                if (!_livePriceCache.LivePriceQueue.TryDequeue(out var price)) continue;
+                await _semaphore.WaitAsync(stoppingToken);
 
-                var settings = _tradeConfiguration.TradeSettings.First(x => x.Instrument == price.Instrument);
-
-                if (!await NewCandleAvailable(settings, price, stoppingToken)) continue;
-
-                var candles =
-                    await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage * 2);
-
-                if (!candles.Any()) return;
-
-                var calcResult = candles.CalcBollingerBands(settings.MovingAverage, settings.StandardDeviation,
-                    settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
-
-                if (calcResult.Signal != Signal.None)
+                if (!_livePriceCache.LivePriceQueue.TryDequeue(out var price))
                 {
-                    await TryPlaceTrade(settings, calcResult);
+                    _semaphore.Release();
+                    continue;
                 }
+
+                tasks.Add(Task.Run(async () =>
+                {
+                    try
+                    {
+                        var settings = _tradeConfiguration.TradeSettings.First(x => x.Instrument == price.Instrument);
+
+                        if (!await NewCandleAvailable(settings, price, stoppingToken))
+                        {
+                            _semaphore.Release();
+                            return;
+                        }
+
+                        var candles =
+                            await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage * 2);
+
+                        if (!candles.Any()) return;
+
+                        var calcResult = candles.CalcBollingerBands(settings.MovingAverage, settings.StandardDeviation,
+                            settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
+
+                        if (calcResult.Signal != Signal.None)
+                        {
+                            await TryPlaceTrade(settings, calcResult);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "[OnAirProcessor] - Update failed due to an exception");
+                    }
+                    finally
+                    {
+                        _semaphore.Release();
+                    }
+                }, stoppingToken));
+
+                tasks.RemoveAll(p => p.IsCompleted);
+
+                Thread.Sleep(10);
             }
         }
     }
