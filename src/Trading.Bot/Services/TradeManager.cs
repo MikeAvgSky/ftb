@@ -9,7 +9,8 @@ public class TradeManager : BackgroundService
     private readonly SemaphoreSlim _semaphore;
     private readonly List<Instrument> _instruments = new();
 
-    public TradeManager(OandaApiService apiService, LivePriceCache livePriceCache, ILogger<TradeManager> logger, TradeConfiguration tradeConfiguration)
+    public TradeManager(OandaApiService apiService, LivePriceCache livePriceCache, 
+        ILogger<TradeManager> logger, TradeConfiguration tradeConfiguration)
     {
         _apiService = apiService;
         _livePriceCache = livePriceCache;
@@ -68,7 +69,7 @@ public class TradeManager : BackgroundService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "[OnAirProcessor] - Update failed due to an exception");
+                        _logger.LogError(ex, "An error occurred while trying to calculate and execute a trade");
                     }
                     finally
                     {

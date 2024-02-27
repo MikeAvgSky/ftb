@@ -8,7 +8,8 @@ public class StreamProcessor : BackgroundService
     private readonly TradeConfiguration _tradeConfiguration;
     private readonly Dictionary<string, DateTime> _lastCandleTimings = new();
 
-    public StreamProcessor(OandaStreamService streamService, LivePriceCache livePriceCache, ILogger<StreamProcessor> logger, TradeConfiguration tradeConfiguration)
+    public StreamProcessor(OandaStreamService streamService, LivePriceCache livePriceCache, 
+        ILogger<StreamProcessor> logger, TradeConfiguration tradeConfiguration)
     {
         _streamService = streamService;
         _livePriceCache = livePriceCache;
