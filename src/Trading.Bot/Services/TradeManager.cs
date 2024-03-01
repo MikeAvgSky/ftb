@@ -94,13 +94,22 @@ public class TradeManager : BackgroundService
 
         var currentTime = await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
 
-        if (currentTime != default && currentTime == price.Time) return true;
+        if (TimeMatches(price.Time, currentTime)) return true;
 
         await Task.Delay(1000, stoppingToken);
 
         retryCount++;
 
         goto Start;
+    }
+
+    private static bool TimeMatches(DateTime priceTime, DateTime currentTime)
+    {
+        return currentTime != default &&
+               new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, currentTime.Hour, currentTime.Minute,
+                   currentTime.Second) ==
+               new DateTime(priceTime.Year, priceTime.Month, priceTime.Day, priceTime.Hour, priceTime.Minute,
+                   priceTime.Second);
     }
 
     private async Task Initialise()

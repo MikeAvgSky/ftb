@@ -4,7 +4,7 @@ public static class ApiServiceMapper
 {
     public static Candle[] MapToCandles(this CandleData[] candles)
     {
-        var length = candles.Length;
+        var length = candles.Count(c => c.Complete);
 
         var result = new Candle[length];
 
