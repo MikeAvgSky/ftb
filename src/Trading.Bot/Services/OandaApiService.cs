@@ -198,12 +198,12 @@ public class OandaApiService
 
     public async Task<DateTime> GetLastCandleTime(string instrument, string granularity = default)
     {
-        var endpoint = BuildCandlesEndpoint(instrument, granularity, count: 1);
+        var endpoint = BuildCandlesEndpoint(instrument, granularity, count: 10);
 
         var response = await GetAsync<CandleResponse>(endpoint);
 
         return response.StatusCode == HttpStatusCode.OK
-            ? response.Value.Candles.Last().Time
+            ? response.Value.Candles.Last(c => c.Complete).Time
             : default;
     }
 

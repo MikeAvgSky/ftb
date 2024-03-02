@@ -42,6 +42,8 @@ public class TradeManager : BackgroundService
                     continue;
                 }
 
+                _logger.LogInformation($"New price found {price.Instrument}");
+
                 tasks.Add(Task.Run(async () =>
                 {
                     try
@@ -90,7 +92,11 @@ public class TradeManager : BackgroundService
 
         Start:
 
-        if (retryCount >= 10) return false;
+        if (retryCount >= 10)
+        {
+            _logger.LogWarning("Cannot get candle that matches the live price. Giving up.");
+            return false;
+        }
 
         var currentTime = await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
 
@@ -105,8 +111,7 @@ public class TradeManager : BackgroundService
 
     private static bool TimeMatches(DateTime priceTime, DateTime currentTime)
     {
-        return currentTime != default &&
-               new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, currentTime.Hour, currentTime.Minute,
+        return new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, currentTime.Hour, currentTime.Minute,
                    currentTime.Second) ==
                new DateTime(priceTime.Year, priceTime.Month, priceTime.Day, priceTime.Hour, priceTime.Minute,
                    priceTime.Second);
@@ -120,7 +125,11 @@ public class TradeManager : BackgroundService
 
     private async Task TryPlaceTrade(TradeSettings settings, IndicatorBase indicator)
     {
-        if (!await CanPlaceTrade(settings)) return;
+        if (!await CanPlaceTrade(settings))
+        {
+            _logger.LogInformation($"Cannot place trade for {settings.Instrument}, already open.");
+            return;
+        }
 
         var instrument = _instruments.FirstOrDefault(i => i.Name == settings.Instrument);
 
@@ -128,8 +137,16 @@ public class TradeManager : BackgroundService
 
         var tradeUnits = await GetTradeUnits(settings, indicator);
 
-        await _apiService.PlaceTrade(
+        var ofResponse = await _apiService.PlaceTrade(
             new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, indicator.TakeProfit));
+
+        if (ofResponse is null)
+        {
+            _logger.LogWarning($"Failed to place order for {settings.Instrument}");
+            return;
+        }
+
+        _logger.LogInformation($"Successfully placed order for {ofResponse.Instrument} with id {ofResponse.Id} ");
     }
 
     private async Task<double> GetTradeUnits(TradeSettings settings, IndicatorBase indicator)
