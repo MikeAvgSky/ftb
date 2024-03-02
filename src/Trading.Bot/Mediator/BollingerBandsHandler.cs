@@ -20,7 +20,13 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
 
             var stdDev = request.StandardDeviation ?? 2;
 
-            var bollingerBands = candles.CalcBollingerBands(window, stdDev);
+            var maxSpread = request.MaxSpread ?? 0.0004;
+
+            var minGain = request.MinGain ?? 0.0006;
+
+            var riskReward = request.RiskReward ?? 1.5;
+
+            var bollingerBands = candles.CalcBollingerBands(window, stdDev, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray());
 
@@ -46,6 +52,9 @@ public record BollingerBandsRequest : IHttpRequest
     public IFormFileCollection Files { get; set; }
     public int? Window { get; set; }
     public double? StandardDeviation { get; set; }
+    public double? MaxSpread { get; set; }
+    public double? MinGain { get; set; }
+    public double? RiskReward { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }

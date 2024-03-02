@@ -24,9 +24,15 @@ public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IRes
 
             var mergedWindows = maShortList.Concat(maLongList).GetAllWindowCombinations().Distinct();
 
+            var maxSpread = request.MaxSpread ?? 0.0004;
+
+            var minGain = request.MinGain ?? 0.0006;
+
+            var riskReward = request.RiskReward ?? 1.5;
+
             foreach (var window in mergedWindows)
             {
-                var movingAvgCross = candles.CalcMac(window.Item1, window.Item2);
+                var movingAvgCross = candles.CalcMac(window.Item1, window.Item2, maxSpread, minGain, riskReward);
 
                 var tradingSim = TradeResult.SimulateTrade(movingAvgCross.Cast<IndicatorBase>().ToArray());
 
@@ -53,6 +59,9 @@ public record MovingAverageCrossRequest : IHttpRequest
     public IFormFileCollection Files { get; set; }
     public string ShortWindow { get; set; }
     public string LongWindow { get; set; }
+    public double? MaxSpread { get; set; }
+    public double? MinGain { get; set; }
+    public double? RiskReward { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }

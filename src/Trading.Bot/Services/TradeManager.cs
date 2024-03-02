@@ -65,7 +65,7 @@ public class TradeManager : BackgroundService
                         }
 
                         var candles =
-                            await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage * 2);
+                            await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage * 2 + 1);
 
                         if (!candles.Any()) return;
 
