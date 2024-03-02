@@ -13,6 +13,8 @@ global using CsvHelper;
 global using CsvHelper.TypeConversion;
 global using MediatR;
 global using Serilog;
+global using MailKit.Net.Smtp;
+global using MimeKit;
 global using Trading.Bot.Extensions;
 global using Trading.Bot.Models.Enums;
 global using Trading.Bot.Models.Interfaces;

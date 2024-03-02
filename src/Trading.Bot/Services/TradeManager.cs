@@ -6,16 +6,18 @@ public class TradeManager : BackgroundService
     private readonly LivePriceCache _livePriceCache;
     private readonly ILogger<TradeManager> _logger;
     private readonly TradeConfiguration _tradeConfiguration;
+    private readonly EmailService _emailService;
     private readonly SemaphoreSlim _semaphore;
     private readonly List<Instrument> _instruments = new();
 
     public TradeManager(OandaApiService apiService, LivePriceCache livePriceCache, 
-        ILogger<TradeManager> logger, TradeConfiguration tradeConfiguration)
+        ILogger<TradeManager> logger, TradeConfiguration tradeConfiguration, EmailService emailService)
     {
         _apiService = apiService;
         _livePriceCache = livePriceCache;
         _logger = logger;
         _tradeConfiguration = tradeConfiguration;
+        _emailService = emailService;
         _semaphore = new SemaphoreSlim(_tradeConfiguration.TradeSettings.Length);
     }
 
@@ -24,6 +26,12 @@ public class TradeManager : BackgroundService
         await Initialise();
 
         await StartTrading(stoppingToken);
+    }
+
+    private async Task Initialise()
+    {
+        _instruments.AddRange(await _apiService.GetInstruments(string.Join(",",
+            _tradeConfiguration.TradeSettings.Select(s => s.Instrument))));
     }
 
     private async Task StartTrading(CancellationToken stoppingToken)
@@ -117,12 +125,6 @@ public class TradeManager : BackgroundService
                    priceTime.Second);
     }
 
-    private async Task Initialise()
-    {
-        _instruments.AddRange(await _apiService.GetInstruments(string.Join(",",
-            _tradeConfiguration.TradeSettings.Select(s => s.Instrument))));
-    }
-
     private async Task TryPlaceTrade(TradeSettings settings, IndicatorBase indicator)
     {
         if (!await CanPlaceTrade(settings))
@@ -147,6 +149,19 @@ public class TradeManager : BackgroundService
         }
 
         _logger.LogInformation($"Successfully placed order for {ofResponse.Instrument} with id {ofResponse.Id} ");
+
+        await SendEmailNotification(ofResponse);
+    }
+
+    private async Task SendEmailNotification(OrderFilledResponse ofResponse)
+    {
+        await _emailService.SendMailAsync(new EmailData
+        {
+            EmailToAddress = "mike.avgeros@gmail.com",
+            EmailToName = "Mike",
+            EmailSubject = "New Trade Placed",
+            EmailBody = JsonSerializer.Serialize(ofResponse)
+        });
     }
 
     private async Task<double> GetTradeUnits(TradeSettings settings, IndicatorBase indicator)
