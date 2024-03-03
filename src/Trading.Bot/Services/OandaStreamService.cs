@@ -38,7 +38,7 @@ public class OandaStreamService
 
                 var price = Deserialize<PriceResponse>(stringResponse);
 
-                if (price is not null && price.Type == "PRICE")
+                if (price is not null && price.Type == "PRICE" && price.Tradeable)
                 {
                     _livePriceCache.AddToDictionary(new LivePrice(price));
                 }

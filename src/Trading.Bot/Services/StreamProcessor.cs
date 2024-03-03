@@ -25,7 +25,7 @@ public class StreamProcessor : BackgroundService
         }
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         Initialize(stoppingToken);
 
@@ -45,9 +45,9 @@ public class StreamProcessor : BackgroundService
                     _logger.LogError(ex, "An error occurred when trying to detect a new candle");
                 }
             }
-        }
 
-        return Task.CompletedTask;
+            await Task.Delay(10, stoppingToken);
+        }
     }
 
     private void DetectNewCandle(LivePrice livePrice)
