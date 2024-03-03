@@ -91,6 +91,8 @@ public class TradeManager : BackgroundService
 
                 Thread.Sleep(10);
             }
+
+            await Task.Delay(10, stoppingToken);
         }
     }
 
