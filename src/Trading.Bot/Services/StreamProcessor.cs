@@ -6,6 +6,7 @@ public class StreamProcessor : BackgroundService
     private readonly LivePriceCache _livePriceCache;
     private readonly ILogger<StreamProcessor> _logger;
     private readonly TradeConfiguration _tradeConfiguration;
+    private readonly List<string> _instruments = new();
     private readonly Dictionary<string, DateTime> _lastCandleTimings = new();
 
     public StreamProcessor(OandaStreamService streamService, LivePriceCache livePriceCache, 
@@ -19,18 +20,18 @@ public class StreamProcessor : BackgroundService
         foreach (var tradeSetting in _tradeConfiguration.TradeSettings)
         {
             _lastCandleTimings[tradeSetting.Instrument] = DateTime.UtcNow.RoundDown(tradeSetting.CandleSpan);
+
+            _instruments.Add(tradeSetting.Instrument);
         }
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         Initialize(stoppingToken);
 
-        var instruments = _tradeConfiguration.TradeSettings.Select(x => x.Instrument).ToArray();
-
         while (!stoppingToken.IsCancellationRequested)
         {
-            foreach (var instrument in instruments)
+            foreach (var instrument in _instruments)
             {
                 try
                 {
@@ -44,9 +45,9 @@ public class StreamProcessor : BackgroundService
                     _logger.LogError(ex, "An error occurred when trying to detect a new candle");
                 }
             }
-
-            await Task.Delay(250 / instruments.Length, stoppingToken);
         }
+
+        return Task.CompletedTask;
     }
 
     private void DetectNewCandle(LivePrice livePrice)
@@ -65,8 +66,7 @@ public class StreamProcessor : BackgroundService
 
     private void Initialize(CancellationToken stoppingToken)
     {
-        var instruments = string.Join(',', 
-            _tradeConfiguration.TradeSettings.Select(x => x.Instrument));
+        var instruments = string.Join(',', _instruments);
 
         Task.Run(() => _streamService.StreamLivePrices(instruments), stoppingToken);
     }
