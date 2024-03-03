@@ -15,14 +15,14 @@ public sealed class InstrumentsHandler : IRequestHandler<InstrumentsRequest, IRe
 
         if (!string.IsNullOrEmpty(request.Type))
         {
-            instrumentList.RemoveAll(i => 
+            instrumentList.RemoveAll(i =>
                 !string.Equals(i.Type, request.Type, StringComparison.OrdinalIgnoreCase));
         }
 
         if (!instrumentList.Any()) return Results.Empty;
 
         return request.Download
-            ? Results.File(instrumentList.GetCsvBytes(), 
+            ? Results.File(instrumentList.GetCsvBytes(),
                 "text/csv", "instruments.csv")
             : Results.Ok(instrumentList);
     }

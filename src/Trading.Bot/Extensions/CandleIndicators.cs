@@ -62,7 +62,7 @@ public static class CandleIndicators
         return result;
     }
 
-    public static BollingerBandsResult[] CalcBollingerBands(this Candle[] candles, int window = 20, double stdDev = 2, 
+    public static BollingerBandsResult[] CalcBollingerBands(this Candle[] candles, int window = 20, double stdDev = 2,
         double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
@@ -272,7 +272,7 @@ public static class CandleIndicators
         return result;
     }
 
-    public static RsiEmaResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200, 
+    public static RsiEmaResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200,
         double profitFactor = 1.5, double rsiLimit = 50.0)
     {
         var rsi = candles.CalcRsi(rsiWindow);

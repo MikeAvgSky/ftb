@@ -21,14 +21,14 @@ public class Order
         TimeInForce = timeInForce;
         PositionFill = positionFill;
         StopLossOnFill = stopLoss == 0
-            ? null 
-            : 
+            ? null
+            :
             new StopLossOnFill
             {
                 Price = Math.Round(stopLoss, instrument.DisplayPrecision)
-    };
+            };
         TakeProfitOnFill = takeProfit == 0
-            ? null 
+            ? null
             : new TakeProfitOnFill
             {
                 Price = Math.Round(takeProfit, instrument.DisplayPrecision)

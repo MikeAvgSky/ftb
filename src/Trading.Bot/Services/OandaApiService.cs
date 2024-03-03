@@ -52,7 +52,7 @@ public class OandaApiService
 
                 response = await _httpClient.PostAsync(endpoint, content);
             }
-            
+
             if (response.IsSuccessStatusCode)
             {
                 return await HandleApiResponse<T>(dataKey, response);
@@ -186,10 +186,10 @@ public class OandaApiService
     public async Task<Candle[]> GetCandles(string instrument, string granularity = default,
         string price = default, int count = 500, DateTime fromDate = default, DateTime toDate = default)
     {
-        var endpoint = BuildCandlesEndpoint(instrument, granularity, price, count, 
+        var endpoint = BuildCandlesEndpoint(instrument, granularity, price, count,
             fromDate, toDate);
 
-        var response =  await GetAsync<CandleResponse>(endpoint);
+        var response = await GetAsync<CandleResponse>(endpoint);
 
         return response.StatusCode == HttpStatusCode.OK
             ? response.Value.Candles.MapToCandles()
@@ -261,7 +261,7 @@ public class OandaApiService
         return endpoint;
     }
 
-    private static string BuildCandlesEndpoint(string instrument, string granularity = default, 
+    private static string BuildCandlesEndpoint(string instrument, string granularity = default,
         string price = default, int count = 500, DateTime fromDate = default, DateTime toDate = default)
     {
         var endpoint = $"instruments/{instrument}/candles";

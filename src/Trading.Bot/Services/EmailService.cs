@@ -18,7 +18,7 @@ public class EmailService
             using var emailMessage = new MimeMessage();
 
             var emailFrom = new MailboxAddress(_emailConfig.UserName, _emailConfig.From);
-                
+
             emailMessage.From.Add(emailFrom);
 
             var emailTo = new MailboxAddress(emailData.EmailToName, emailData.EmailToAddress);
@@ -38,11 +38,11 @@ public class EmailService
 
             await mailClient.ConnectAsync(_emailConfig.SmtpServer, _emailConfig.Port,
                 MailKit.Security.SecureSocketOptions.StartTls);
-            
+
             await mailClient.AuthenticateAsync(_emailConfig.UserName, _emailConfig.Password);
-            
+
             await mailClient.SendAsync(emailMessage);
-            
+
             await mailClient.DisconnectAsync(true);
         }
         catch (Exception ex)

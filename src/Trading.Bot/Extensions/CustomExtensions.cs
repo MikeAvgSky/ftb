@@ -21,7 +21,7 @@ public static class CustomExtensions
             {
                 var index = 0;
 
-                while(index < list.Count)
+                while (index < list.Count)
                 {
                     if (i == index) index++;
 
@@ -138,7 +138,7 @@ public static class CustomExtensions
 
         if (candleSpan.Hours != 0)
         {
-            return new DateTime(time.Year, time.Month, time.Day, 
+            return new DateTime(time.Year, time.Month, time.Day,
                 time.Hour - time.Hour % candleSpan.Hours, 0, 0);
         }
 

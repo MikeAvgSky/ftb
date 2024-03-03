@@ -10,7 +10,7 @@ public class TradeManager : BackgroundService
     private readonly SemaphoreSlim _semaphore;
     private readonly List<Instrument> _instruments = new();
 
-    public TradeManager(OandaApiService apiService, LivePriceCache livePriceCache, 
+    public TradeManager(OandaApiService apiService, LivePriceCache livePriceCache,
         ILogger<TradeManager> logger, TradeConfiguration tradeConfiguration, EmailService emailService)
     {
         _apiService = apiService;

@@ -22,7 +22,7 @@ public static class SimulationEndpoints
             return Results.Problem(ex.Message);
         }
     }
-     
+
     private static async Task<IResult> SimulateBollingerBands(ISender sender,
         [AsParameters] BollingerBandsRequest request)
     {

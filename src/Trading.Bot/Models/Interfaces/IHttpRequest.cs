@@ -2,5 +2,5 @@
 
 public interface IHttpRequest : IRequest<IResult>
 {
-    
+
 }

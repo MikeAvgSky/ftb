@@ -9,7 +9,7 @@ public class StreamProcessor : BackgroundService
     private readonly List<string> _instruments = new();
     private readonly Dictionary<string, DateTime> _lastCandleTimings = new();
 
-    public StreamProcessor(OandaStreamService streamService, LivePriceCache livePriceCache, 
+    public StreamProcessor(OandaStreamService streamService, LivePriceCache livePriceCache,
         ILogger<StreamProcessor> logger, TradeConfiguration tradeConfiguration)
     {
         _streamService = streamService;
@@ -52,7 +52,7 @@ public class StreamProcessor : BackgroundService
 
     private void DetectNewCandle(LivePrice livePrice)
     {
-        var candleSpan = _tradeConfiguration.TradeSettings.First(x => 
+        var candleSpan = _tradeConfiguration.TradeSettings.First(x =>
             x.Instrument == livePrice.Instrument).CandleSpan;
 
         var current = livePrice.Time.RoundDown(candleSpan);

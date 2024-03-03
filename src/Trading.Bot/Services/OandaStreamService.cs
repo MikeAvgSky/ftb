@@ -7,7 +7,7 @@ public class OandaStreamService
     private readonly ILogger<OandaStreamService> _logger;
     private readonly string _accountId;
 
-    public OandaStreamService(HttpClient httpClient, LivePriceCache livePriceCache, 
+    public OandaStreamService(HttpClient httpClient, LivePriceCache livePriceCache,
         ILogger<OandaStreamService> logger, Constants constants)
     {
         _httpClient = httpClient;

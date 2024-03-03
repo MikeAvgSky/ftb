@@ -7,7 +7,7 @@ public static class CandleEndpoints
         builder.MapGet("api/candles/{currencies}", GetCandles).DisableAntiforgery();
     }
 
-    private static async Task<IResult> GetCandles(ISender sender, 
+    private static async Task<IResult> GetCandles(ISender sender,
         [AsParameters] CandlesRequest request)
     {
         try

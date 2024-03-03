@@ -29,11 +29,11 @@ public class TradeResult
                 {
                     Running = true,
                     StartIndex = i,
-                    StartPrice = indicators[i].Signal == Signal.Buy 
-                        ? indicators[i].Candle.Ask_C 
+                    StartPrice = indicators[i].Signal == Signal.Buy
+                        ? indicators[i].Candle.Ask_C
                         : indicators[i].Candle.Bid_C,
-                    TriggerPrice = indicators[i].Signal == Signal.Buy 
-                        ? indicators[i].Candle.Ask_C 
+                    TriggerPrice = indicators[i].Signal == Signal.Buy
+                        ? indicators[i].Candle.Ask_C
                         : indicators[i].Candle.Bid_C,
                     Signal = indicators[i].Signal,
                     TakeProfit = indicators[i].TakeProfit,
