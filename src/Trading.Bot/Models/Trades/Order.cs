@@ -35,7 +35,7 @@ public class Order
             :
             new StopLossOnFill
             {
-                Price = Math.Round(stopLoss, instrument.DisplayPrecision)
+                Price = Math.Round(stopLoss, instrument.DisplayPrecision, MidpointRounding.ToZero)
             };
         TakeProfitOnFill = takeProfit == 0
             ? null

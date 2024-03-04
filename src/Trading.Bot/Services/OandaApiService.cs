@@ -27,6 +27,10 @@ public class OandaApiService
                 return await HandleApiResponse<T>(dataKey, response);
             }
 
+            var stringResponse = await response.Content.ReadAsStringAsync();
+
+            _logger.LogWarning($"Get request to Oanda API unsuccessful.\r\n{stringResponse}");
+
             return new ApiResponse<T>(response.StatusCode, default);
         }
         catch (Exception ex)
@@ -59,6 +63,10 @@ public class OandaApiService
                 return await HandleApiResponse<T>(dataKey, response);
             }
 
+            var stringResponse = await response.Content.ReadAsStringAsync();
+
+            _logger.LogWarning($"Post request to Oanda API unsuccessful.\r\n{stringResponse}");
+
             return new ApiResponse<T>(response.StatusCode, default);
         }
         catch (Exception ex)
@@ -90,6 +98,10 @@ public class OandaApiService
             {
                 return await HandleApiResponse<T>(dataKey, response);
             }
+
+            var stringResponse = await response.Content.ReadAsStringAsync();
+
+            _logger.LogWarning($"Put request to Oanda API unsuccessful.\r\n{stringResponse}");
 
             return new ApiResponse<T>(response.StatusCode, default);
         }
@@ -159,7 +171,7 @@ public class OandaApiService
 
         var response = await GetAsync<AccountResponse>(endpoint, "account");
 
-        return response.StatusCode == HttpStatusCode.OK
+        return response.StatusCode.IsSuccessStatusCode()
             ? response.Value
             : null;
     }
@@ -170,7 +182,7 @@ public class OandaApiService
 
         var response = await GetAsync<PricingResponse>(endpoint);
 
-        return response.StatusCode == HttpStatusCode.OK
+        return response.StatusCode.IsSuccessStatusCode()
             ? response.Value.MapToPrices()
             : Array.Empty<Price>();
     }
@@ -181,7 +193,7 @@ public class OandaApiService
 
         var response = await GetAsync<InstrumentResponse[]>(endpoint, "instruments");
 
-        return response.StatusCode == HttpStatusCode.OK
+        return response.StatusCode.IsSuccessStatusCode()
             ? response.Value.MapToInstruments()
             : Array.Empty<Instrument>();
     }
@@ -194,7 +206,7 @@ public class OandaApiService
 
         var response = await GetAsync<CandleResponse>(endpoint);
 
-        return response.StatusCode == HttpStatusCode.OK
+        return response.StatusCode.IsSuccessStatusCode()
             ? response.Value.Candles.MapToCandles()
             : Array.Empty<Candle>();
     }
@@ -205,7 +217,7 @@ public class OandaApiService
 
         var response = await GetAsync<CandleResponse>(endpoint);
 
-        return response.StatusCode == HttpStatusCode.OK
+        return response.StatusCode.IsSuccessStatusCode()
             ? response.Value.Candles.Last().Time
             : default;
     }
@@ -218,7 +230,7 @@ public class OandaApiService
 
         var response = await PostAsync<OrderFilledResponse>(endpoint, orderRequest, "orderFillTransaction");
 
-        return response.StatusCode == HttpStatusCode.OK
+        return response.StatusCode.IsSuccessStatusCode()
             ? response.Value
             : null;
     }
@@ -229,7 +241,7 @@ public class OandaApiService
 
         var response = await PutAsync<OrderFilledResponse>(endpoint, "orderFillTransaction");
 
-        return response.StatusCode == HttpStatusCode.OK && response.Value is not null;
+        return response.StatusCode.IsSuccessStatusCode() && response.Value is not null;
     }
 
     public async Task<TradeResponse[]> GetOpenTrades()
@@ -238,7 +250,7 @@ public class OandaApiService
 
         var response = await GetAsync<TradeResponse[]>(endpoint, "trades");
 
-        return response.StatusCode == HttpStatusCode.OK
+        return response.StatusCode.IsSuccessStatusCode()
             ? response.Value
             : Array.Empty<TradeResponse>();
     }
@@ -249,7 +261,7 @@ public class OandaApiService
 
         var response = await GetAsync<TradeResponse>(endpoint, "trade");
 
-        return response.StatusCode == HttpStatusCode.OK
+        return response.StatusCode.IsSuccessStatusCode()
             ? response.Value
             : null;
     }
