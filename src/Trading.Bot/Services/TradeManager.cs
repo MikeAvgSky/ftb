@@ -145,8 +145,9 @@ public class TradeManager : BackgroundService
 
         var tradeUnits = await GetTradeUnits(settings, indicator);
 
-        var ofResponse = await _apiService.PlaceTrade(
-            new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, indicator.TakeProfit));
+        var order = new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, indicator.TakeProfit);
+
+        var ofResponse = await _apiService.PlaceTrade(order);
 
         if (ofResponse is null)
         {
@@ -179,20 +180,13 @@ public class TradeManager : BackgroundService
 
         if (price is null) return 0.0;
 
-        var conversionFactor = indicator.Signal switch
-        {
-            Signal.Buy => price.HomeConversion,
-            Signal.Sell => price.HomeConversion,
-            _ => 1.0
-        };
-
         var pipLocation = _instruments.FirstOrDefault(i => i.Name == settings.Instrument)?.PipLocation ?? 1.0;
 
         var numPips = indicator.Loss / pipLocation;
 
         var perPipLoss = _tradeConfiguration.TradeRisk / numPips;
 
-        return perPipLoss / (conversionFactor * pipLocation);
+        return perPipLoss / (price.HomeConversion * pipLocation);
     }
 
     private async Task<bool> CanPlaceTrade(TradeSettings settings)

@@ -110,6 +110,7 @@ public class OandaApiService
                     {
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                        NumberHandling = JsonNumberHandling.WriteAsString,
                         WriteIndented = true
                     }),
                 Encoding.UTF8, "application/json");
@@ -209,9 +210,11 @@ public class OandaApiService
             : default;
     }
 
-    public async Task<OrderFilledResponse> PlaceTrade(Order orderRequest)
+    public async Task<OrderFilledResponse> PlaceTrade(Order order)
     {
         var endpoint = $"accounts/{_accountId}/orders";
+
+        var orderRequest = new OrderRequest(order);
 
         var response = await PostAsync<OrderFilledResponse>(endpoint, orderRequest, "orderFillTransaction");
 
