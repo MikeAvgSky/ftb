@@ -76,8 +76,10 @@ public class TradeManager : BackgroundService
                         {
                             await TryPlaceTrade(settings, calcResult);
                         }
-
-                        _logger.LogInformation($"Not placing trade for {settings.Instrument} based on indicator");
+                        else
+                        {
+                            _logger.LogInformation($"Not placing trade for {settings.Instrument} based on indicator");
+                        }
                     }
                     catch (Exception ex)
                     {

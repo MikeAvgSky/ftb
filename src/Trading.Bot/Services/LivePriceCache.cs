@@ -8,10 +8,7 @@ public class LivePriceCache
 
     public void AddToQueue(LivePrice price)
     {
-        if (!LivePriceQueue.Any(lp => lp.Equals(price)))
-        {
-            LivePriceQueue.Enqueue(price);
-        }
+        LivePriceQueue.Enqueue(price);
     }
 
     public void AddToDictionary(LivePrice price)
