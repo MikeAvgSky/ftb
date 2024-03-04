@@ -50,7 +50,7 @@ public class TradeManager : BackgroundService
                     continue;
                 }
 
-                _logger.LogInformation($"New price found {price.Instrument}");
+                _logger.LogInformation($"New candle found for {price.Instrument} at {price.Time}");
 
                 tasks.Add(Task.Run(async () =>
                 {
@@ -76,6 +76,8 @@ public class TradeManager : BackgroundService
                         {
                             await TryPlaceTrade(settings, calcResult);
                         }
+
+                        _logger.LogInformation($"Not placing trade for {settings.Instrument} based on indicator");
                     }
                     catch (Exception ex)
                     {
@@ -162,7 +164,10 @@ public class TradeManager : BackgroundService
             EmailToAddress = "mike.avgeros@gmail.com",
             EmailToName = "Mike",
             EmailSubject = "New Trade Placed",
-            EmailBody = JsonSerializer.Serialize(ofResponse)
+            EmailBody = JsonSerializer.Serialize(ofResponse, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            })
         });
     }
 

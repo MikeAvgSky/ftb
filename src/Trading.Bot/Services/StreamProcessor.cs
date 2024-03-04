@@ -61,6 +61,8 @@ public class StreamProcessor : BackgroundService
 
         _lastCandleTimings[livePrice.Instrument] = current;
 
+        livePrice.Time = current;
+
         _livePriceCache.AddToQueue(livePrice);
     }
 

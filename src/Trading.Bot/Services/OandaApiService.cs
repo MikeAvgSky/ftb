@@ -5,6 +5,7 @@ public class OandaApiService
     private readonly HttpClient _httpClient;
     private readonly ILogger<OandaApiService> _logger;
     private readonly string _accountId;
+
     public const string DefaultGranularity = "H1";
     public const string DefaultPrice = "MBA";
 
@@ -108,7 +109,8 @@ public class OandaApiService
                     new JsonSerializerOptions
                     {
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                        WriteIndented = true
                     }),
                 Encoding.UTF8, "application/json");
 
@@ -198,12 +200,12 @@ public class OandaApiService
 
     public async Task<DateTime> GetLastCandleTime(string instrument, string granularity = default)
     {
-        var endpoint = BuildCandlesEndpoint(instrument, granularity, count: 10);
+        var endpoint = BuildCandlesEndpoint(instrument, granularity, count: 1);
 
         var response = await GetAsync<CandleResponse>(endpoint);
 
         return response.StatusCode == HttpStatusCode.OK
-            ? response.Value.Candles.Last(c => c.Complete).Time
+            ? response.Value.Candles.Last().Time
             : default;
     }
 
