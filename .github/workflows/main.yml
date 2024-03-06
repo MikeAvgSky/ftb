@@ -16,6 +16,15 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 8.0.x
+
+      - name: App Settings Variable Substitution
+        uses: microsoft/variable-substitution@v1
+        with:
+          files: './src/Trading.Bot/appsettings.json'
+        env:
+          Constants.ApiKey: ${{ secrets.OANDAAPIKEY }}
+          Constants.AccountId: ${{ secrets.OANDAACCOUNTID }}
+          EmailConfiguration.Password: ${{ secrets.EMAILPASSWORD }}
           
       - name: Restore
         run: dotnet restore ./src/Trading.Bot/Trading.Bot.csproj
