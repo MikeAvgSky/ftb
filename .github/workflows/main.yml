@@ -1,4 +1,4 @@
-name: Publish
+name: Publish .NET App
 
 on:
   workflow_dispatch:
@@ -9,20 +9,19 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
-
+      
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
-
+          dotnet-version: 8.0.x
+          
       - name: Restore
-        run: dotnet restore ./Trading.Bot.sln
-
+        run: dotnet restore ./src/Trading.Bot/Trading.Bot.csproj
+        
       - name: Build
-        run: dotnet build ./Trading.Bot.sln --configuration Release --no-restore
-
+        run: dotnet build ./src/Trading.Bot/Trading.Bot.csproj --configuration Release --no-restore
+        
       - name: Publish
-        run: dotnet publish ./Trading.Bot.sln --configuration Release --no-build
+        run: dotnet publish ./src/Trading.Bot/Trading.Bot.csproj --configuration Release --no-build
