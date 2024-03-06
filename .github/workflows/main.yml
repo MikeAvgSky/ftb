@@ -24,4 +24,4 @@ jobs:
         run: dotnet build ./src/Trading.Bot/Trading.Bot.csproj --configuration Release --no-restore
         
       - name: Publish
-        run: dotnet publish ./src/Trading.Bot/Trading.Bot.csproj --configuration Release --no-build
+        run: dotnet publish ./src/Trading.Bot/Trading.Bot.csproj --configuration Release --no-build --output ./publish
