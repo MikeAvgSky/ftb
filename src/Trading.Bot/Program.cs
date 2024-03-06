@@ -27,7 +27,11 @@ builder.Services.AddOandaApiService(constants);
 
 builder.Services.AddOandaStreamService(constants);
 
-builder.Services.AddSerilogLogging(builder.Configuration);
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddMediatR(c =>
 {
