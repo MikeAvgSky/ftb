@@ -44,7 +44,7 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
         return Task.FromResult(request.Download
             ? Results.File(rsiList.GetZipFromFileData(),
-                "application/octet-stream", "bb.zip")
+                "application/octet-stream", "rsi_ema.zip")
             : Results.Ok(rsiList.Select(l => l.Value)));
     }
 }

@@ -40,7 +40,7 @@ public class MacdEmaHandler : IRequestHandler<MacdEmaRequest, IResult>
 
         return Task.FromResult(request.Download
             ? Results.File(macdEmaList.GetZipFromFileData(),
-                "application/octet-stream", "bb.zip")
+                "application/octet-stream", "macd_ema.zip")
             : Results.Ok(macdEmaList.Select(l => l.Value)));
     }
 }

@@ -49,7 +49,7 @@ public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IRes
 
         return Task.FromResult(request.Download
             ? Results.File(movingAvgCrossList.GetZipFromFileData(),
-                "application/octet-stream", "ma.zip")
+                "application/octet-stream", "mac.zip")
             : Results.Ok(movingAvgCrossList.Select(l => l.Value)));
     }
 }
