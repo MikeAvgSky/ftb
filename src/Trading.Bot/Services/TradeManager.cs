@@ -50,7 +50,7 @@ public class TradeManager : BackgroundService
                     continue;
                 }
 
-                _logger.LogInformation($"New candle found for {price.Instrument} at {price.Time}");
+                _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
 
                 tasks.Add(Task.Run(async () =>
                 {
@@ -78,7 +78,7 @@ public class TradeManager : BackgroundService
                         }
                         else
                         {
-                            _logger.LogInformation($"Not placing trade for {settings.Instrument} based on indicator");
+                            _logger.LogInformation("Not placing trade for {Instrument} based on indicator", settings.Instrument);
                         }
                     }
                     catch (Exception ex)
@@ -109,6 +109,7 @@ public class TradeManager : BackgroundService
         if (retryCount >= 10)
         {
             _logger.LogWarning("Cannot get candle that matches the live price. Giving up.");
+
             return false;
         }
 
@@ -135,7 +136,7 @@ public class TradeManager : BackgroundService
     {
         if (!await CanPlaceTrade(settings))
         {
-            _logger.LogInformation($"Cannot place trade for {settings.Instrument}, already open.");
+            _logger.LogInformation("Cannot place trade for {Instrument}, already open.", settings.Instrument);
             return;
         }
 
@@ -151,11 +152,11 @@ public class TradeManager : BackgroundService
 
         if (ofResponse is null)
         {
-            _logger.LogWarning($"Failed to place order for {settings.Instrument}");
+            _logger.LogWarning("Failed to place order for {Instrument}", settings.Instrument);
             return;
         }
 
-        _logger.LogInformation($"Successfully placed order for {ofResponse.Instrument} with id {ofResponse.Id} ");
+        _logger.LogInformation("Successfully placed order for {Instrument} with id {OrderId}", ofResponse.Instrument, ofResponse.Id);
 
         await SendEmailNotification(ofResponse);
     }
@@ -169,6 +170,7 @@ public class TradeManager : BackgroundService
             EmailSubject = "New Trade Placed",
             EmailBody = JsonSerializer.Serialize(ofResponse, new JsonSerializerOptions
             {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 WriteIndented = true
             })
         });

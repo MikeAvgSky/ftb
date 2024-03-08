@@ -29,13 +29,13 @@ public class OandaApiService
 
             var stringResponse = await response.Content.ReadAsStringAsync();
 
-            _logger.LogWarning($"Get request to Oanda API unsuccessful.\r\n{stringResponse}");
+            _logger.LogWarning("Get request to Oanda API unsuccessful.\r\n{StringResponse}", stringResponse);
 
             return new ApiResponse<T>(response.StatusCode, default);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"An error occurred while getting data from {endpoint}");
+            _logger.LogError(ex, "An error occurred while getting data from {Endpoint}", endpoint);
 
             return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
         }
@@ -65,13 +65,13 @@ public class OandaApiService
 
             var stringResponse = await response.Content.ReadAsStringAsync();
 
-            _logger.LogWarning($"Post request to Oanda API unsuccessful.\r\n{stringResponse}");
+            _logger.LogWarning("Post request to Oanda API unsuccessful.\r\n{StringResponse}", stringResponse);
 
             return new ApiResponse<T>(response.StatusCode, default);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"An error occurred while posting {Serialize(body)} to {endpoint}");
+            _logger.LogError(ex, "An error occurred while posting to {Endpoint}.\r\n{Body}", Serialize(body), endpoint);
 
             return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
         }
@@ -101,13 +101,13 @@ public class OandaApiService
 
             var stringResponse = await response.Content.ReadAsStringAsync();
 
-            _logger.LogWarning($"Put request to Oanda API unsuccessful.\r\n{stringResponse}");
+            _logger.LogWarning("Put request to Oanda API unsuccessful.\r\n{StringResponse}", stringResponse);
 
             return new ApiResponse<T>(response.StatusCode, default);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"An error occurred while updating {Serialize(body)} from {endpoint}");
+            _logger.LogError(ex, "An error occurred while posting and update to {Endpoint}.\r\n{Body}", Serialize(body), endpoint);
 
             return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
         }
