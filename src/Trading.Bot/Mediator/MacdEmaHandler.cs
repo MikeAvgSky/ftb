@@ -18,7 +18,13 @@ public class MacdEmaHandler : IRequestHandler<MacdEmaRequest, IResult>
 
             var emaWindow = request.EmaWindow ?? 100;
 
-            var macdEma = candles.CalcMacdEma(emaWindow);
+            var maxSpread = request.MaxSpread ?? 0.0004;
+
+            var minGain = request.MinGain ?? 0.0006;
+
+            var profitFactor = request.ProfitFactor ?? 1.5;
+
+            var macdEma = candles.CalcMacdEma(emaWindow, maxSpread, minGain, profitFactor);
 
             var tradingSim = TradeResult.SimulateTrade(macdEma.Cast<IndicatorBase>().ToArray());
 
@@ -43,6 +49,9 @@ public record MacdEmaRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; }
     public int? EmaWindow { get; set; }
+    public double? MaxSpread { get; set; }
+    public double? MinGain { get; set; }
+    public double? ProfitFactor { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }

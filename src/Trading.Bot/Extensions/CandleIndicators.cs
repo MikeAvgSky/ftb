@@ -272,8 +272,8 @@ public static class CandleIndicators
         return result;
     }
 
-    public static RsiEmaResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200,
-        double profitFactor = 1.5, double rsiLimit = 50.0)
+    public static RsiEmaResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200, double rsiLimit = 50.0,
+        double maxSpread = 0.0004, double minGain = 0.0006, double profitFactor = 1.5)
     {
         var rsi = candles.CalcRsi(rsiWindow);
 
@@ -299,8 +299,14 @@ public static class CandleIndicators
 
             result[i].Signal = i < emaWindow ? Signal.None : engulfing switch
             {
-                true when candles[i].Direction == 1 && candles[i].Mid_L > result[i].Ema && result[i].Rsi > rsiLimit => Signal.Buy,
-                true when candles[i].Direction == -1 && candles[i].Mid_H < result[i].Ema && result[i].Rsi < rsiLimit => Signal.Sell,
+                true when candles[i].Direction == 1 && 
+                          candles[i].Mid_L > result[i].Ema && 
+                          result[i].Rsi > rsiLimit && 
+                          candles[i].Spread <= maxSpread => Signal.Buy,
+                true when candles[i].Direction == -1 && 
+                          candles[i].Mid_H < result[i].Ema && 
+                          result[i].Rsi < rsiLimit && 
+                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
 
@@ -312,6 +318,11 @@ public static class CandleIndicators
             };
 
             result[i].Gain = Math.Abs(result[i].TakeProfit - candles[i].Ask_C);
+
+            if (result[i].Gain < minGain)
+            {
+                result[i].Signal = Signal.None;
+            }
 
             result[i].StopLoss = result[i].Signal switch
             {
@@ -326,7 +337,8 @@ public static class CandleIndicators
         return result;
     }
 
-    public static MacdEmaResult[] CalcMacdEma(this Candle[] candles, int emaWindow = 100, double profitFactor = 1.5)
+    public static MacdEmaResult[] CalcMacdEma(this Candle[] candles, int emaWindow = 100,
+        double maxSpread = 0.0004, double minGain = 0.0006, double profitFactor = 1.5)
     {
         var macd = candles.CalcMacd();
 
@@ -359,8 +371,10 @@ public static class CandleIndicators
 
             result[i].Signal = i < emaWindow ? Signal.None : result[i].Direction switch
             {
-                1 when candles[i].Mid_L > result[i].Ema => Signal.Buy,
-                -1 when candles[i].Mid_H < result[i].Ema => Signal.Sell,
+                1 when candles[i].Mid_L > result[i].Ema && 
+                       candles[i].Spread <= maxSpread => Signal.Buy,
+                -1 when candles[i].Mid_H < result[i].Ema && 
+                        candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
 
@@ -372,6 +386,11 @@ public static class CandleIndicators
             };
 
             result[i].Gain = Math.Abs(result[i].TakeProfit - candles[i].Ask_C);
+
+            if (result[i].Gain < minGain)
+            {
+                result[i].Signal = Signal.None;
+            }
 
             result[i].StopLoss = result[i].Signal switch
             {
