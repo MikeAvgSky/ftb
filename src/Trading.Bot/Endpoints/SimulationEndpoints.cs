@@ -6,6 +6,7 @@ public static class SimulationEndpoints
     {
         builder.MapPost("api/simulation/ma_cross", SimulateMovingAverageCross).DisableAntiforgery();
         builder.MapPost("api/simulation/bb", SimulateBollingerBands).DisableAntiforgery();
+        builder.MapPost("api/simulation/kc", SimulateKeltnerChannels).DisableAntiforgery();
         builder.MapPost("api/simulation/rsi_ema", SimulateRsiEma).DisableAntiforgery();
         builder.MapPost("api/simulation/macd_ema", SimulateMacdEma).DisableAntiforgery();
     }
@@ -25,6 +26,19 @@ public static class SimulationEndpoints
 
     private static async Task<IResult> SimulateBollingerBands(ISender sender,
         [AsParameters] BollingerBandsRequest request)
+    {
+        try
+        {
+            return await sender.Send(request);
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
+
+    private static async Task<IResult> SimulateKeltnerChannels(ISender sender,
+        [AsParameters] KeltnerChannelsRequest request)
     {
         try
         {

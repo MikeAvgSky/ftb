@@ -157,7 +157,8 @@ public static class CandleIndicators
         return result;
     }
 
-    public static KeltnerResult[] CalcKeltner(this Candle[] candles, int emaWindow = 20, int atrWindow = 10)
+    public static KeltnerResult[] CalcKeltner(this Candle[] candles, int emaWindow = 20, int atrWindow = 10,
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
@@ -180,6 +181,37 @@ public static class CandleIndicators
             result[i].UpperBand = atr[i].Atr * 2 + ema[i];
 
             result[i].LowerBand = result[i].Ema - atr[i].Atr * 2;
+
+            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
+
+            result[i].Signal = i < emaWindow ? Signal.None : candles[i] switch
+            {
+                var candle when candle.Mid_C < result[i].LowerBand &&
+                                candle.Mid_O > result[i].LowerBand &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Buy,
+                var candle when candle.Mid_C > result[i].UpperBand &&
+                                candle.Mid_O < result[i].UpperBand &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Sell,
+                _ => Signal.None
+            };
+
+            result[i].TakeProfit = result[i].Signal switch
+            {
+                Signal.Buy => candles[i].Mid_C + result[i].Gain,
+                Signal.Sell => candles[i].Mid_C - result[i].Gain,
+                _ => 0.0
+            };
+
+            result[i].StopLoss = result[i].Signal switch
+            {
+                Signal.Buy => candles[i].Mid_C - result[i].Gain / riskReward,
+                Signal.Sell => candles[i].Mid_C + result[i].Gain / riskReward,
+                _ => 0.0
+            };
+
+            result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
 
         return result;
