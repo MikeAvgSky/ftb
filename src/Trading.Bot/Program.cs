@@ -42,7 +42,9 @@ builder.Services.AddMediatR(c =>
 
 if (constants.RunBot)
 {
-    builder.Services.AddSingleton<LivePriceCache>();
+    builder.Services.AddSingleton<LiveTradeCache>();
+
+    builder.Services.AddHostedService<StreamWorker>();
 
     builder.Services.AddHostedService<StreamProcessor>();
 

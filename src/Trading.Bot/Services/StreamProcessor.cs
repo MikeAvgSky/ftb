@@ -2,18 +2,16 @@
 
 public class StreamProcessor : BackgroundService
 {
-    private readonly OandaStreamService _streamService;
-    private readonly LivePriceCache _livePriceCache;
+    private readonly LiveTradeCache _liveTradeCache;
     private readonly ILogger<StreamProcessor> _logger;
     private readonly TradeConfiguration _tradeConfiguration;
     private readonly List<string> _instruments = new();
     private readonly Dictionary<string, DateTime> _lastCandleTimings = new();
 
-    public StreamProcessor(OandaStreamService streamService, LivePriceCache livePriceCache,
-        ILogger<StreamProcessor> logger, TradeConfiguration tradeConfiguration)
+    public StreamProcessor(LiveTradeCache liveTradeCache, ILogger<StreamProcessor> logger,
+        TradeConfiguration tradeConfiguration)
     {
-        _streamService = streamService;
-        _livePriceCache = livePriceCache;
+        _liveTradeCache = liveTradeCache;
         _logger = logger;
         _tradeConfiguration = tradeConfiguration;
 
@@ -27,17 +25,15 @@ public class StreamProcessor : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Initialize(stoppingToken);
-
         while (!stoppingToken.IsCancellationRequested)
         {
             foreach (var instrument in _instruments)
             {
                 try
                 {
-                    if (_livePriceCache.LivePrices.ContainsKey(instrument))
+                    if (_liveTradeCache.LivePrices.ContainsKey(instrument))
                     {
-                        DetectNewCandle(_livePriceCache.LivePrices[instrument]);
+                        DetectNewCandle(_liveTradeCache.LivePrices[instrument]);
                     }
                 }
                 catch (Exception ex)
@@ -63,13 +59,6 @@ public class StreamProcessor : BackgroundService
 
         livePrice.Time = current;
 
-        _livePriceCache.AddToQueue(livePrice);
-    }
-
-    private void Initialize(CancellationToken stoppingToken)
-    {
-        var instruments = string.Join(',', _instruments);
-
-        Task.Run(() => _streamService.StreamLivePrices(instruments), stoppingToken);
+        _liveTradeCache.AddToQueue(livePrice);
     }
 }

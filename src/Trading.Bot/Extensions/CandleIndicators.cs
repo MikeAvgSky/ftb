@@ -331,13 +331,13 @@ public static class CandleIndicators
 
             result[i].Signal = i < emaWindow ? Signal.None : engulfing switch
             {
-                true when candles[i].Direction == 1 && 
-                          candles[i].Mid_L > result[i].Ema && 
-                          result[i].Rsi > rsiLimit && 
+                true when candles[i].Direction == 1 &&
+                          candles[i].Mid_L > result[i].Ema &&
+                          result[i].Rsi > rsiLimit &&
                           candles[i].Spread <= maxSpread => Signal.Buy,
-                true when candles[i].Direction == -1 && 
-                          candles[i].Mid_H < result[i].Ema && 
-                          result[i].Rsi < rsiLimit && 
+                true when candles[i].Direction == -1 &&
+                          candles[i].Mid_H < result[i].Ema &&
+                          result[i].Rsi < rsiLimit &&
                           candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
@@ -403,9 +403,9 @@ public static class CandleIndicators
 
             result[i].Signal = i < emaWindow ? Signal.None : result[i].Direction switch
             {
-                1 when candles[i].Mid_L > result[i].Ema && 
+                1 when candles[i].Mid_L > result[i].Ema &&
                        candles[i].Spread <= maxSpread => Signal.Buy,
-                -1 when candles[i].Mid_H < result[i].Ema && 
+                -1 when candles[i].Mid_H < result[i].Ema &&
                         candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };

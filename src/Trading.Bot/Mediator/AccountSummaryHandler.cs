@@ -18,7 +18,7 @@ public sealed class AccountSummaryHandler : IRequestHandler<AccountSummaryReques
         var bytes = new List<AccountResponse> { apiResponse }.GetCsvBytes();
 
         return request.Download
-            ? Results.File(bytes, "text/csv", "instruments.csv")
+            ? Results.File(bytes, "text/csv", "account.csv")
             : Results.Ok(apiResponse);
     }
 }

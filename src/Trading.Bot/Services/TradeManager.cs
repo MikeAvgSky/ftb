@@ -3,18 +3,18 @@
 public class TradeManager : BackgroundService
 {
     private readonly OandaApiService _apiService;
-    private readonly LivePriceCache _livePriceCache;
+    private readonly LiveTradeCache _liveTradeCache;
     private readonly ILogger<TradeManager> _logger;
     private readonly TradeConfiguration _tradeConfiguration;
     private readonly EmailService _emailService;
     private readonly SemaphoreSlim _semaphore;
     private readonly List<Instrument> _instruments = new();
 
-    public TradeManager(OandaApiService apiService, LivePriceCache livePriceCache,
+    public TradeManager(OandaApiService apiService, LiveTradeCache liveTradeCache,
         ILogger<TradeManager> logger, TradeConfiguration tradeConfiguration, EmailService emailService)
     {
         _apiService = apiService;
-        _livePriceCache = livePriceCache;
+        _liveTradeCache = liveTradeCache;
         _logger = logger;
         _tradeConfiguration = tradeConfiguration;
         _emailService = emailService;
@@ -40,11 +40,11 @@ public class TradeManager : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            while (_livePriceCache.LivePriceQueue.Count != 0)
+            while (_liveTradeCache.LivePriceQueue.Count != 0)
             {
                 await _semaphore.WaitAsync(stoppingToken);
 
-                if (!_livePriceCache.LivePriceQueue.TryDequeue(out var price))
+                if (!_liveTradeCache.LivePriceQueue.TryDequeue(out var price))
                 {
                     _semaphore.Release();
                     continue;
@@ -134,7 +134,7 @@ public class TradeManager : BackgroundService
 
     private async Task TryPlaceTrade(TradeSettings settings, IndicatorBase indicator)
     {
-        if (!await CanPlaceTrade(settings))
+        if (!await CanPlaceTrade(settings, indicator))
         {
             _logger.LogInformation("Cannot place trade for {Instrument}, already open.", settings.Instrument);
             return;
@@ -155,6 +155,8 @@ public class TradeManager : BackgroundService
             _logger.LogWarning("Failed to place order for {Instrument}", settings.Instrument);
             return;
         }
+
+        _liveTradeCache.AddToDictionary(new LastTrade(settings.Instrument, indicator.Signal, indicator.TakeProfit));
 
         _logger.LogInformation("Successfully placed order for {Instrument} with id {OrderId}", ofResponse.Instrument, ofResponse.Id);
 
@@ -191,10 +193,28 @@ public class TradeManager : BackgroundService
         return perPipLoss / (price.HomeConversion * pipLocation);
     }
 
-    private async Task<bool> CanPlaceTrade(TradeSettings settings)
+    private async Task<bool> CanPlaceTrade(TradeSettings settings, IndicatorBase indicator)
     {
+        if (!TradeDoesNotContinueFromProfit(settings, indicator)) return false;
+
         var openTrades = await _apiService.GetOpenTrades();
 
         return openTrades.All(ot => ot.Instrument != settings.Instrument);
+    }
+
+    private bool TradeDoesNotContinueFromProfit(TradeSettings settings, IndicatorBase indicator)
+    {
+        if (_liveTradeCache.LastTrades.TryGetValue(settings.Instrument, out var lastTrade) &&
+            _liveTradeCache.LivePrices.TryGetValue(settings.Instrument, out var currentPrice))
+        {
+            if (lastTrade.Signal == indicator.Signal &&
+                (lastTrade.Signal == Signal.Buy && lastTrade.TakeProfit < currentPrice.Ask) ||
+                (lastTrade.Signal == Signal.Sell && lastTrade.TakeProfit > currentPrice.Bid))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

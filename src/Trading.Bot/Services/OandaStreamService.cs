@@ -3,20 +3,20 @@
 public class OandaStreamService
 {
     private readonly HttpClient _httpClient;
-    private readonly LivePriceCache _livePriceCache;
+    private readonly LiveTradeCache _liveTradeCache;
     private readonly ILogger<OandaStreamService> _logger;
     private readonly string _accountId;
 
-    public OandaStreamService(HttpClient httpClient, LivePriceCache livePriceCache,
+    public OandaStreamService(HttpClient httpClient, LiveTradeCache liveTradeCache,
         ILogger<OandaStreamService> logger, Constants constants)
     {
         _httpClient = httpClient;
-        _livePriceCache = livePriceCache;
+        _liveTradeCache = liveTradeCache;
         _logger = logger;
         _accountId = constants.AccountId;
     }
 
-    public async Task StreamLivePrices(string instruments)
+    public async Task StreamLivePrices(string instruments, CancellationToken stoppingToken)
     {
         try
         {
@@ -24,31 +24,29 @@ public class OandaStreamService
 
             var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
 
-            var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, stoppingToken);
 
             response.EnsureSuccessStatusCode();
 
-            var responseStream = await response.Content.ReadAsStreamAsync();
+            var responseStream = await response.Content.ReadAsStreamAsync(stoppingToken);
 
             using var reader = new StreamReader(responseStream);
 
-            while (!reader.EndOfStream)
+            while (!reader.EndOfStream && !stoppingToken.IsCancellationRequested)
             {
-                var stringResponse = await reader.ReadLineAsync();
+                var stringResponse = await reader.ReadLineAsync(stoppingToken);
 
                 var price = Deserialize<PriceResponse>(stringResponse);
 
                 if (price is not null && price.Type == "PRICE" && price.Tradeable)
                 {
-                    _livePriceCache.AddToDictionary(new LivePrice(price));
+                    _liveTradeCache.AddToDictionary(new LivePrice(price));
                 }
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while trying to stream live prices. Stopping service.");
-
-            Environment.Exit(0);
         }
     }
 
