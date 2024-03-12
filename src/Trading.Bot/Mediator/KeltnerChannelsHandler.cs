@@ -42,7 +42,7 @@ public class KeltnerChannelsHandler : IRequestHandler<KeltnerChannelsRequest, IR
 
         return Task.FromResult(request.Download
             ? Results.File(bollingerBandsList.GetZipFromFileData(),
-                "application/octet-stream", "bb.zip")
+                "application/octet-stream", "kc.zip")
             : Results.Ok(bollingerBandsList.Select(l => l.Value)));
     }
 }
