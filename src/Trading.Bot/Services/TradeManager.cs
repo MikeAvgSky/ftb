@@ -162,11 +162,11 @@ public class TradeManager : BackgroundService
         {
             ofResponse.AccountBalance,
             ofResponse.Instrument,
-            indicator.Signal,
+            Signal = indicator.Signal.ToString(),
             ofResponse.Units,
             TriggerPrice = indicator.Candle.Mid_C,
-            indicator.TakeProfit,
-            indicator.StopLoss,
+            TakeProfit = order.TakeProfitOnFill.Price,
+            StopLoss = order.StopLossOnFill.Price,
             ofResponse.OrderID
         });
     }
