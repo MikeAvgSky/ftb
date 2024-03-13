@@ -305,7 +305,7 @@ public static class CandleIndicators
     }
 
     public static RsiEmaResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200, double rsiLimit = 50.0,
-        double maxSpread = 0.0004, double minGain = 0.0006, double profitFactor = 1.5)
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var rsi = candles.CalcRsi(rsiWindow);
 
@@ -329,48 +329,45 @@ public static class CandleIndicators
 
             var engulfing = i > 0 && candles[i].IsEngulfingCandle(candles[i - 1]);
 
+            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
+
             result[i].Signal = i < emaWindow ? Signal.None : engulfing switch
             {
                 true when candles[i].Direction == 1 &&
                           candles[i].Mid_L > result[i].Ema &&
                           result[i].Rsi > rsiLimit &&
-                          candles[i].Spread <= maxSpread => Signal.Buy,
+                          candles[i].Spread <= maxSpread &&
+                          result[i].Gain >= minGain => Signal.Buy,
                 true when candles[i].Direction == -1 &&
                           candles[i].Mid_H < result[i].Ema &&
                           result[i].Rsi < rsiLimit &&
-                          candles[i].Spread <= maxSpread => Signal.Sell,
+                          candles[i].Spread <= maxSpread &&
+                          result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
             };
 
             result[i].TakeProfit = result[i].Signal switch
             {
-                Signal.Buy => (candles[i].Ask_C - candles[i].Ask_O) * profitFactor + candles[i].Ask_C,
-                Signal.Sell => (candles[i].Bid_C - candles[i].Bid_O) * profitFactor + candles[i].Bid_C,
+                Signal.Buy => candles[i].Mid_C + result[i].Gain,
+                Signal.Sell => candles[i].Mid_C - result[i].Gain,
                 _ => 0.0
             };
-
-            result[i].Gain = Math.Abs(result[i].TakeProfit - candles[i].Ask_C);
-
-            if (result[i].Gain < minGain)
-            {
-                result[i].Signal = Signal.None;
-            }
 
             result[i].StopLoss = result[i].Signal switch
             {
-                Signal.Buy => candles[i].Ask_O,
-                Signal.Sell => candles[i].Bid_O,
+                Signal.Buy => candles[i].Mid_C - result[i].Gain / riskReward,
+                Signal.Sell => candles[i].Mid_C + result[i].Gain / riskReward,
                 _ => 0.0
             };
 
-            result[i].Loss = Math.Abs(candles[i].Bid_C - result[i].StopLoss);
+            result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
 
         return result;
     }
 
     public static MacdEmaResult[] CalcMacdEma(this Candle[] candles, int emaWindow = 100,
-        double maxSpread = 0.0004, double minGain = 0.0006, double profitFactor = 1.5)
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var macd = candles.CalcMacd();
 
@@ -401,37 +398,34 @@ public static class CandleIndicators
 
             result[i].Ema = ema[i];
 
+            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
+
             result[i].Signal = i < emaWindow ? Signal.None : result[i].Direction switch
             {
                 1 when candles[i].Mid_L > result[i].Ema &&
-                       candles[i].Spread <= maxSpread => Signal.Buy,
+                       candles[i].Spread <= maxSpread &&
+                       result[i].Gain >= minGain => Signal.Buy,
                 -1 when candles[i].Mid_H < result[i].Ema &&
-                        candles[i].Spread <= maxSpread => Signal.Sell,
+                        candles[i].Spread <= maxSpread &&
+                        result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
             };
 
             result[i].TakeProfit = result[i].Signal switch
             {
-                Signal.Buy => (candles[i].Ask_C - candles[i].Ask_O) * profitFactor + candles[i].Ask_C,
-                Signal.Sell => (candles[i].Bid_C - candles[i].Bid_O) * profitFactor + candles[i].Bid_C,
+                Signal.Buy => candles[i].Mid_C + result[i].Gain,
+                Signal.Sell => candles[i].Mid_C - result[i].Gain,
                 _ => 0.0
             };
-
-            result[i].Gain = Math.Abs(result[i].TakeProfit - candles[i].Ask_C);
-
-            if (result[i].Gain < minGain)
-            {
-                result[i].Signal = Signal.None;
-            }
 
             result[i].StopLoss = result[i].Signal switch
             {
-                Signal.Buy => candles[i].Ask_O,
-                Signal.Sell => candles[i].Bid_O,
+                Signal.Buy => candles[i].Mid_C - result[i].Gain / riskReward,
+                Signal.Sell => candles[i].Mid_C + result[i].Gain / riskReward,
                 _ => 0.0
             };
 
-            result[i].Loss = Math.Abs(candles[i].Bid_C - result[i].StopLoss);
+            result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
 
         return result;

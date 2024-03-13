@@ -69,7 +69,7 @@ public class TradeManager : BackgroundService
 
                         if (!candles.Any()) return;
 
-                        var calcResult = candles.CalcBollingerBands(settings.MovingAverage, settings.StandardDeviation,
+                        var calcResult = candles.CalcMacdEma(settings.MovingAverage,
                             settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
                         if (calcResult.Signal != Signal.None)
