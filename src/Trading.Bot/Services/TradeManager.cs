@@ -134,7 +134,7 @@ public class TradeManager : BackgroundService
 
     private async Task TryPlaceTrade(TradeSettings settings, IndicatorBase indicator)
     {
-        if (!await CanPlaceTrade(settings, indicator))
+        if (!await CanPlaceTrade(settings))
         {
             _logger.LogInformation("Cannot place trade for {Instrument}, already open.", settings.Instrument);
             return;
@@ -156,21 +156,29 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        _liveTradeCache.AddToDictionary(new LastTrade(settings.Instrument, indicator.Signal, indicator.TakeProfit));
-
         _logger.LogInformation("Successfully placed order for {Instrument} with id {OrderId}", ofResponse.Instrument, ofResponse.Id);
 
-        await SendEmailNotification(ofResponse);
+        await SendEmailNotification(new
+        {
+            ofResponse.AccountBalance,
+            ofResponse.Instrument,
+            indicator.Signal,
+            ofResponse.Units,
+            TriggerPrice = indicator.Candle.Mid_C,
+            indicator.TakeProfit,
+            indicator.StopLoss,
+            ofResponse.OrderID
+        });
     }
 
-    private async Task SendEmailNotification(OrderFilledResponse ofResponse)
+    private async Task SendEmailNotification(object emailBody)
     {
         await _emailService.SendMailAsync(new EmailData
         {
             EmailToAddress = "mike.avgeros@gmail.com",
             EmailToName = "Mike",
             EmailSubject = "New Trade Placed",
-            EmailBody = JsonSerializer.Serialize(ofResponse, new JsonSerializerOptions
+            EmailBody = JsonSerializer.Serialize(emailBody, new JsonSerializerOptions
             {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 WriteIndented = true
@@ -193,28 +201,10 @@ public class TradeManager : BackgroundService
         return perPipLoss / (price.HomeConversion * pipLocation);
     }
 
-    private async Task<bool> CanPlaceTrade(TradeSettings settings, IndicatorBase indicator)
+    private async Task<bool> CanPlaceTrade(TradeSettings settings)
     {
-        if (!TradeDoesNotContinueFromProfit(settings, indicator)) return false;
-
         var openTrades = await _apiService.GetOpenTrades();
 
         return openTrades.All(ot => ot.Instrument != settings.Instrument);
-    }
-
-    private bool TradeDoesNotContinueFromProfit(TradeSettings settings, IndicatorBase indicator)
-    {
-        if (_liveTradeCache.LastTrades.TryGetValue(settings.Instrument, out var lastTrade) &&
-            _liveTradeCache.LivePrices.TryGetValue(settings.Instrument, out var currentPrice))
-        {
-            if (lastTrade.Signal == indicator.Signal &&
-                (lastTrade.Signal == Signal.Buy && lastTrade.TakeProfit < currentPrice.Ask) ||
-                (lastTrade.Signal == Signal.Sell && lastTrade.TakeProfit > currentPrice.Bid))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 }
