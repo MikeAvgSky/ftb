@@ -404,10 +404,10 @@ public static class CandleIndicators
             {
                 1 when candles[i].Mid_L > result[i].Ema &&
                        candles[i].Spread <= maxSpread &&
-                       result[i].Gain >= minGain => Signal.Buy,
+                       result[i].Gain >= minGain => Signal.Sell,
                 -1 when candles[i].Mid_H < result[i].Ema &&
                         candles[i].Spread <= maxSpread &&
-                        result[i].Gain >= minGain => Signal.Sell,
+                        result[i].Gain >= minGain => Signal.Buy,
                 _ => Signal.None
             };
 

@@ -156,8 +156,6 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        _logger.LogInformation("Successfully placed order for {Instrument} with id {OrderId}", ofResponse.Instrument, ofResponse.Id);
-
         await SendEmailNotification(new
         {
             ofResponse.AccountBalance,
