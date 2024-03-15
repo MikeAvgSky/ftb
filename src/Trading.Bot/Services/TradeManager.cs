@@ -165,6 +165,7 @@ public class TradeManager : BackgroundService
             TriggerPrice = indicator.Candle.Mid_C,
             TakeProfit = order.TakeProfitOnFill.Price,
             StopLoss = order.StopLossOnFill.Price,
+            indicator.Candle.Volume,
             ofResponse.OrderID
         });
     }
