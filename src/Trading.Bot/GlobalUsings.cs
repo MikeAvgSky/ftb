@@ -7,6 +7,7 @@ global using MimeKit;
 global using Polly;
 global using Polly.Extensions.Http;
 global using Serilog;
+global using Sgbj.Cron;
 global using System.Collections.Concurrent;
 global using System.Globalization;
 global using System.IO.Compression;

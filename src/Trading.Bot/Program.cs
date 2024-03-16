@@ -49,6 +49,11 @@ if (constants.RunBot)
     builder.Services.AddHostedService<StreamProcessor>();
 
     builder.Services.AddHostedService<TradeManager>();
+
+    if (constants.StopRollover)
+    {
+        builder.Services.AddHostedService<RolloverManager>();
+    }
 }
 
 builder.Services.AddEndpointsApiExplorer();

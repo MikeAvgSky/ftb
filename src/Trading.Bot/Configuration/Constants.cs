@@ -7,4 +7,5 @@ public class Constants
     public string OandaApiUrl { get; set; }
     public string OandaStreamUrl { get; set; }
     public bool RunBot { get; set; }
+    public bool StopRollover { get; set; }
 }
