@@ -155,4 +155,18 @@ public static class CustomExtensions
     {
         return (int)statusCode >= 200 && (int)statusCode <= 299;
     }
+
+    public static bool AreContiguous(this Candle[] candles, TimeSpan candleSpan)
+    {
+        var length = candles.Length - 1;
+
+        for (var i = 0; i < length; i++)
+        {
+            if (candles[i].Time + candleSpan == candles[i + 1].Time) continue;
+
+            return false;
+        }
+
+        return true;
+    }
 }
