@@ -64,7 +64,7 @@ public class TradeManager : BackgroundService
                             return;
                         }
 
-                        var candles = await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage + 1);
+                        var candles = await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage + 10);
 
                         if (!candles.Any() || (_tradeConfiguration.CheckCandleContinuity && !candles.AreContiguous(settings.CandleSpan)))
                         {

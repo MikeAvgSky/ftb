@@ -31,7 +31,7 @@ public static class CandleIndicators
 
             result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].MaShort);
 
-            result[i].Signal = i < longWindow ? Signal.None : result[i].Delta switch
+            result[i].Signal = result[i].Delta switch
             {
                 >= 0 when result[i].DeltaPrev < 0 &&
                 candles[i].Spread <= maxSpread &&
@@ -89,7 +89,7 @@ public static class CandleIndicators
 
             result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Sma);
 
-            result[i].Signal = i < window ? Signal.None : candles[i] switch
+            result[i].Signal = candles[i] switch
             {
                 var candle when candle.Mid_C < result[i].LowerBand &&
                                 candle.Mid_O > result[i].LowerBand &&
@@ -184,7 +184,7 @@ public static class CandleIndicators
 
             result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
 
-            result[i].Signal = i < emaWindow ? Signal.None : candles[i] switch
+            result[i].Signal = candles[i] switch
             {
                 var candle when candle.Mid_C < result[i].LowerBand &&
                                 candle.Mid_O > result[i].LowerBand &&
@@ -331,7 +331,7 @@ public static class CandleIndicators
 
             result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
 
-            result[i].Signal = i < emaWindow ? Signal.None : engulfing switch
+            result[i].Signal = engulfing switch
             {
                 true when candles[i].Direction == 1 &&
                           candles[i].Mid_L > result[i].Ema &&
@@ -400,7 +400,7 @@ public static class CandleIndicators
 
             result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
 
-            result[i].Signal = i < emaWindow ? Signal.None : result[i].Direction switch
+            result[i].Signal = result[i].Direction switch
             {
                 1 when candles[i].Mid_L > result[i].Ema &&
                        candles[i].Spread <= maxSpread &&
