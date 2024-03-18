@@ -40,7 +40,7 @@ builder.Services.AddMediatR(c =>
     c.RegisterServicesFromAssemblyContaining<Program>();
 });
 
-if (constants.RunBot)
+if (tradeConfiguration.RunBot)
 {
     builder.Services.AddSingleton<LiveTradeCache>();
 
@@ -50,7 +50,7 @@ if (constants.RunBot)
 
     builder.Services.AddHostedService<TradeManager>();
 
-    if (constants.StopRollover)
+    if (tradeConfiguration.StopRollover)
     {
         builder.Services.AddHostedService<RolloverManager>();
     }

@@ -67,9 +67,9 @@ public class TradeManager : BackgroundService
                         var candles =
                             await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage * 2 + 1);
 
-                        if (!candles.Any() || !candles.AreContiguous(settings.CandleSpan))
+                        if (!candles.Any() || (_tradeConfiguration.CheckCandleContinuity && !candles.AreContiguous(settings.CandleSpan)))
                         {
-                            _logger.LogInformation("Cannot place trade for {Instrument}, candles not found or not contiguous.", settings.Instrument);
+                            _logger.LogInformation("Not placing trade for {Instrument}, candles not found or not contiguous.", settings.Instrument);
                             return;
                         }
 
