@@ -73,6 +73,10 @@ public static class CandleIndicators
 
         var sma = typicalPrice.CalcSma(window).ToArray();
 
+        var volumes = candles.Select(c => (double)c.Volume).ToArray();
+
+        var volMa = volumes.CalcSma(window).ToArray();
+
         var length = candles.Length;
 
         var result = new BollingerBandsResult[length];
@@ -105,6 +109,17 @@ public static class CandleIndicators
                                     result[i].Gain >= minGain => Signal.Sell,
                     _ => Signal.None
                 };
+
+            if (result[i].Signal != Signal.None &&
+                result[i].Candle.Volume < volMa[i])
+            {
+                result[i].Signal = result[i].Signal switch
+                {
+                    Signal.Buy => Signal.Sell,
+                    Signal.Sell => Signal.Buy,
+                    _ => Signal.None
+                };
+            }
 
             result[i].TakeProfit = result[i].Signal switch
             {
@@ -383,6 +398,10 @@ public static class CandleIndicators
 
         var ema = prices.CalcEma(emaWindow).ToArray();
 
+        var volumes = candles.Select(c => (double)c.Volume).ToArray();
+
+        var volMa = volumes.CalcSma(emaWindow).ToArray();
+
         var length = candles.Length;
 
         var result = new MacdEmaResult[length];
@@ -414,12 +433,23 @@ public static class CandleIndicators
                 {
                     1 when candles[i].Mid_L > result[i].Ema &&
                            candles[i].Spread <= maxSpread &&
-                           result[i].Gain >= minGain => Signal.Sell,
+                           result[i].Gain >= minGain => Signal.Buy,
                     -1 when candles[i].Mid_H < result[i].Ema &&
                             candles[i].Spread <= maxSpread &&
-                            result[i].Gain >= minGain => Signal.Buy,
+                            result[i].Gain >= minGain => Signal.Sell,
                     _ => Signal.None
                 };
+
+            if (result[i].Signal != Signal.None &&
+                result[i].Candle.Volume < volMa[i])
+            {
+                result[i].Signal = result[i].Signal switch
+                {
+                    Signal.Buy => Signal.Sell,
+                    Signal.Sell => Signal.Buy,
+                    _ => Signal.None
+                };
+            }
 
             result[i].TakeProfit = result[i].Signal switch
             {
