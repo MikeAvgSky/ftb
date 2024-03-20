@@ -31,18 +31,16 @@ public static class CandleIndicators
 
             result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].MaShort);
 
-            result[i].Signal = i < length - 1
-                ? Signal.None
-                : result[i].Delta switch
-                {
-                    >= 0 when result[i].DeltaPrev < 0 &&
-                    candles[i].Spread <= maxSpread &&
-                    result[i].Gain >= minGain => Signal.Buy,
-                    < 0 when result[i].DeltaPrev >= 0 &&
-                    candles[i].Spread <= maxSpread &&
-                    result[i].Gain >= minGain => Signal.Sell,
-                    _ => Signal.None
-                };
+            result[i].Signal = result[i].Delta switch
+            {
+                >= 0 when result[i].DeltaPrev < 0 &&
+                candles[i].Spread <= maxSpread &&
+                result[i].Gain >= minGain => Signal.Buy,
+                < 0 when result[i].DeltaPrev >= 0 &&
+                candles[i].Spread <= maxSpread &&
+                result[i].Gain >= minGain => Signal.Sell,
+                _ => Signal.None
+            };
 
             result[i].TakeProfit = result[i].Signal switch
             {
@@ -91,20 +89,18 @@ public static class CandleIndicators
 
             result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Sma);
 
-            result[i].Signal = i < length - 1
-                ? Signal.None
-                : candles[i] switch
-                {
-                    var candle when candle.Mid_C < result[i].LowerBand &&
-                                    candle.Mid_O > result[i].LowerBand &&
-                                    candle.Spread <= maxSpread &&
-                                    result[i].Gain >= minGain => Signal.Buy,
-                    var candle when candle.Mid_C > result[i].UpperBand &&
-                                    candle.Mid_O < result[i].UpperBand &&
-                                    candle.Spread <= maxSpread &&
-                                    result[i].Gain >= minGain => Signal.Sell,
-                    _ => Signal.None
-                };
+            result[i].Signal = candles[i] switch
+            {
+                var candle when candle.Mid_C < result[i].LowerBand &&
+                                candle.Mid_O > result[i].LowerBand &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Buy,
+                var candle when candle.Mid_C > result[i].UpperBand &&
+                                candle.Mid_O < result[i].UpperBand &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Sell,
+                _ => Signal.None
+            };
 
             result[i].TakeProfit = result[i].Signal switch
             {
@@ -188,20 +184,18 @@ public static class CandleIndicators
 
             result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
 
-            result[i].Signal = i < length - 1
-                ? Signal.None
-                : candles[i] switch
-                {
-                    var candle when candle.Mid_C < result[i].LowerBand &&
-                                    candle.Mid_O > result[i].LowerBand &&
-                                    candle.Spread <= maxSpread &&
-                                    result[i].Gain >= minGain => Signal.Buy,
-                    var candle when candle.Mid_C > result[i].UpperBand &&
-                                    candle.Mid_O < result[i].UpperBand &&
-                                    candle.Spread <= maxSpread &&
-                                    result[i].Gain >= minGain => Signal.Sell,
-                    _ => Signal.None
-                };
+            result[i].Signal = candles[i] switch
+            {
+                var candle when candle.Mid_C < result[i].LowerBand &&
+                                candle.Mid_O > result[i].LowerBand &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Buy,
+                var candle when candle.Mid_C > result[i].UpperBand &&
+                                candle.Mid_O < result[i].UpperBand &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Sell,
+                _ => Signal.None
+            };
 
             result[i].TakeProfit = result[i].Signal switch
             {
@@ -337,22 +331,20 @@ public static class CandleIndicators
 
             result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
 
-            result[i].Signal = i < length - 1
-                ? Signal.None
-                : engulfing switch
-                {
-                    true when candles[i].Direction == 1 &&
-                              candles[i].Mid_L > result[i].Ema &&
-                              result[i].Rsi > rsiLimit &&
-                              candles[i].Spread <= maxSpread &&
-                              result[i].Gain >= minGain => Signal.Buy,
-                    true when candles[i].Direction == -1 &&
-                              candles[i].Mid_H < result[i].Ema &&
-                              result[i].Rsi < rsiLimit &&
-                              candles[i].Spread <= maxSpread &&
-                              result[i].Gain >= minGain => Signal.Sell,
-                    _ => Signal.None
-                };
+            result[i].Signal = engulfing switch
+            {
+                true when candles[i].Direction == 1 &&
+                          candles[i].Mid_L > result[i].Ema &&
+                          result[i].Rsi > rsiLimit &&
+                          candles[i].Spread <= maxSpread &&
+                          result[i].Gain >= minGain => Signal.Buy,
+                true when candles[i].Direction == -1 &&
+                          candles[i].Mid_H < result[i].Ema &&
+                          result[i].Rsi < rsiLimit &&
+                          candles[i].Spread <= maxSpread &&
+                          result[i].Gain >= minGain => Signal.Sell,
+                _ => Signal.None
+            };
 
             result[i].TakeProfit = result[i].Signal switch
             {
@@ -408,18 +400,16 @@ public static class CandleIndicators
 
             result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
 
-            result[i].Signal = i < length - 1
-                ? Signal.None
-                : result[i].Direction switch
-                {
-                    1 when candles[i].Mid_L > result[i].Ema &&
-                           candles[i].Spread <= maxSpread &&
-                           result[i].Gain >= minGain => Signal.Buy,
-                    -1 when candles[i].Mid_H < result[i].Ema &&
-                            candles[i].Spread <= maxSpread &&
-                            result[i].Gain >= minGain => Signal.Sell,
-                    _ => Signal.None
-                };
+            result[i].Signal = result[i].Direction switch
+            {
+                1 when candles[i].Mid_L > result[i].Ema &&
+                       candles[i].Spread <= maxSpread &&
+                       result[i].Gain >= minGain => Signal.Buy,
+                -1 when candles[i].Mid_H < result[i].Ema &&
+                        candles[i].Spread <= maxSpread &&
+                        result[i].Gain >= minGain => Signal.Sell,
+                _ => Signal.None
+            };
 
             result[i].TakeProfit = result[i].Signal switch
             {
