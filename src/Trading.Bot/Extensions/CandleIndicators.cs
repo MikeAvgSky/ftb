@@ -421,17 +421,6 @@ public static class CandleIndicators
                     _ => Signal.None
                 };
 
-            if (result[i].Signal != Signal.None &&
-                result[i].Candle.Volume < 150)
-            {
-                result[i].Signal = result[i].Signal switch
-                {
-                    Signal.Buy => Signal.Sell,
-                    Signal.Sell => Signal.Buy,
-                    _ => Signal.None
-                };
-            }
-
             result[i].TakeProfit = result[i].Signal switch
             {
                 Signal.Buy => candles[i].Mid_C + result[i].Gain,
