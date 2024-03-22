@@ -42,19 +42,9 @@ public static class CandleIndicators
                 _ => Signal.None
             };
 
-            result[i].TakeProfit = result[i].Signal switch
-            {
-                Signal.Buy => candles[i].Mid_C + result[i].Gain,
-                Signal.Sell => candles[i].Mid_C - result[i].Gain,
-                _ => 0.0
-            };
+            result[i].TakeProfit = CalcTakeProfit(candles[i], result[i]);
 
-            result[i].StopLoss = result[i].Signal switch
-            {
-                Signal.Buy => candles[i].Mid_C - result[i].Gain / riskReward,
-                Signal.Sell => candles[i].Mid_C + result[i].Gain / riskReward,
-                _ => 0.0
-            };
+            result[i].StopLoss = CalcStopLoss(candles[i], result[i], riskReward);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
@@ -102,19 +92,9 @@ public static class CandleIndicators
                 _ => Signal.None
             };
 
-            result[i].TakeProfit = result[i].Signal switch
-            {
-                Signal.Buy => candles[i].Mid_C + result[i].Gain,
-                Signal.Sell => candles[i].Mid_C - result[i].Gain,
-                _ => 0.0
-            };
+            result[i].TakeProfit = CalcTakeProfit(candles[i], result[i]);
 
-            result[i].StopLoss = result[i].Signal switch
-            {
-                Signal.Buy => candles[i].Mid_C - result[i].Gain / riskReward,
-                Signal.Sell => candles[i].Mid_C + result[i].Gain / riskReward,
-                _ => 0.0
-            };
+            result[i].StopLoss = CalcStopLoss(candles[i], result[i], riskReward);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
@@ -197,19 +177,9 @@ public static class CandleIndicators
                 _ => Signal.None
             };
 
-            result[i].TakeProfit = result[i].Signal switch
-            {
-                Signal.Buy => candles[i].Mid_C + result[i].Gain,
-                Signal.Sell => candles[i].Mid_C - result[i].Gain,
-                _ => 0.0
-            };
+            result[i].TakeProfit = CalcTakeProfit(candles[i], result[i]);
 
-            result[i].StopLoss = result[i].Signal switch
-            {
-                Signal.Buy => candles[i].Mid_C - result[i].Gain / riskReward,
-                Signal.Sell => candles[i].Mid_C + result[i].Gain / riskReward,
-                _ => 0.0
-            };
+            result[i].StopLoss = CalcStopLoss(candles[i], result[i], riskReward);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
@@ -346,19 +316,9 @@ public static class CandleIndicators
                 _ => Signal.None
             };
 
-            result[i].TakeProfit = result[i].Signal switch
-            {
-                Signal.Buy => candles[i].Mid_C + result[i].Gain,
-                Signal.Sell => candles[i].Mid_C - result[i].Gain,
-                _ => 0.0
-            };
+            result[i].TakeProfit = CalcTakeProfit(candles[i], result[i]);
 
-            result[i].StopLoss = result[i].Signal switch
-            {
-                Signal.Buy => candles[i].Mid_C - result[i].Gain / riskReward,
-                Signal.Sell => candles[i].Mid_C + result[i].Gain / riskReward,
-                _ => 0.0
-            };
+            result[i].StopLoss = CalcStopLoss(candles[i], result[i], riskReward);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
@@ -411,23 +371,89 @@ public static class CandleIndicators
                 _ => Signal.None
             };
 
-            result[i].TakeProfit = result[i].Signal switch
-            {
-                Signal.Buy => candles[i].Mid_C + result[i].Gain,
-                Signal.Sell => candles[i].Mid_C - result[i].Gain,
-                _ => 0.0
-            };
+            result[i].TakeProfit = CalcTakeProfit(candles[i], result[i]);
 
-            result[i].StopLoss = result[i].Signal switch
-            {
-                Signal.Buy => candles[i].Mid_C - result[i].Gain / riskReward,
-                Signal.Sell => candles[i].Mid_C + result[i].Gain / riskReward,
-                _ => 0.0
-            };
+            result[i].StopLoss = CalcStopLoss(candles[i], result[i], riskReward);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
 
         return result;
+    }
+
+    public static RsiBandsResult[] CalcRsiBands(this Candle[] candles, int rsiWindow = 13, int bbWindow = 30, double stdDev = 2,
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double rsiLower = 30, double rsiUpper = 70)
+    {
+        var rsiResult = candles.CalcRsi(rsiWindow);
+
+        var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
+
+        var rolStdDev = typicalPrice.CalcRolStdDev(bbWindow, stdDev).ToArray();
+
+        var sma = typicalPrice.CalcSma(bbWindow).ToArray();
+
+        var length = candles.Length;
+
+        var result = new RsiBandsResult[length];
+
+        for (var i = 0; i < length; i++)
+        {
+            result[i] ??= new RsiBandsResult();
+
+            result[i].Candle = candles[i];
+
+            result[i].Sma = sma[i];
+
+            result[i].UpperBand = sma[i] + rolStdDev[i] * stdDev;
+
+            result[i].LowerBand = sma[i] - rolStdDev[i] * stdDev;
+
+            result[i].Rsi = rsiResult[i].Rsi;
+
+            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Sma);
+
+            result[i].Signal = candles[i] switch
+            {
+                var candle when candle.Mid_C < result[i].LowerBand &&
+                                candle.Mid_O > result[i].LowerBand &&
+                                rsiResult[i].Rsi < rsiLower &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Buy,
+                var candle when candle.Mid_C > result[i].UpperBand &&
+                                candle.Mid_O < result[i].UpperBand &&
+                                rsiResult[i].Rsi > rsiUpper &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Sell,
+                _ => Signal.None
+            };
+
+            result[i].TakeProfit = CalcTakeProfit(candles[i], result[i]);
+
+            result[i].StopLoss = CalcStopLoss(candles[i], result[i], riskReward);
+
+            result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
+        }
+
+        return result;
+    }
+
+    private static double CalcTakeProfit(Candle candle, IndicatorBase result)
+    {
+        return result.Signal switch
+        {
+            Signal.Buy => candle.Mid_C + result.Gain,
+            Signal.Sell => candle.Mid_C - result.Gain,
+            _ => 0.0
+        };
+    }
+
+    private static double CalcStopLoss(Candle candle, IndicatorBase result, double riskReward)
+    {
+        return result.Signal switch
+        {
+            Signal.Buy => candle.Mid_C - result.Gain / riskReward,
+            Signal.Sell => candle.Mid_C + result.Gain / riskReward,
+            _ => 0.0
+        };
     }
 }
