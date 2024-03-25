@@ -5,8 +5,8 @@ public class TradeSettings
     public string Instrument { get; set; }
     public string Granularity { get; set; }
     public TimeSpan CandleSpan { get; set; }
-    public int[] SampleWindows { get; set; }
-    public double StandardDeviation { get; set; }
+    public int[] Integers { get; set; }
+    public double[] Doubles { get; set; }
     public double MaxSpread { get; set; }
     public double MinGain { get; set; }
     public double RiskReward { get; set; }

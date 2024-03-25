@@ -63,7 +63,7 @@ public class TradeManager : BackgroundService
 
         _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
 
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.SampleWindows[0] * 2 + 1);
+        var candles = await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.Integers[0] * 2 + 1);
 
         if (!candles.Any() || !GoodTradingTime())
         {
@@ -71,7 +71,7 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        var calcResult = candles.CalcRsiBands(settings.SampleWindows[0], settings.SampleWindows[1], settings.StandardDeviation,
+        var calcResult = candles.CalcRsiBands(settings.Integers[0], settings.Integers[1], settings.Doubles[0],
             settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None)
@@ -89,7 +89,7 @@ public class TradeManager : BackgroundService
 
         if (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday) return false;
 
-        return date.DayOfWeek is not DayOfWeek.Monday || date.Hour >= 13;
+        return date.DayOfWeek is not DayOfWeek.Monday || date.Hour >= 11;
     }
 
     private async Task<bool> NewCandleAvailable(TradeSettings settings, LivePrice price, CancellationToken stoppingToken)
@@ -157,7 +157,6 @@ public class TradeManager : BackgroundService
             TakeProfit = order.TakeProfitOnFill.Price,
             StopLoss = order.StopLossOnFill.Price,
             indicator.Candle.Volume,
-            indicator.Candle.BodySize,
             ofResponse.OrderID
         });
     }
