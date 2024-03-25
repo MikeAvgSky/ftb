@@ -2,13 +2,13 @@
 
 public class OandaStreamService
 {
+    private readonly ILogger<OandaStreamService> _logger;
     private readonly HttpClient _httpClient;
     private readonly LiveTradeCache _liveTradeCache;
-    private readonly ILogger<OandaStreamService> _logger;
     private readonly string _accountId;
 
-    public OandaStreamService(HttpClient httpClient, LiveTradeCache liveTradeCache,
-        ILogger<OandaStreamService> logger, Constants constants)
+    public OandaStreamService(ILogger<OandaStreamService> logger, HttpClient httpClient,
+        LiveTradeCache liveTradeCache, Constants constants)
     {
         _httpClient = httpClient;
         _liveTradeCache = liveTradeCache;
@@ -38,10 +38,12 @@ public class OandaStreamService
 
                 var price = Deserialize<PriceResponse>(stringResponse);
 
-                if (price is not null && price.Type == "PRICE" && price.Tradeable)
-                {
-                    _liveTradeCache.AddToDictionary(new LivePrice(price));
-                }
+                if (price is null || price.Type != "PRICE") continue;
+
+                if (price.Tradeable)
+                    _liveTradeCache.LivePrices[price.Instrument] = new LivePrice(price);
+                else
+                    _liveTradeCache.LivePrices.Remove(price.Instrument);
             }
         }
         catch (Exception ex)

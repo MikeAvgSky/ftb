@@ -16,6 +16,7 @@ global using System.Net.Http.Headers;
 global using System.Text;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
+global using System.Threading.Channels;
 global using Trading.Bot.Configuration;
 global using Trading.Bot.Endpoints;
 global using Trading.Bot.Extensions;

@@ -2,24 +2,25 @@
 
 public class StreamProcessor : BackgroundService
 {
-    private readonly LiveTradeCache _liveTradeCache;
     private readonly ILogger<StreamProcessor> _logger;
+    private readonly LiveTradeCache _liveTradeCache;
     private readonly TradeConfiguration _tradeConfiguration;
     private readonly List<string> _instruments = new();
     private readonly Dictionary<string, DateTime> _lastCandleTimings = new();
+    private readonly ParallelOptions _options = new();
 
-    public StreamProcessor(LiveTradeCache liveTradeCache, ILogger<StreamProcessor> logger,
-        TradeConfiguration tradeConfiguration)
+    public StreamProcessor(ILogger<StreamProcessor> logger, LiveTradeCache liveTradeCache, TradeConfiguration tradeConfiguration)
     {
-        _liveTradeCache = liveTradeCache;
         _logger = logger;
+        _liveTradeCache = liveTradeCache;
         _tradeConfiguration = tradeConfiguration;
+        _options.MaxDegreeOfParallelism = _tradeConfiguration.TradeSettings.Length;
 
         foreach (var tradeSetting in _tradeConfiguration.TradeSettings)
         {
-            _lastCandleTimings[tradeSetting.Instrument] = DateTime.UtcNow.RoundDown(tradeSetting.CandleSpan);
-
             _instruments.Add(tradeSetting.Instrument);
+
+            _lastCandleTimings[tradeSetting.Instrument] = DateTime.UtcNow.RoundDown(tradeSetting.CandleSpan);
         }
     }
 
@@ -27,26 +28,26 @@ public class StreamProcessor : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            foreach (var instrument in _instruments)
+            await Parallel.ForEachAsync(_instruments, _options, async (instrument, token) =>
             {
                 try
                 {
                     if (_liveTradeCache.LivePrices.ContainsKey(instrument))
                     {
-                        DetectNewCandle(_liveTradeCache.LivePrices[instrument]);
+                        await DetectNewCandle(_liveTradeCache.LivePrices[instrument], token);
                     }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "An error occurred when trying to detect a new candle");
                 }
-            }
+            });
 
             await Task.Delay(10, stoppingToken);
         }
     }
 
-    private void DetectNewCandle(LivePrice livePrice)
+    private async Task DetectNewCandle(LivePrice livePrice, CancellationToken stoppingToken)
     {
         var candleSpan = _tradeConfiguration.TradeSettings.First(x =>
             x.Instrument == livePrice.Instrument).CandleSpan;
@@ -59,6 +60,6 @@ public class StreamProcessor : BackgroundService
 
         livePrice.Time = current;
 
-        _liveTradeCache.AddToQueue(livePrice);
+        await _liveTradeCache.LivePriceChannel.Writer.WriteAsync(livePrice, stoppingToken);
     }
 }

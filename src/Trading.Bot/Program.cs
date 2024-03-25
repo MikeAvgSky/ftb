@@ -44,11 +44,11 @@ if (tradeConfiguration.RunBot)
 {
     builder.Services.AddSingleton<LiveTradeCache>();
 
-    builder.Services.AddHostedService<StreamWorker>();
+    builder.Services.AddHostedService<TradeManager>();
 
     builder.Services.AddHostedService<StreamProcessor>();
 
-    builder.Services.AddHostedService<TradeManager>();
+    builder.Services.AddHostedService<StreamWorker>();
 
     if (tradeConfiguration.StopRollover)
     {

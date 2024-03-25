@@ -2,23 +2,23 @@
 
 public class TradeManager : BackgroundService
 {
+    private readonly ILogger<TradeManager> _logger;
     private readonly OandaApiService _apiService;
     private readonly LiveTradeCache _liveTradeCache;
-    private readonly ILogger<TradeManager> _logger;
     private readonly TradeConfiguration _tradeConfiguration;
     private readonly EmailService _emailService;
-    private readonly SemaphoreSlim _semaphore;
     private readonly List<Instrument> _instruments = new();
+    private readonly ParallelOptions _options = new();
 
-    public TradeManager(OandaApiService apiService, LiveTradeCache liveTradeCache,
-        ILogger<TradeManager> logger, TradeConfiguration tradeConfiguration, EmailService emailService)
+    public TradeManager(ILogger<TradeManager> logger, OandaApiService apiService,
+        LiveTradeCache liveTradeCache, TradeConfiguration tradeConfiguration, EmailService emailService)
     {
+        _logger = logger;
         _apiService = apiService;
         _liveTradeCache = liveTradeCache;
-        _logger = logger;
         _tradeConfiguration = tradeConfiguration;
         _emailService = emailService;
-        _semaphore = new SemaphoreSlim(_tradeConfiguration.TradeSettings.Length);
+        _options.MaxDegreeOfParallelism = _tradeConfiguration.TradeSettings.Length;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -36,70 +36,59 @@ public class TradeManager : BackgroundService
 
     private async Task StartTrading(CancellationToken stoppingToken)
     {
-        var tasks = new List<Task>();
-
         while (!stoppingToken.IsCancellationRequested)
         {
-            while (_liveTradeCache.LivePriceQueue.Count != 0)
-            {
-                await _semaphore.WaitAsync(stoppingToken);
-
-                if (!_liveTradeCache.LivePriceQueue.TryDequeue(out var price))
-                {
-                    _semaphore.Release();
-                    continue;
-                }
-
-                _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
-
-                tasks.Add(Task.Run(async () =>
+            await Parallel.ForEachAsync(_liveTradeCache.LivePriceChannel.Reader.ReadAllAsync(stoppingToken),
+                _options, async (price, token) =>
                 {
                     try
                     {
-                        var settings = _tradeConfiguration.TradeSettings.First(x => x.Instrument == price.Instrument);
-
-                        if (!await NewCandleAvailable(settings, price, stoppingToken))
-                        {
-                            _semaphore.Release();
-                            return;
-                        }
-
-                        var candles = await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage * 2 + 1);
-
-                        if (!candles.Any() || (_tradeConfiguration.CheckCandleContinuity && !candles[settings.MovingAverage..].AreContiguous(settings.CandleSpan)))
-                        {
-                            _logger.LogInformation("Not placing trade for {Instrument}, candles not found or not contiguous.", settings.Instrument);
-                            return;
-                        }
-
-                        var calcResult = candles.CalcMacdEma(settings.MovingAverage, settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
-
-                        if (calcResult.Signal != Signal.None)
-                        {
-                            await TryPlaceTrade(settings, calcResult);
-                        }
-                        else
-                        {
-                            _logger.LogInformation("Not placing trade for {Instrument} based on indicator", settings.Instrument);
-                        }
+                        await DetectNewTrade(price, token);
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "An error occurred while trying to calculate and execute a trade");
                     }
-                    finally
-                    {
-                        _semaphore.Release();
-                    }
-                }, stoppingToken));
-
-                tasks.RemoveAll(p => p.IsCompleted);
-
-                Thread.Sleep(10);
-            }
+                });
 
             await Task.Delay(10, stoppingToken);
         }
+    }
+
+    private async Task DetectNewTrade(LivePrice price, CancellationToken stoppingToken)
+    {
+        var settings = _tradeConfiguration.TradeSettings.First(x => x.Instrument == price.Instrument);
+
+        if (!await NewCandleAvailable(settings, price, stoppingToken)) return;
+
+        _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
+
+        var candles = await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage * 2 + 1);
+
+        if (!candles.Any() || !GoodTradingTime())
+        {
+            _logger.LogInformation("Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
+            return;
+        }
+
+        var calcResult = candles.CalcMacdEma(settings.MovingAverage, settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
+
+        if (calcResult.Signal != Signal.None)
+        {
+            await TryPlaceTrade(settings, calcResult);
+            return;
+        }
+
+        _logger.LogInformation("Not placing a trade for {Instrument} based on the indicator", settings.Instrument);
+    }
+
+    private static bool GoodTradingTime()
+    {
+        var date = DateTime.UtcNow;
+
+        if (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday) return false;
+
+        return date.DayOfWeek is not DayOfWeek.Monday || date.Hour >= 13;
     }
 
     private async Task<bool> NewCandleAvailable(TradeSettings settings, LivePrice price, CancellationToken stoppingToken)
