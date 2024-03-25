@@ -16,9 +16,9 @@ public class RsiBandsHandler : IRequestHandler<RsiBandsRequest, IResult>
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var rsiWindow = request.RsiWindow ?? 13;
-
             var bbWindow = request.BbWindow ?? 20;
+
+            var rsiWindow = request.RsiWindow ?? 13;
 
             var stdDev = request.StandardDeviation ?? 2;
 
@@ -28,7 +28,7 @@ public class RsiBandsHandler : IRequestHandler<RsiBandsRequest, IResult>
 
             var riskReward = request.RiskReward ?? 1.5;
 
-            var rsiBands = candles.CalcRsiBands(rsiWindow, bbWindow, stdDev, maxSpread, minGain, riskReward);
+            var rsiBands = candles.CalcRsiBands(bbWindow, rsiWindow, stdDev, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(rsiBands.Cast<IndicatorBase>().ToArray());
 
@@ -52,8 +52,8 @@ public class RsiBandsHandler : IRequestHandler<RsiBandsRequest, IResult>
 public record RsiBandsRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; }
-    public int? RsiWindow { get; set; }
     public int? BbWindow { get; set; }
+    public int? RsiWindow { get; set; }
     public double? StandardDeviation { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }

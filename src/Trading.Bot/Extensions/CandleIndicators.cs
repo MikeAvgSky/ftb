@@ -381,16 +381,16 @@ public static class CandleIndicators
         return result;
     }
 
-    public static RsiBandsResult[] CalcRsiBands(this Candle[] candles, int rsiWindow = 13, int bbWindow = 30, double stdDev = 2,
+    public static RsiBandsResult[] CalcRsiBands(this Candle[] candles, int bbWindow = 30, int rsiWindow = 13, double stdDev = 2,
         double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double rsiLower = 30, double rsiUpper = 70)
     {
-        var rsiResult = candles.CalcRsi(rsiWindow);
-
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
         var rolStdDev = typicalPrice.CalcRolStdDev(bbWindow, stdDev).ToArray();
 
         var sma = typicalPrice.CalcSma(bbWindow).ToArray();
+
+        var rsiResult = candles.CalcRsi(rsiWindow);
 
         var length = candles.Length;
 

@@ -63,7 +63,7 @@ public class TradeManager : BackgroundService
 
         _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
 
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.MovingAverage * 2 + 1);
+        var candles = await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.SampleWindows[0] * 2 + 1);
 
         if (!candles.Any() || !GoodTradingTime())
         {
@@ -71,7 +71,8 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        var calcResult = candles.CalcMacdEma(settings.MovingAverage, settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
+        var calcResult = candles.CalcRsiBands(settings.SampleWindows[0], settings.SampleWindows[1], settings.StandardDeviation,
+            settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None)
         {

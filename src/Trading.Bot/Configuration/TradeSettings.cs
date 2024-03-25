@@ -5,8 +5,7 @@ public class TradeSettings
     public string Instrument { get; set; }
     public string Granularity { get; set; }
     public TimeSpan CandleSpan { get; set; }
-    public int MovingAverage { get; set; }
-    public int SecondWindow { get; set; }
+    public int[] SampleWindows { get; set; }
     public double StandardDeviation { get; set; }
     public double MaxSpread { get; set; }
     public double MinGain { get; set; }
