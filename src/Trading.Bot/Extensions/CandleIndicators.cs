@@ -274,6 +274,61 @@ public static class CandleIndicators
         return result;
     }
 
+    public static StochasticResult[] CalcStochastic(this Candle[] candles, int oscWindow = 14, int maWindow = 3)
+    {
+        var length = candles.Length;
+
+        var highs = new double[length];
+
+        var lows = new double[length];
+
+        var result = new StochasticResult[length];
+
+        for (var i = 0; i < length; i++)
+        {
+            result[i] ??= new StochasticResult();
+
+            result[i].Candle = candles[i];
+
+            if (i < oscWindow - 1)
+            {
+                highs[i] = 0.0;
+
+                lows[i] = 0.0;
+
+                result[i].FastOscillator = 0.0;
+
+                continue;
+            }
+
+            highs[i] = candles[..i].TakeLast(oscWindow).Select(c => c.Mid_C).Max();
+
+            lows[i] = candles[..i].TakeLast(oscWindow).Select(c => c.Mid_C).Min();
+
+            result[i].FastOscillator = highs[i] - lows[i] != 0
+                ? 100 * (result[i].Candle.Mid_C - lows[i]) / (highs[i] - lows[i])
+                : 0.0;
+        }
+
+        var oscillators = result.Select(r => r.FastOscillator).ToArray();
+
+        var sma = oscillators.CalcSma(maWindow).ToArray();
+
+        for (var i = 0; i < length; i++)
+        {
+            if (i < oscWindow - 1)
+            {
+                result[i].SlowOscillator = 0.0;
+
+                continue;
+            }
+
+            result[i].SlowOscillator = sma[i];
+        }
+
+        return result;
+    }
+
     public static RsiEmaResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200, double rsiLimit = 50.0,
         double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
