@@ -23,7 +23,7 @@ public class TradeResult
 
         for (var i = 0; i < length; i++)
         {
-            if (indicators[i].Signal != Signal.None)
+            if (indicators[i].Signal != Signal.None && !openTrades.Any())
             {
                 openTrades.Add(new TradeResult
                 {
@@ -48,10 +48,11 @@ public class TradeResult
             {
                 UpdateTrade(trade, indicators[i]);
 
-                if (!trade.Running)
-                {
-                    closedTrades.Add(trade);
-                }
+                if (trade.Running) continue;
+
+                closedTrades.Add(trade);
+
+                openTrades.Find(t => t == trade).Running = false;
             }
 
             openTrades.RemoveAll(ot => !ot.Running);

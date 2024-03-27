@@ -44,7 +44,7 @@ public class RsiBandsHandler : IRequestHandler<RsiBandsRequest, IResult>
 
         return Task.FromResult(request.Download
             ? Results.File(bollingerBandsList.GetZipFromFileData(),
-                "application/octet-stream", "bb.zip")
+                "application/octet-stream", "rsi_bb.zip")
             : Results.Ok(bollingerBandsList.Select(l => l.Value)));
     }
 }
