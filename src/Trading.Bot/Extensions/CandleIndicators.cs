@@ -288,18 +288,16 @@ public static class CandleIndicators
         {
             result[i] ??= new StochasticResult();
 
-            result[i].Candle = candles[i];
-
             if (i < oscWindow - 1)
             {
                 highs[i] = 0.0;
 
                 lows[i] = 0.0;
 
-                result[i].FastOscillator = 0.0;
-
                 continue;
             }
+
+            result[i].Candle = candles[i];
 
             highs[i] = candles[..i].TakeLast(oscWindow).Select(c => c.Mid_C).Max();
 
@@ -310,7 +308,7 @@ public static class CandleIndicators
                 : 0.0;
         }
 
-        var oscillators = result.Select(r => r.FastOscillator).ToArray();
+        var oscillators = result.Select(r => r.FastOscillator.NaN2Zero()).ToArray();
 
         var sma = oscillators.CalcSma(maWindow).ToArray();
 
@@ -469,14 +467,14 @@ public static class CandleIndicators
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when candle.Mid_C > result[i].LowerBand &&
-                                candle.Mid_O < result[i].LowerBand &&
-                                rsiResult[i - 1].Rsi < rsiLower &&
+                var candle when candle.Mid_C < result[i].LowerBand &&
+                                candle.Mid_O > result[i].LowerBand &&
+                                rsiResult[i].Rsi < rsiLower &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Buy,
-                var candle when candle.Mid_C < result[i].UpperBand &&
-                                candle.Mid_O > result[i].UpperBand &&
-                                rsiResult[i - 1].Rsi > rsiUpper &&
+                var candle when candle.Mid_C > result[i].UpperBand &&
+                                candle.Mid_O < result[i].UpperBand &&
+                                rsiResult[i].Rsi > rsiUpper &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
