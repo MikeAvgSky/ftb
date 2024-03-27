@@ -415,12 +415,12 @@ public static class CandleIndicators
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
                 var candle when candle.Mid_C > result[i].LowerBand &&
-                                candles[i - 1].Mid_C < result[i].LowerBand &&
+                                candle.Mid_O < result[i].LowerBand &&
                                 rsiResult[i - 1].Rsi < rsiLower &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Buy,
                 var candle when candle.Mid_C < result[i].UpperBand &&
-                                candles[i - 1].Mid_C > result[i].UpperBand &&
+                                candle.Mid_O > result[i].UpperBand &&
                                 rsiResult[i - 1].Rsi > rsiUpper &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Sell,
