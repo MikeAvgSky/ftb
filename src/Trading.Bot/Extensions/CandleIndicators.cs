@@ -233,9 +233,16 @@ public static class CandleIndicators
 
             result[i].AverageLoss = losses_rma[i];
 
-            var rs = result[i].AverageGain / result[i].AverageLoss;
+            if (i > 0)
+            {
+                var rs = result[i].AverageGain / result[i].AverageLoss;
 
-            result[i].Rsi = 100.0 - 100.0 / (1.0 + rs);
+                result[i].Rsi = 100.0 - 100.0 / (1.0 + rs);
+            }
+            else
+            {
+                result[i].Rsi = 0.0;
+            }
         }
 
         return result;
@@ -278,10 +285,6 @@ public static class CandleIndicators
     {
         var length = candles.Length;
 
-        var highs = new double[length];
-
-        var lows = new double[length];
-
         var result = new StochasticResult[length];
 
         for (var i = 0; i < length; i++)
@@ -290,10 +293,6 @@ public static class CandleIndicators
 
             if (i < oscWindow - 1)
             {
-                highs[i] = 0.0;
-
-                lows[i] = 0.0;
-
                 continue;
             }
 
@@ -301,18 +300,18 @@ public static class CandleIndicators
 
             var lastCandles = new Candle[oscWindow];
 
-            Array.ConstrainedCopy(candles[..i], i - oscWindow, lastCandles, 0, oscWindow);
+            Array.Copy(candles[..(i + 1)], i - (oscWindow - 1), lastCandles, 0, oscWindow);
 
-            highs[i] = lastCandles.Select(c => c.Mid_C).Max();
+            var highestPrice = lastCandles.Select(c => c.Mid_C).Max();
 
-            lows[i] = lastCandles.Select(c => c.Mid_C).Min();
+            var lowestPrice = lastCandles.Select(c => c.Mid_C).Min();
 
-            result[i].FastOscillator = highs[i] - lows[i] != 0
-                ? 100 * (result[i].Candle.Mid_C - lows[i]) / (highs[i] - lows[i])
+            result[i].FastOscillator = highestPrice - lowestPrice != 0
+                ? 100 * (result[i].Candle.Mid_C - lowestPrice) / (highestPrice - lowestPrice)
                 : 0.0;
         }
 
-        var oscillators = result.Select(r => r.FastOscillator.NaN2Zero()).ToArray();
+        var oscillators = result.Select(r => r.FastOscillator).ToArray();
 
         var sma = oscillators.CalcSma(maWindow).ToArray();
 
@@ -438,8 +437,8 @@ public static class CandleIndicators
         return result;
     }
 
-    public static IndicatorResult[] CalcRsiBands(this Candle[] candles, int bbWindow = 30, int rsiWindow = 13, double stdDev = 2,
-        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double rsiLower = 25, double rsiUpper = 75)
+    public static IndicatorResult[] CalcStochRsiBands(this Candle[] candles, int bbWindow = 30, int rsiWindow = 13, double stdDev = 2,
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double lower = 20, double upper = 80)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
@@ -448,6 +447,8 @@ public static class CandleIndicators
         var sma = typicalPrice.CalcSma(bbWindow).ToArray();
 
         var rsiResult = candles.CalcRsi(rsiWindow);
+
+        var stochastic = candles.CalcStochastic(rsiWindow);
 
         var length = candles.Length;
 
@@ -469,12 +470,14 @@ public static class CandleIndicators
             {
                 var candle when candle.Mid_C < lowerBand &&
                                 candle.Mid_O > lowerBand &&
-                                rsiResult[i].Rsi < rsiLower &&
+                                rsiResult[i].Rsi < lower &&
+                                stochastic[i].FastOscillator < lower &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Buy,
                 var candle when candle.Mid_C > upperBand &&
                                 candle.Mid_O < upperBand &&
-                                rsiResult[i].Rsi > rsiUpper &&
+                                rsiResult[i].Rsi > upper &&
+                                stochastic[i].FastOscillator > upper &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None

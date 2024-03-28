@@ -1,8 +1,8 @@
 ﻿namespace Trading.Bot.Mediator;
 
-public class RsiBandsHandler : IRequestHandler<RsiBandsRequest, IResult>
+public class StochRsiBandsHandler : IRequestHandler<StochRsiBandsRequest, IResult>
 {
-    public Task<IResult> Handle(RsiBandsRequest request, CancellationToken cancellationToken)
+    public Task<IResult> Handle(StochRsiBandsRequest request, CancellationToken cancellationToken)
     {
         var bollingerBandsList = new List<FileData<IEnumerable<object>>>();
 
@@ -28,7 +28,7 @@ public class RsiBandsHandler : IRequestHandler<RsiBandsRequest, IResult>
 
             var riskReward = request.RiskReward ?? 1.5;
 
-            var rsiBands = candles.CalcRsiBands(bbWindow, rsiWindow, stdDev, maxSpread, minGain, riskReward);
+            var rsiBands = candles.CalcStochRsiBands(bbWindow, rsiWindow, stdDev, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(rsiBands.Cast<IndicatorBase>().ToArray());
 
@@ -49,7 +49,7 @@ public class RsiBandsHandler : IRequestHandler<RsiBandsRequest, IResult>
     }
 }
 
-public record RsiBandsRequest : IHttpRequest
+public record StochRsiBandsRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; }
     public int? BbWindow { get; set; }
