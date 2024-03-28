@@ -299,9 +299,13 @@ public static class CandleIndicators
 
             result[i].Candle = candles[i];
 
-            highs[i] = candles[..i].TakeLast(oscWindow).Select(c => c.Mid_C).Max();
+            var lastCandles = new Candle[oscWindow];
 
-            lows[i] = candles[..i].TakeLast(oscWindow).Select(c => c.Mid_C).Min();
+            Array.ConstrainedCopy(candles[..i], i - oscWindow, lastCandles, 0, oscWindow);
+
+            highs[i] = lastCandles.Select(c => c.Mid_C).Max();
+
+            lows[i] = lastCandles.Select(c => c.Mid_C).Min();
 
             result[i].FastOscillator = highs[i] - lows[i] != 0
                 ? 100 * (result[i].Candle.Mid_C - lows[i]) / (highs[i] - lows[i])
@@ -327,43 +331,43 @@ public static class CandleIndicators
         return result;
     }
 
-    public static RsiEmaResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200, double rsiLimit = 50.0,
+    public static IndicatorResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200, double rsiLimit = 50.0,
         double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
-        var rsi = candles.CalcRsi(rsiWindow);
+        var rsiResult = candles.CalcRsi(rsiWindow);
 
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
-        var ema = prices.CalcEma(emaWindow).ToArray();
+        var emaResult = prices.CalcEma(emaWindow).ToArray();
 
         var length = candles.Length;
 
-        var result = new RsiEmaResult[length];
+        var result = new IndicatorResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            result[i] ??= new RsiEmaResult();
+            result[i] ??= new IndicatorResult();
 
             result[i].Candle = candles[i];
 
-            result[i].Rsi = rsi[i].Rsi;
+            var rsi = rsiResult[i].Rsi;
 
-            result[i].Ema = ema[i];
+            var ema = emaResult[i];
 
             var engulfing = i > 0 && candles[i].IsEngulfingCandle(candles[i - 1]);
 
-            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
+            result[i].Gain = Math.Abs(candles[i].Mid_C - ema);
 
             result[i].Signal = engulfing switch
             {
                 true when candles[i].Direction == 1 &&
-                          candles[i].Mid_L > result[i].Ema &&
-                          result[i].Rsi > rsiLimit &&
+                          candles[i].Mid_L > ema &&
+                          rsi > rsiLimit &&
                           candles[i].Spread <= maxSpread &&
                           result[i].Gain >= minGain => Signal.Buy,
                 true when candles[i].Direction == -1 &&
-                          candles[i].Mid_H < result[i].Ema &&
-                          result[i].Rsi < rsiLimit &&
+                          candles[i].Mid_H < ema &&
+                          rsi < rsiLimit &&
                           candles[i].Spread <= maxSpread &&
                           result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
@@ -379,46 +383,46 @@ public static class CandleIndicators
         return result;
     }
 
-    public static MacdEmaResult[] CalcMacdEma(this Candle[] candles, int emaWindow = 100,
+    public static IndicatorResult[] CalcMacdEma(this Candle[] candles, int emaWindow = 100,
         double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var macd = candles.CalcMacd();
 
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
-        var ema = prices.CalcEma(emaWindow).ToArray();
+        var emaResult = prices.CalcEma(emaWindow).ToArray();
 
         var length = candles.Length;
 
-        var result = new MacdEmaResult[length];
+        var result = new IndicatorResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            result[i] ??= new MacdEmaResult();
+            result[i] ??= new IndicatorResult();
 
             result[i].Candle = candles[i];
 
-            result[i].MacdDelta = macd[i].Macd - macd[i].SignalLine;
+            var macDelta = macd[i].Macd - macd[i].SignalLine;
 
-            result[i].MacdDeltaPrev = i == 0 ? 0.0 : macd[i - 1].Macd - macd[i - 1].SignalLine;
+            var macDeltaPrev = i == 0 ? 0.0 : macd[i - 1].Macd - macd[i - 1].SignalLine;
 
-            result[i].Direction = result[i].MacdDelta switch
+            var direction = macDelta switch
             {
-                > 0 when result[i].MacdDeltaPrev < 0 => 1,
-                < 0 when result[i].MacdDeltaPrev > 0 => -1,
+                > 0 when macDeltaPrev < 0 => 1,
+                < 0 when macDeltaPrev > 0 => -1,
                 _ => 0
             };
 
-            result[i].Ema = ema[i];
+            var ema = emaResult[i];
 
-            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Ema);
+            result[i].Gain = Math.Abs(candles[i].Mid_C - ema);
 
-            result[i].Signal = result[i].Direction switch
+            result[i].Signal = direction switch
             {
-                1 when candles[i].Mid_L > result[i].Ema &&
+                1 when candles[i].Mid_L > ema &&
                        candles[i].Spread <= maxSpread &&
                        result[i].Gain >= minGain => Signal.Buy,
-                -1 when candles[i].Mid_H < result[i].Ema &&
+                -1 when candles[i].Mid_H < ema &&
                         candles[i].Spread <= maxSpread &&
                         result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
@@ -434,8 +438,8 @@ public static class CandleIndicators
         return result;
     }
 
-    public static RsiBandsResult[] CalcRsiBands(this Candle[] candles, int bbWindow = 30, int rsiWindow = 13, double stdDev = 2,
-        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double rsiLower = 30, double rsiUpper = 70)
+    public static IndicatorResult[] CalcRsiBands(this Candle[] candles, int bbWindow = 30, int rsiWindow = 13, double stdDev = 2,
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double rsiLower = 25, double rsiUpper = 75)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
@@ -447,33 +451,29 @@ public static class CandleIndicators
 
         var length = candles.Length;
 
-        var result = new RsiBandsResult[length];
+        var result = new IndicatorResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            result[i] ??= new RsiBandsResult();
+            result[i] ??= new IndicatorResult();
 
             result[i].Candle = candles[i];
 
-            result[i].Sma = sma[i];
+            var upperBand = sma[i] + rolStdDev[i] * stdDev;
 
-            result[i].UpperBand = sma[i] + rolStdDev[i] * stdDev;
+            var lowerBand = sma[i] - rolStdDev[i] * stdDev;
 
-            result[i].LowerBand = sma[i] - rolStdDev[i] * stdDev;
-
-            result[i].Rsi = rsiResult[i].Rsi;
-
-            result[i].Gain = Math.Abs(candles[i].Mid_C - result[i].Sma);
+            result[i].Gain = Math.Abs(candles[i].Mid_C - sma[i]);
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when candle.Mid_C < result[i].LowerBand &&
-                                candle.Mid_O > result[i].LowerBand &&
+                var candle when candle.Mid_C < lowerBand &&
+                                candle.Mid_O > lowerBand &&
                                 rsiResult[i].Rsi < rsiLower &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Buy,
-                var candle when candle.Mid_C > result[i].UpperBand &&
-                                candle.Mid_O < result[i].UpperBand &&
+                var candle when candle.Mid_C > upperBand &&
+                                candle.Mid_O < upperBand &&
                                 rsiResult[i].Rsi > rsiUpper &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Sell,
