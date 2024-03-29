@@ -1,6 +1,8 @@
 ﻿
 var builder = WebApplication.CreateBuilder(args);
 
+var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+
 // Configure Services
 
 var constants = builder.Configuration
@@ -33,13 +35,6 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-builder.Services.AddMediatR(c =>
-{
-    c.Lifetime = ServiceLifetime.Scoped;
-
-    c.RegisterServicesFromAssemblyContaining<Program>();
-});
-
 if (tradeConfiguration.RunBot)
 {
     builder.Services.AddSingleton<LiveTradeCache>();
@@ -56,24 +51,37 @@ if (tradeConfiguration.RunBot)
     }
 }
 
-builder.Services.AddEndpointsApiExplorer();
+if (isDevelopment)
+{
+    builder.Services.AddMediatR(c =>
+    {
+        c.Lifetime = ServiceLifetime.Scoped;
 
-builder.Services.AddSwaggerGen();
+        c.RegisterServicesFromAssemblyContaining<Program>();
+    });
+
+    builder.Services.AddEndpointsApiExplorer();
+
+    builder.Services.AddSwaggerGen();
+}
 
 var app = builder.Build();
 
 // Configure
 
-app.UseSwagger();
+if (isDevelopment)
+{
+    app.UseSwagger();
 
-app.UseSwaggerUI();
+    app.UseSwaggerUI();
 
-app.MapAccountEndpoints();
+    app.MapAccountEndpoints();
 
-app.MapInstrumentEndpoints();
+    app.MapInstrumentEndpoints();
 
-app.MapCandleEndpoints();
+    app.MapCandleEndpoints();
 
-app.MapSimulationEndpoints();
+    app.MapSimulationEndpoints();
+}
 
 app.Run();

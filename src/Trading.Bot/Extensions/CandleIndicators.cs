@@ -291,10 +291,7 @@ public static class CandleIndicators
         {
             result[i] ??= new StochasticResult();
 
-            if (i < oscWindow - 1)
-            {
-                continue;
-            }
+            if (i < oscWindow - 1) continue;
 
             result[i].Candle = candles[i];
 
@@ -472,12 +469,14 @@ public static class CandleIndicators
                                 candle.Mid_O > lowerBand &&
                                 rsiResult[i].Rsi < lower &&
                                 stochastic[i].FastOscillator < lower &&
+                                stochastic[i].SlowOscillator < lower &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Buy,
                 var candle when candle.Mid_C > upperBand &&
                                 candle.Mid_O < upperBand &&
                                 rsiResult[i].Rsi > upper &&
                                 stochastic[i].FastOscillator > upper &&
+                                stochastic[i].SlowOscillator > upper &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
