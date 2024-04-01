@@ -22,13 +22,13 @@ public class OandaStreamService
         {
             var endpoint = $"accounts/{_accountId}/pricing/stream?instruments={instruments}";
 
-            var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+            using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
 
-            var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, stoppingToken);
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, stoppingToken);
 
             response.EnsureSuccessStatusCode();
 
-            var responseStream = await response.Content.ReadAsStreamAsync(stoppingToken);
+            await using var responseStream = await response.Content.ReadAsStreamAsync(stoppingToken);
 
             using var reader = new StreamReader(responseStream);
 
