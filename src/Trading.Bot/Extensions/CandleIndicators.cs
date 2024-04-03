@@ -492,11 +492,13 @@ public static class CandleIndicators
         return result;
     }
 
-    public static int[] CalcTrend(this Candle[] candles, int emaWindow)
+    public static int[] CalcTrend(this Candle[] candles, int window)
     {
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
-        var emaResult = prices.CalcEma(emaWindow).ToArray();
+        var maShort = prices.CalcSma(window).ToArray();
+
+        var maLong = prices.CalcSma(window * 2).ToArray();
 
         var length = candles.Length;
 
@@ -504,7 +506,7 @@ public static class CandleIndicators
 
         for (var i = 0; i < length; i++)
         {
-            result[i] = emaResult[i] < candles[i].Mid_C ? 1 : -1;
+            result[i] = maShort[i] > maLong[i] ? 1 : -1;
         }
 
         return result;

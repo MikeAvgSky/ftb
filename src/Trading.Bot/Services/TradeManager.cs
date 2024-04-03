@@ -74,37 +74,23 @@ public class TradeManager : BackgroundService
         var calcResult = candles.CalcStochRsiBands(settings.Integers[0], settings.Integers[1], settings.Doubles[0],
             settings.MaxSpread, settings.MinGain, settings.RiskReward, settings.Doubles[1], settings.Doubles[2]).Last();
 
-        if (calcResult.Signal != Signal.None)
+        if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
         {
-            await AdjustSignalFromTrend(settings, calcResult);
-
             await TryPlaceTrade(settings, calcResult);
-
             return;
         }
 
         _logger.LogInformation("Not placing a trade for {Instrument} based on the indicator", settings.Instrument);
     }
 
-    private async Task AdjustSignalFromTrend(TradeSettings settings, IndicatorBase calcResult)
+    private async Task<bool> SignalFollowsTrend(TradeSettings settings, Signal signal)
     {
-        var longerTimeFrameCandles = await _apiService.GetCandles(settings.Instrument, settings.GranularityLong, count: settings.Integers[0] * 2 + 1);
+        var longerTimeFrameCandles = await _apiService.GetCandles(settings.Instrument, settings.GranularityLong,
+            count: settings.Integers[0] * 2 + 1);
 
         var generalTrend = longerTimeFrameCandles.CalcTrend(settings.Integers[0]).Last();
 
-        calcResult.Signal = GetSignalFromTrend(generalTrend, calcResult.Signal);
-    }
-
-    private static Signal GetSignalFromTrend(int generalTrend, Signal signal)
-    {
-        if (generalTrend == (int)signal) return signal;
-
-        return signal switch
-        {
-            Signal.Buy => Signal.Sell,
-            Signal.Sell => Signal.Buy,
-            _ => signal
-        };
+        return generalTrend == (int)signal;
     }
 
     private static bool GoodTradingTime()
@@ -125,7 +111,6 @@ public class TradeManager : BackgroundService
         if (retryCount >= 10)
         {
             _logger.LogWarning("Cannot get candle that matches the live price. Giving up.");
-
             return false;
         }
 
