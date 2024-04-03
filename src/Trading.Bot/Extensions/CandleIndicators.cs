@@ -492,6 +492,24 @@ public static class CandleIndicators
         return result;
     }
 
+    public static int[] CalcTrend(this Candle[] candles, int emaWindow)
+    {
+        var prices = candles.Select(c => c.Mid_C).ToArray();
+
+        var emaResult = prices.CalcEma(emaWindow).ToArray();
+
+        var length = candles.Length;
+
+        var result = new int[length];
+
+        for (var i = 0; i < length; i++)
+        {
+            result[i] = emaResult[i] < candles[i].Mid_C ? 1 : -1;
+        }
+
+        return result;
+    }
+
     private static double CalcTakeProfit(Candle candle, IndicatorBase result)
     {
         return result.Signal switch
