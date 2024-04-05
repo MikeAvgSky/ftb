@@ -90,7 +90,7 @@ public class TradeManager : BackgroundService
 
         var generalTrend = longerTimeFrameCandles.CalcTrend(settings.Integers[0]).Last();
 
-        return generalTrend == (int)signal;
+        return generalTrend == signal;
     }
 
     private static bool GoodTradingTime()

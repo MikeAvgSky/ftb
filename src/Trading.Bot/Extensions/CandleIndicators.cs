@@ -435,7 +435,7 @@ public static class CandleIndicators
     }
 
     public static IndicatorResult[] CalcStochRsiBands(this Candle[] candles, int bbWindow = 30, int rsiWindow = 13, double stdDev = 2,
-        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double lower = 20, double upper = 80)
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double lower = 25, double upper = 75)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
@@ -492,21 +492,32 @@ public static class CandleIndicators
         return result;
     }
 
-    public static int[] CalcTrend(this Candle[] candles, int window)
+    public static Signal[] CalcTrend(this Candle[] candles, int window)
     {
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
         var maShort = prices.CalcSma(window).ToArray();
 
-        var maLong = prices.CalcSma(window * 2).ToArray();
+        var maLong = prices.CalcSma(window * 2 - 1).ToArray();
 
         var length = candles.Length;
 
-        var result = new int[length];
+        var result = new Signal[length];
 
         for (var i = 0; i < length; i++)
         {
-            result[i] = maShort[i] > maLong[i] ? 1 : -1;
+            if (maShort[i] > maLong[i])
+            {
+                result[i] = Signal.Buy;
+            }
+            else if (maShort[i] < maLong[i])
+            {
+                result[i] = Signal.Sell;
+            }
+            else
+            {
+                result[i] = Signal.None;
+            }
         }
 
         return result;
