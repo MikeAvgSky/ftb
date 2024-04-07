@@ -20,7 +20,7 @@ public class OandaApiService
     {
         try
         {
-            var response = await _httpClient.GetAsync(endpoint);
+            using var response = await _httpClient.GetAsync(endpoint);
 
             if (response.IsSuccessStatusCode)
             {

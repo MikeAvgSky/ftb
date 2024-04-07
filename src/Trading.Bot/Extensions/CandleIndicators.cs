@@ -492,32 +492,60 @@ public static class CandleIndicators
         return result;
     }
 
-    public static Signal[] CalcTrend(this Candle[] candles, int window)
+    public static IndicatorResult[] CalcMacdTripleMa(this Candle[] candles, int shortEma = 8, int longEma = 21,
+        int longSma = 50, double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
+        var macd = candles.CalcMacd();
+
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
-        var maShort = prices.CalcSma(window).ToArray();
+        var shortEmaResult = prices.CalcEma(shortEma).ToArray();
 
-        var maLong = prices.CalcSma(window * 2 - 1).ToArray();
+        var longEmaResult = prices.CalcEma(longEma).ToArray();
+
+        var longSmaResult = prices.CalcEma(longSma).ToArray();
 
         var length = candles.Length;
 
-        var result = new Signal[length];
+        var result = new IndicatorResult[length];
 
         for (var i = 0; i < length; i++)
         {
-            if (maShort[i] > maLong[i])
+            result[i] ??= new IndicatorResult();
+
+            result[i].Candle = candles[i];
+
+            var macDelta = macd[i].Macd - macd[i].SignalLine;
+
+            var macDeltaPrev = i == 0 ? 0.0 : macd[i - 1].Macd - macd[i - 1].SignalLine;
+
+            var direction = macDelta switch
             {
-                result[i] = Signal.Buy;
-            }
-            else if (maShort[i] < maLong[i])
+                > 0 when macDeltaPrev < 0 => 1,
+                < 0 when macDeltaPrev > 0 => -1,
+                _ => 0
+            };
+
+            result[i].Gain = Math.Abs(candles[i].Mid_C - longEmaResult[i]);
+
+            result[i].Signal = direction switch
             {
-                result[i] = Signal.Sell;
-            }
-            else
-            {
-                result[i] = Signal.None;
-            }
+                1 when shortEmaResult[i] > longEmaResult[i] &&
+                       longEmaResult[i] > longSmaResult[i] &&
+                       candles[i].Spread <= maxSpread &&
+                       result[i].Gain >= minGain => Signal.Buy,
+                -1 when shortEmaResult[i] < longEmaResult[i] &&
+                        longEmaResult[i] < longSmaResult[i] &&
+                        candles[i].Spread <= maxSpread &&
+                        result[i].Gain >= minGain => Signal.Sell,
+                _ => Signal.None
+            };
+
+            result[i].TakeProfit = CalcTakeProfit(candles[i], result[i]);
+
+            result[i].StopLoss = CalcStopLoss(candles[i], result[i], riskReward);
+
+            result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
 
         return result;

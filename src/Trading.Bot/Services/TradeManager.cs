@@ -63,7 +63,7 @@ public class TradeManager : BackgroundService
 
         _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
 
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.GranularityShort, count: settings.Integers[0] * 2 + 1);
+        var candles = await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.Integers[0] * 2 + 1);
 
         if (!candles.Any() || !GoodTradingTime())
         {
@@ -74,23 +74,13 @@ public class TradeManager : BackgroundService
         var calcResult = candles.CalcStochRsiBands(settings.Integers[0], settings.Integers[1], settings.Doubles[0],
             settings.MaxSpread, settings.MinGain, settings.RiskReward, settings.Doubles[1], settings.Doubles[2]).Last();
 
-        if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
+        if (calcResult.Signal != Signal.None)
         {
             await TryPlaceTrade(settings, calcResult);
             return;
         }
 
         _logger.LogInformation("Not placing a trade for {Instrument} based on the indicator", settings.Instrument);
-    }
-
-    private async Task<bool> SignalFollowsTrend(TradeSettings settings, Signal signal)
-    {
-        var longerTimeFrameCandles = await _apiService.GetCandles(settings.Instrument, settings.GranularityLong,
-            count: settings.Integers[0] * 2 + 1);
-
-        var generalTrend = longerTimeFrameCandles.CalcTrend(settings.Integers[0]).Last();
-
-        return generalTrend == signal;
     }
 
     private static bool GoodTradingTime()
@@ -114,7 +104,7 @@ public class TradeManager : BackgroundService
             return false;
         }
 
-        var currentTime = await _apiService.GetLastCandleTime(settings.Instrument, settings.GranularityShort);
+        var currentTime = await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
 
         if (TimeMatches(price.Time, currentTime)) return true;
 
