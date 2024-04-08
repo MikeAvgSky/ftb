@@ -63,7 +63,8 @@ public class TradeManager : BackgroundService
 
         _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
 
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.Granularity, count: settings.Integers[0] * 2 + 1);
+        var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity,
+            count: settings.Integers[0] * 2 + 1);
 
         if (!candles.Any() || !GoodTradingTime())
         {
@@ -74,7 +75,7 @@ public class TradeManager : BackgroundService
         var calcResult = candles.CalcStochRsiBands(settings.Integers[0], settings.Integers[1], settings.Doubles[0],
             settings.MaxSpread, settings.MinGain, settings.RiskReward, settings.Doubles[1], settings.Doubles[2]).Last();
 
-        if (calcResult.Signal != Signal.None)
+        if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
         {
             await TryPlaceTrade(settings, calcResult);
             return;
@@ -83,13 +84,22 @@ public class TradeManager : BackgroundService
         _logger.LogInformation("Not placing a trade for {Instrument} based on the indicator", settings.Instrument);
     }
 
+    private async Task<bool> SignalFollowsTrend(TradeSettings settings, Signal signal)
+    {
+        var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity, count: 89);
+
+        var generalTrend = candles.CalcTrend().Last();
+
+        return signal == generalTrend;
+    }
+
     private static bool GoodTradingTime()
     {
         var date = DateTime.UtcNow;
 
         if (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday) return false;
 
-        return date.DayOfWeek is not DayOfWeek.Monday || date.Hour >= 11;
+        return date.DayOfWeek is not DayOfWeek.Monday || date.Hour >= 9;
     }
 
     private async Task<bool> NewCandleAvailable(TradeSettings settings, LivePrice price, CancellationToken stoppingToken)
@@ -104,7 +114,7 @@ public class TradeManager : BackgroundService
             return false;
         }
 
-        var currentTime = await _apiService.GetLastCandleTime(settings.Instrument, settings.Granularity);
+        var currentTime = await _apiService.GetLastCandleTime(settings.Instrument, settings.MainGranularity);
 
         if (TimeMatches(price.Time, currentTime)) return true;
 

@@ -3,7 +3,8 @@
 public class TradeSettings
 {
     public string Instrument { get; set; }
-    public string Granularity { get; set; }
+    public string MainGranularity { get; set; }
+    public string LongerGranularity { get; set; }
     public TimeSpan CandleSpan { get; set; }
     public int[] Integers { get; set; }
     public double[] Doubles { get; set; }
