@@ -63,8 +63,7 @@ public class TradeManager : BackgroundService
 
         _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
 
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity,
-            count: settings.Integers[0] * 2 + 1);
+        var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity, "M");
 
         if (!candles.Any() || !GoodTradingTime())
         {
@@ -73,7 +72,8 @@ public class TradeManager : BackgroundService
         }
 
         var calcResult = candles.CalcStochRsiBands(settings.Integers[0], settings.Integers[1], settings.Doubles[0],
-            settings.MaxSpread, settings.MinGain, settings.RiskReward, settings.Doubles[1], settings.Doubles[2]).Last();
+            settings.MaxSpread, settings.MinGain, settings.RiskReward, settings.Doubles[1], settings.Doubles[2],
+            settings.Doubles[3], settings.Doubles[4]).Last();
 
         if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
         {
@@ -86,7 +86,7 @@ public class TradeManager : BackgroundService
 
     private async Task<bool> SignalFollowsTrend(TradeSettings settings, Signal signal)
     {
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity, count: 89);
+        var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity, "M");
 
         var generalTrend = candles.CalcTrend().Last();
 

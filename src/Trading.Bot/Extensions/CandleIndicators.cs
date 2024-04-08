@@ -435,7 +435,8 @@ public static class CandleIndicators
     }
 
     public static IndicatorResult[] CalcStochRsiBands(this Candle[] candles, int bbWindow = 30, int rsiWindow = 13, double stdDev = 2,
-        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double lower = 25, double upper = 75)
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double rsiLower = 25, double rsiUpper = 75,
+        double stochLower = 20, double stochUpper = 80)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
@@ -467,16 +468,16 @@ public static class CandleIndicators
             {
                 var candle when candle.Mid_C < lowerBand &&
                                 candle.Mid_O > lowerBand &&
-                                rsiResult[i].Rsi < lower &&
-                                stochastic[i].FastOscillator < lower &&
-                                stochastic[i].SlowOscillator < lower &&
+                                rsiResult[i].Rsi < rsiLower &&
+                                stochastic[i].FastOscillator < stochLower &&
+                                stochastic[i].SlowOscillator < stochLower &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Sell,
                 var candle when candle.Mid_C > upperBand &&
                                 candle.Mid_O < upperBand &&
-                                rsiResult[i].Rsi > upper &&
-                                stochastic[i].FastOscillator > upper &&
-                                stochastic[i].SlowOscillator > upper &&
+                                rsiResult[i].Rsi > rsiUpper &&
+                                stochastic[i].FastOscillator > stochUpper &&
+                                stochastic[i].SlowOscillator > stochUpper &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Buy,
                 _ => Signal.None
