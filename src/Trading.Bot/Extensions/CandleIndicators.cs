@@ -435,7 +435,7 @@ public static class CandleIndicators
     }
 
     public static IndicatorResult[] CalcStochRsiBands(this Candle[] candles, int bbWindow = 30, int rsiWindow = 13, double stdDev = 2,
-        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double rsiLower = 25, double rsiUpper = 75,
+        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double rsiLower = 30, double rsiUpper = 70,
         double stochLower = 20, double stochUpper = 80)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
@@ -469,6 +469,7 @@ public static class CandleIndicators
                 var candle when candle.Mid_C < lowerBand &&
                                 candle.Mid_O > lowerBand &&
                                 rsiResult[i].Rsi < rsiLower &&
+                                rsiResult[i].Rsi < rsiResult[i - 1].Rsi &&
                                 stochastic[i].FastOscillator < stochLower &&
                                 stochastic[i].SlowOscillator < stochLower &&
                                 candle.Spread <= maxSpread &&
@@ -476,6 +477,7 @@ public static class CandleIndicators
                 var candle when candle.Mid_C > upperBand &&
                                 candle.Mid_O < upperBand &&
                                 rsiResult[i].Rsi > rsiUpper &&
+                                rsiResult[i].Rsi > rsiResult[i - 1].Rsi &&
                                 stochastic[i].FastOscillator > stochUpper &&
                                 stochastic[i].SlowOscillator > stochUpper &&
                                 candle.Spread <= maxSpread &&
@@ -493,7 +495,8 @@ public static class CandleIndicators
         return result;
     }
 
-    public static Signal[] CalcTrend(this Candle[] candles, int shortEma = 8, int longEma = 21, int longSma = 55)
+    public static Signal[] CalcTrend(this Candle[] candles, int shortEma = 8, int longEma = 21, int longSma = 55,
+        int rsiWindow = 14, double rsiLower = 30, double rsiUpper = 70)
     {
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
@@ -503,21 +506,25 @@ public static class CandleIndicators
 
         var longSmaResult = prices.CalcEma(longSma).ToArray();
 
+        var rsiResult = candles.CalcRsi(rsiWindow);
+
         var length = candles.Length;
 
         var result = new Signal[length];
 
         for (var i = 0; i < length; i++)
         {
-            if (shortEmaResult[i] > longEmaResult[i] &&
-                longEmaResult[i] > longSmaResult[i])
-            {
-                result[i] = Signal.Buy;
-            }
-            else if (shortEmaResult[i] < longEmaResult[i] &&
-                     longEmaResult[i] < longSmaResult[i])
+            if (shortEmaResult[i] < longEmaResult[i] &&
+                longEmaResult[i] < longSmaResult[i] &&
+                rsiResult[i].Rsi < rsiLower)
             {
                 result[i] = Signal.Sell;
+            }
+            else if (shortEmaResult[i] > longEmaResult[i] &&
+                     longEmaResult[i] > longSmaResult[i] &&
+                     rsiResult[i].Rsi > rsiUpper)
+            {
+                result[i] = Signal.Buy;
             }
             else
             {
