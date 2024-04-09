@@ -88,7 +88,7 @@ public class TradeManager : BackgroundService
     {
         var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity, "M");
 
-        var generalTrend = candles.CalcTrend().Last();
+        var generalTrend = candles.CalcTrend(rsiLower: settings.Doubles[1], rsiUpper: settings.Doubles[2]).Last();
 
         return signal == generalTrend;
     }
@@ -177,7 +177,7 @@ public class TradeManager : BackgroundService
         {
             EmailToAddress = "mike.avgeros@gmail.com",
             EmailToName = "Mike",
-            EmailSubject = "New Trade Placed",
+            EmailSubject = "New Trade",
             EmailBody = JsonSerializer.Serialize(emailBody, new JsonSerializerOptions
             {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
