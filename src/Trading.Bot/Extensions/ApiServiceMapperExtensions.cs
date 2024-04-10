@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Extensions;
 
-public static class ApiServiceMapper
+public static class ApiServiceMapperExtensions
 {
     public static Candle[] MapToCandles(this CandleData[] candles)
     {

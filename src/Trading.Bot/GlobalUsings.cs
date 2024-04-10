@@ -20,6 +20,7 @@ global using System.Threading.Channels;
 global using Trading.Bot.Configuration;
 global using Trading.Bot.Endpoints;
 global using Trading.Bot.Extensions;
+global using Trading.Bot.Extensions.IndicatorExtensions;
 global using Trading.Bot.Mediator;
 global using Trading.Bot.Models.ApiResponses;
 global using Trading.Bot.Models.DataTransferObjects;

@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.Models.Indicators;
 
-public class MacResult : IndicatorBase
+public class MaCrossResult : IndicatorBase
 {
     public double MaShort { get; set; }
     public double MaLong { get; set; }

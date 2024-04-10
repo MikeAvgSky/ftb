@@ -32,7 +32,7 @@ public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IRes
 
             foreach (var window in mergedWindows)
             {
-                var movingAvgCross = candles.CalcMac(window.Item1, window.Item2, maxSpread, minGain, riskReward);
+                var movingAvgCross = candles.CalcMaCross(window.Item1, window.Item2, maxSpread, minGain, riskReward);
 
                 var tradingSim = TradeResult.SimulateTrade(movingAvgCross.Cast<IndicatorBase>().ToArray());
 

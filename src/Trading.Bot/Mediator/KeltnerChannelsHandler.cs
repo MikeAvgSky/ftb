@@ -26,7 +26,7 @@ public class KeltnerChannelsHandler : IRequestHandler<KeltnerChannelsRequest, IR
 
             var riskReward = request.RiskReward ?? 1.5;
 
-            var bollingerBands = candles.CalcKeltner(emaWindow, atrWindow, maxSpread, minGain, riskReward);
+            var bollingerBands = candles.CalcKeltnerChannels(emaWindow, atrWindow, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray());
 

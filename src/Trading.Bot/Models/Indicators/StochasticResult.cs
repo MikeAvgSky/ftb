@@ -2,6 +2,6 @@
 
 public class StochasticResult : IndicatorBase
 {
-    public double FastOscillator { get; set; }
-    public double SlowOscillator { get; set; }
+    public double KOscillator { get; set; }
+    public double DOscillator { get; set; }
 }
