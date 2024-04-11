@@ -23,6 +23,8 @@ public class TradeManager : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _logger.LogInformation("Starting Trade Manager");
+
         await Initialise();
 
         await StartTrading(stoppingToken);

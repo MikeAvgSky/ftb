@@ -26,6 +26,8 @@ public class StreamProcessor : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _logger.LogInformation("Starting Stream Processor");
+
         while (!stoppingToken.IsCancellationRequested)
         {
             await Parallel.ForEachAsync(_instruments, _options, async (instrument, token) =>
