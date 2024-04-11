@@ -2,7 +2,7 @@
 
 public static partial class Indicator
 {
-    public static StochasticResult[] CalcStochRsi(this Candle[] candles, int window = 14, int smoothK = 1, int smoothD = 3)
+    public static StochasticResult[] CalcStochRsi(this Candle[] candles, int window = 14, int smoothK = 3, int smoothD = 3)
     {
         var rsiResult = candles.CalcRsi(window).Select(r => r.Rsi).ToArray();
 
