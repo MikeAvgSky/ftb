@@ -84,11 +84,9 @@ public class TradeManager : BackgroundService
 
     private async Task<bool> SignalFollowsTrend(TradeSettings settings, Signal signal)
     {
-        if (!_tradeConfiguration.CheckHigherTimeFrame) return true;
-
         var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity);
 
-        var generalTrend = candles.CalcTrend(rsiLower: settings.Doubles[1], rsiUpper: settings.Doubles[2]).Last();
+        var generalTrend = candles.CalcTrend().Last();
 
         return signal == generalTrend;
     }
