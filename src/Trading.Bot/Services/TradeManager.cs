@@ -71,9 +71,8 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        var calcResult = candles.CalcStochRsiBands(settings.Integers[0], settings.Integers[1], settings.Doubles[0],
-            settings.MaxSpread, settings.MinGain, settings.RiskReward, settings.Doubles[1], settings.Doubles[2],
-            settings.Doubles[3], settings.Doubles[4]).Last();
+        var calcResult = candles.CalcRsiBbReversal(settings.Integers[0], settings.Integers[1], settings.Doubles[0],
+            settings.MaxSpread, settings.MinGain, settings.RiskReward, settings.Doubles[1], settings.Doubles[2]).Last();
 
         if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
         {
@@ -86,6 +85,8 @@ public class TradeManager : BackgroundService
 
     private async Task<bool> SignalFollowsTrend(TradeSettings settings, Signal signal)
     {
+        if (!_tradeConfiguration.CheckHigherTimeFrame) return true;
+
         var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity, "M");
 
         var generalTrend = candles.CalcTrend(rsiLower: settings.Doubles[1], rsiUpper: settings.Doubles[2]).Last();

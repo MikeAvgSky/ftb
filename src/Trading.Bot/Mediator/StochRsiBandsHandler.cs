@@ -28,7 +28,7 @@ public class StochRsiBandsHandler : IRequestHandler<StochRsiBandsRequest, IResul
 
             var riskReward = request.RiskReward ?? 1.5;
 
-            var rsiBands = candles.CalcStochRsiBands(bbWindow, rsiWindow, stdDev, maxSpread, minGain, riskReward);
+            var rsiBands = candles.CalcStochRsiBbBreakout(bbWindow, rsiWindow, stdDev, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(rsiBands.Cast<IndicatorBase>().ToArray());
 
