@@ -63,7 +63,7 @@ public class TradeManager : BackgroundService
 
         _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
 
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity, "M");
+        var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity);
 
         if (!candles.Any() || !GoodTradingTime())
         {
@@ -87,7 +87,7 @@ public class TradeManager : BackgroundService
     {
         if (!_tradeConfiguration.CheckHigherTimeFrame) return true;
 
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity, "M");
+        var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity);
 
         var generalTrend = candles.CalcTrend(rsiLower: settings.Doubles[1], rsiUpper: settings.Doubles[2]).Last();
 
