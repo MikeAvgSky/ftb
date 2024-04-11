@@ -2,9 +2,11 @@
 
 public static partial class Indicator
 {
-    public static StochasticResult[] CalcStochastic(this Candle[] candles, int window = 14, int smoothK = 1, int smoothD = 3)
+    public static StochasticResult[] CalcStochRsi(this Candle[] candles, int window = 14, int smoothK = 1, int smoothD = 3)
     {
-        var length = candles.Length;
+        var rsiResult = candles.CalcRsi(window).Select(r => r.Rsi).ToArray();
+
+        var length = rsiResult.Length;
 
         var result = new StochasticResult[length];
 
@@ -14,19 +16,17 @@ public static partial class Indicator
 
             if (i < window - 1) continue;
 
-            result[i].Candle = candles[i];
+            var lastRsiValues = new double[window];
 
-            var lastCandles = new Candle[window];
+            Array.Copy(rsiResult[..(i + 1)], i - (window - 1),
+                lastRsiValues, 0, window);
 
-            Array.Copy(candles[..(i + 1)], i - (window - 1),
-                lastCandles, 0, window);
+            var highestRsi = lastRsiValues.Max();
 
-            var highestPrice = lastCandles.Select(c => c.Mid_C).Max();
+            var lowestRsi = lastRsiValues.Min();
 
-            var lowestPrice = lastCandles.Select(c => c.Mid_C).Min();
-
-            result[i].KOscillator = highestPrice - lowestPrice != 0
-                ? 100 * (result[i].Candle.Mid_C - lowestPrice) / (highestPrice - lowestPrice)
+            result[i].KOscillator = highestRsi - lowestRsi != 0
+                ? 100 * (rsiResult[i] - lowestRsi) / (highestRsi - lowestRsi)
                 : 0.0;
         }
 
