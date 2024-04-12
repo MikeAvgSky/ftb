@@ -1,0 +1,35 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: App Settings Variable Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: './src/Trading.Bot/appsettings.json'
+      env:
+        Constants.ApiKey: ${{ secrets.OANDAAPIKEY }}
+        Constants.AccountId: ${{ secrets.OANDAACCOUNTID }}
+        EmailConfiguration.Password: ${{ secrets.EMAILPASSWORD }}
+
+    - name: Docker Login
+      env:
+        DOCKER_USER: ${{ secrets.DOCKER_USER }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+    
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag mikeavg/algo-trading-bot
+
+    - name: Docker push
+      run: docker push ${{ secrets.DOCKER_USER }}/algo-trading-bot
