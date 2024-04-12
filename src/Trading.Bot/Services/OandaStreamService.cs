@@ -18,8 +18,6 @@ public class OandaStreamService
 
     public async Task StreamLivePrices(string instruments, CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Starting Oanda Stream Service");
-
         try
         {
             var endpoint = $"accounts/{_accountId}/pricing/stream?instruments={instruments}";

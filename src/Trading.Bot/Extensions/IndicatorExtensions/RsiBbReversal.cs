@@ -2,10 +2,10 @@
 
 public static partial class Indicator
 {
-    public static IndicatorResult[] CalcRsiBbReversal(this Candle[] candles, int bbWindow = 30, int rsiWindow = 13, double stdDev = 2,
+    public static IndicatorResult[] CalcRsiBbReversal(this Candle[] candles, int bbWindow = 20, int rsiWindow = 14, double stdDev = 2,
         double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double rsiLower = 30, double rsiUpper = 70)
     {
-        var rsiResult = candles.CalcRsi(rsiWindow);
+        var rsi = candles.CalcRsi(rsiWindow);
 
         var bollingerBands = candles.CalcBollingerBands(bbWindow, stdDev);
 
@@ -23,16 +23,16 @@ public static partial class Indicator
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when candle.Mid_C > bollingerBands[i].UpperBand &&
-                                candle.Mid_O < bollingerBands[i].UpperBand &&
-                                rsiResult[i].Rsi < rsiUpper &&
-                                candle.Spread <= maxSpread &&
-                                result[i].Gain >= minGain => Signal.Sell,
                 var candle when candle.Mid_C < bollingerBands[i].LowerBand &&
                                 candle.Mid_O > bollingerBands[i].LowerBand &&
-                                rsiResult[i].Rsi > rsiLower &&
+                                rsi[i].Rsi < rsiLower &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Buy,
+                var candle when candle.Mid_C > bollingerBands[i].UpperBand &&
+                                candle.Mid_O < bollingerBands[i].UpperBand &&
+                                rsi[i].Rsi > rsiUpper &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
             };
 
