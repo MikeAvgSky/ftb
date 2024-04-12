@@ -30,7 +30,6 @@ jobs:
         image: ${{ secrets.DOCKER_USER }}/${{ env.REPO_NAME }}
         tags: latest
         registry: docker.io
-        directory: ./src
         dockerfile: ./src/Trading.Bot/Dockerfile
         username: ${{ secrets.DOCKER_USER }}
         password: ${{ secrets.DOCKER_PASSWORD }}
