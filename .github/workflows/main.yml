@@ -2,9 +2,7 @@ name: Publish .NET App to Azure
 
 on:
   push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 env:
   AZURE_WEBAPP_NAME: algo-trading-bot

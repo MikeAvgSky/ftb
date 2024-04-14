@@ -26,14 +26,6 @@ public static partial class Indicator
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when candle.Mid_C < bollingerBands[i].LowerBand &&
-                                candle.Mid_O > bollingerBands[i].LowerBand &&
-                                rsiResult[i].Rsi < rsiLower &&
-                                rsiResult[i].Rsi < rsiResult[i - 1].Rsi &&
-                                stochastic[i].KOscillator < stochLower &&
-                                stochastic[i].DOscillator < stochLower &&
-                                candle.Spread <= maxSpread &&
-                                result[i].Gain >= minGain => Signal.Sell,
                 var candle when candle.Mid_C > bollingerBands[i].UpperBand &&
                                 candle.Mid_O < bollingerBands[i].UpperBand &&
                                 rsiResult[i].Rsi > rsiUpper &&
@@ -42,6 +34,14 @@ public static partial class Indicator
                                 stochastic[i].DOscillator > stochUpper &&
                                 candle.Spread <= maxSpread &&
                                 result[i].Gain >= minGain => Signal.Buy,
+                var candle when candle.Mid_C < bollingerBands[i].LowerBand &&
+                                candle.Mid_O > bollingerBands[i].LowerBand &&
+                                rsiResult[i].Rsi < rsiLower &&
+                                rsiResult[i].Rsi < rsiResult[i - 1].Rsi &&
+                                stochastic[i].KOscillator < stochLower &&
+                                stochastic[i].DOscillator < stochLower &&
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
             };
 
