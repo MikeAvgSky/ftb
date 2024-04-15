@@ -9,7 +9,7 @@ public static class SimulationEndpoints
         builder.MapPost("api/simulation/kc", SimulateKeltnerChannels).DisableAntiforgery();
         builder.MapPost("api/simulation/rsi_ema", SimulateRsiEma).DisableAntiforgery();
         builder.MapPost("api/simulation/macd_ema", SimulateMacdEma).DisableAntiforgery();
-        builder.MapPost("api/simulation/stoch_rsi_bands", SimulateStochRsiBands).DisableAntiforgery();
+        builder.MapPost("api/simulation/rsi_bb", SimulateRsiBb).DisableAntiforgery();
     }
 
     private static async Task<IResult> SimulateMovingAverageCross(ISender sender,
@@ -77,8 +77,8 @@ public static class SimulationEndpoints
         }
     }
 
-    private static async Task<IResult> SimulateStochRsiBands(ISender sender,
-        [AsParameters] StochRsiBandsRequest request)
+    private static async Task<IResult> SimulateRsiBb(ISender sender,
+        [AsParameters] RsiBollingerBandsRequest request)
     {
         try
         {
