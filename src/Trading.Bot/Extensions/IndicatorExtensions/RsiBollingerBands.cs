@@ -3,7 +3,8 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcRsiBollingerBands(this Candle[] candles, int bbWindow = 20, int rsiWindow = 14, double stdDev = 2,
-        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5, double rsiLower = 30, double rsiUpper = 70, bool breakout = false)
+        double maxSpread = 0.0004, double minGain = 0.0006, int minVolume = 100, double riskReward = 1.5, double rsiLower = 30, double rsiUpper = 70,
+        bool breakout = false)
     {
         var rsiResults = candles.CalcRsi(rsiWindow);
 
@@ -27,23 +28,27 @@ public static partial class Indicator
                                 candle.Mid_O > bollingerBands[i].LowerBand &&
                                 rsiResults[i].Rsi < rsiLower &&
                                 candle.Spread <= maxSpread &&
-                                result[i].Gain >= minGain => Signal.Buy,
+                                candle.Volume >= minVolume &&
+                                result[i].Gain >= minGain && !breakout => Signal.Buy,
                 var candle when candle.Mid_C > bollingerBands[i].UpperBand &&
                                 candle.Mid_O < bollingerBands[i].UpperBand &&
                                 rsiResults[i].Rsi > rsiUpper &&
                                 rsiResults[i].Rsi > rsiResults[i - 1].Rsi &&
                                 candle.Spread <= maxSpread &&
+                                candle.Volume >= minVolume &&
                                 result[i].Gain >= minGain && breakout => Signal.Buy,
                 var candle when candle.Mid_C > bollingerBands[i].UpperBand &&
                                 candle.Mid_O < bollingerBands[i].UpperBand &&
                                 rsiResults[i].Rsi > rsiUpper &&
                                 candle.Spread <= maxSpread &&
-                                result[i].Gain >= minGain => Signal.Sell,
+                                candle.Volume >= minVolume &&
+                                result[i].Gain >= minGain && !breakout => Signal.Sell,
                 var candle when candle.Mid_C < bollingerBands[i].LowerBand &&
                                 candle.Mid_O > bollingerBands[i].LowerBand &&
                                 rsiResults[i].Rsi < rsiLower &&
                                 rsiResults[i].Rsi < rsiResults[i - 1].Rsi &&
                                 candle.Spread <= maxSpread &&
+                                candle.Volume >= minVolume &&
                                 result[i].Gain >= minGain && breakout => Signal.Sell,
                 _ => Signal.None
             };

@@ -48,7 +48,7 @@ public class OandaStreamService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while trying to stream live prices. Stopping service.");
+            _logger.LogError(ex, "An error occurred while trying to stream live prices");
         }
     }
 
