@@ -26,9 +26,11 @@ public class RsiBollingerBandsHandler : IRequestHandler<RsiBollingerBandsRequest
 
             var minGain = request.MinGain ?? 0.0006;
 
+            var minVolume = request.MinVolume ?? 100;
+
             var riskReward = request.RiskReward ?? 1.5;
 
-            var rsiBands = candles.CalcRsiBollingerBands(bbWindow, rsiWindow, stdDev, maxSpread, minGain, riskReward);
+            var rsiBands = candles.CalcRsiBollingerBands(bbWindow, rsiWindow, stdDev, maxSpread, minGain, minVolume, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(rsiBands.Cast<IndicatorBase>().ToArray());
 
@@ -57,6 +59,7 @@ public record RsiBollingerBandsRequest : IHttpRequest
     public double? StandardDeviation { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
+    public int? MinVolume { get; set; }
     public double? RiskReward { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
