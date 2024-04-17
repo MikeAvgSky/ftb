@@ -1,8 +1,6 @@
 ﻿
 var builder = WebApplication.CreateBuilder(args);
 
-var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
-
 // Configure Services
 
 var constants = builder.Configuration
@@ -51,7 +49,7 @@ if (tradeConfiguration.RunBot)
     }
 }
 
-if (isDevelopment)
+if (tradeConfiguration.BackTest)
 {
     builder.Services.AddMediatR(c =>
     {
@@ -69,7 +67,7 @@ var app = builder.Build();
 
 // Configure
 
-if (isDevelopment)
+if (tradeConfiguration.BackTest)
 {
     app.UseSwagger();
 
