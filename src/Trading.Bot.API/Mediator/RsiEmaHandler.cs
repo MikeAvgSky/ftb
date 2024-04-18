@@ -1,4 +1,4 @@
-﻿namespace Trading.Bot.Mediator;
+﻿namespace Trading.Bot.API.Mediator;
 
 public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 {
@@ -51,7 +51,7 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
 public record RsiEmaRequest : IHttpRequest
 {
-    public IFormFileCollection Files { get; set; }
+    public IFormFileCollection Files { get; set; } = new FormFileCollection();
     public int? RsiWindow { get; set; }
     public int? EmaWindow { get; set; }
     public int? RsiLimit { get; set; }

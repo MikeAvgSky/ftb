@@ -1,14 +1,12 @@
 {
   "profiles": {
-    "Trading.Bot": {
+    "Trading.Bot.API": {
       "commandName": "Project",
+      "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "dotnetRunMessages": true
-    },
-    "Docker": {
-      "commandName": "Docker"
+      "applicationUrl": "https://localhost:56543;http://localhost:56544"
     }
   }
 }

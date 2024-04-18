@@ -1,4 +1,4 @@
-﻿namespace Trading.Bot.Endpoints;
+﻿namespace Trading.Bot.API.Endpoints;
 
 public static class SimulationEndpoints
 {

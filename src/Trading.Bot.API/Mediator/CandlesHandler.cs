@@ -1,4 +1,4 @@
-﻿namespace Trading.Bot.Mediator;
+﻿namespace Trading.Bot.API.Mediator;
 
 public sealed class CandlesHandler : IRequestHandler<CandlesRequest, IResult>
 {
@@ -20,8 +20,7 @@ public sealed class CandlesHandler : IRequestHandler<CandlesRequest, IResult>
 
         var instruments = currencyList.GetAllCombinations();
 
-        var granularities = request.Granularity?.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                            ?? Array.Empty<string>();
+        var granularities = request.Granularity.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
         if (!granularities.Any())
         {
@@ -82,11 +81,11 @@ public sealed class CandlesHandler : IRequestHandler<CandlesRequest, IResult>
 
 public record CandlesRequest : IHttpRequest
 {
-    public string Currencies { get; set; }
-    public string Granularity { get; set; }
-    public string Price { get; set; }
-    public string FromDate { get; set; }
-    public string ToDate { get; set; }
-    public string Count { get; set; }
+    public string Currencies { get; set; } = "";
+    public string Granularity { get; set; } = "";
+    public string Price { get; set; } = "";
+    public string FromDate { get; set; } = "";
+    public string ToDate { get; set; } = "";
+    public string Count { get; set; } = "";
     public bool Download { get; set; }
 }

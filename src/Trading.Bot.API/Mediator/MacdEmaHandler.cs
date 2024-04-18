@@ -1,4 +1,4 @@
-﻿namespace Trading.Bot.Mediator;
+﻿namespace Trading.Bot.API.Mediator;
 
 public class MacdEmaHandler : IRequestHandler<MacdEmaRequest, IResult>
 {
@@ -47,7 +47,7 @@ public class MacdEmaHandler : IRequestHandler<MacdEmaRequest, IResult>
 
 public record MacdEmaRequest : IHttpRequest
 {
-    public IFormFileCollection Files { get; set; }
+    public IFormFileCollection Files { get; set; } = new FormFileCollection();
     public int? EmaWindow { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }

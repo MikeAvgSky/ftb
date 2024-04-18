@@ -1,0 +1,14 @@
+﻿global using MediatR;
+global using System.Collections.Concurrent;
+global using Trading.Bot.API.Endpoints;
+global using Trading.Bot.API.Extensions;
+global using Trading.Bot.API.Interfaces;
+global using Trading.Bot.API.Mediator;
+global using Trading.Bot.Configuration;
+global using Trading.Bot.Extensions;
+global using Trading.Bot.Extensions.IndicatorExtensions;
+global using Trading.Bot.Models.ApiResponses;
+global using Trading.Bot.Models.DataTransferObjects;
+global using Trading.Bot.Models.Enums;
+global using Trading.Bot.Models.Indicators;
+global using Trading.Bot.Services;

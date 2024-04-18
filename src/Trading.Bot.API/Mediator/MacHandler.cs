@@ -1,4 +1,4 @@
-﻿namespace Trading.Bot.Mediator;
+﻿namespace Trading.Bot.API.Mediator;
 
 public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IResult>
 {
@@ -56,9 +56,9 @@ public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IRes
 
 public record MovingAverageCrossRequest : IHttpRequest
 {
-    public IFormFileCollection Files { get; set; }
-    public string ShortWindow { get; set; }
-    public string LongWindow { get; set; }
+    public IFormFileCollection Files { get; set; } = new FormFileCollection();
+    public string ShortWindow { get; set; } = "";
+    public string LongWindow { get; set; } = "";
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }

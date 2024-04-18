@@ -1,4 +1,4 @@
-﻿namespace Trading.Bot.Mediator;
+﻿namespace Trading.Bot.API.Mediator;
 
 public sealed class AccountSummaryHandler : IRequestHandler<AccountSummaryRequest, IResult>
 {

@@ -1,8 +1,8 @@
-﻿namespace Trading.Bot.Mediator;
+﻿namespace Trading.Bot.API.Mediator;
 
-public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IResult>
+public class KeltnerChannelsHandler : IRequestHandler<KeltnerChannelsRequest, IResult>
 {
-    public Task<IResult> Handle(BollingerBandsRequest request, CancellationToken cancellationToken)
+    public Task<IResult> Handle(KeltnerChannelsRequest request, CancellationToken cancellationToken)
     {
         var bollingerBandsList = new List<FileData<IEnumerable<object>>>();
 
@@ -16,9 +16,9 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var window = request.Window ?? 20;
+            var emaWindow = request.EmaWindow ?? 20;
 
-            var stdDev = request.StandardDeviation ?? 2;
+            var atrWindow = request.AtrWindow ?? 10;
 
             var maxSpread = request.MaxSpread ?? 0.0004;
 
@@ -26,32 +26,32 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
 
             var riskReward = request.RiskReward ?? 1.5;
 
-            var bollingerBands = candles.CalcBollingerBands(window, stdDev, maxSpread, minGain, riskReward);
+            var bollingerBands = candles.CalcKeltnerChannels(emaWindow, atrWindow, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray());
 
             bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-            $"{instrument}_{granularity}_BB_{window}_{stdDev}.csv",
+            $"{instrument}_{granularity}_KC_{emaWindow}_{atrWindow}.csv",
             request.ShowTradesOnly ? bollingerBands.Where(ma => ma.Signal != Signal.None) : bollingerBands));
 
             bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_BB_{window}_{stdDev}_SIM.csv", tradingSim));
+                $"{instrument}_{granularity}_KC_{emaWindow}_{atrWindow}_SIM.csv", tradingSim));
         }
 
         if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);
 
         return Task.FromResult(request.Download
             ? Results.File(bollingerBandsList.GetZipFromFileData(),
-                "application/octet-stream", "bb.zip")
+                "application/octet-stream", "kc.zip")
             : Results.Ok(bollingerBandsList.Select(l => l.Value)));
     }
 }
 
-public record BollingerBandsRequest : IHttpRequest
+public record KeltnerChannelsRequest : IHttpRequest
 {
-    public IFormFileCollection Files { get; set; }
-    public int? Window { get; set; }
-    public double? StandardDeviation { get; set; }
+    public IFormFileCollection Files { get; set; } = new FormFileCollection();
+    public int? EmaWindow { get; set; }
+    public int? AtrWindow { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }

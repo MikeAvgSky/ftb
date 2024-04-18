@@ -1,4 +1,4 @@
-﻿namespace Trading.Bot.Mediator;
+﻿namespace Trading.Bot.API.Mediator;
 
 public sealed class InstrumentsHandler : IRequestHandler<InstrumentsRequest, IResult>
 {
@@ -30,7 +30,7 @@ public sealed class InstrumentsHandler : IRequestHandler<InstrumentsRequest, IRe
 
 public record InstrumentsRequest : IHttpRequest
 {
-    public string Instruments { get; set; }
-    public string Type { get; set; }
+    public string Instruments { get; set; } = "";
+    public string Type { get; set; } = "";
     public bool Download { get; set; }
 }

@@ -1,4 +1,4 @@
-﻿namespace Trading.Bot.Mediator;
+﻿namespace Trading.Bot.API.Mediator;
 
 public class RsiBollingerBandsHandler : IRequestHandler<RsiBollingerBandsRequest, IResult>
 {
@@ -53,7 +53,7 @@ public class RsiBollingerBandsHandler : IRequestHandler<RsiBollingerBandsRequest
 
 public record RsiBollingerBandsRequest : IHttpRequest
 {
-    public IFormFileCollection Files { get; set; }
+    public IFormFileCollection Files { get; set; } = new FormFileCollection();
     public int? BbWindow { get; set; }
     public int? RsiWindow { get; set; }
     public double? StandardDeviation { get; set; }

@@ -1,85 +1,55 @@
 ﻿
-var builder = WebApplication.CreateBuilder(args);
-
-// Configure Services
-
-var constants = builder.Configuration
-    .GetSection(nameof(Constants))
-    .Get<Constants>();
-
-builder.Services.AddSingleton(constants);
-
-var tradeConfiguration = builder.Configuration.
-    GetSection(nameof(TradeConfiguration))
-    .Get<TradeConfiguration>();
-
-builder.Services.AddSingleton(tradeConfiguration);
-
-var emailConfig = builder.Configuration
-    .GetSection("EmailConfiguration")
-    .Get<EmailConfiguration>();
-
-builder.Services.AddSingleton(emailConfig);
-
-builder.Services.AddTransient<EmailService>();
-
-builder.Services.AddOandaApiService(constants);
-
-builder.Services.AddOandaStreamService(constants);
-
-Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .CreateLogger();
-
-builder.Host.UseSerilog();
-
-if (tradeConfiguration.RunBot)
-{
-    builder.Services.AddSingleton<LiveTradeCache>();
-
-    builder.Services.AddHostedService<TradeManager>();
-
-    builder.Services.AddHostedService<StreamProcessor>();
-
-    builder.Services.AddHostedService<StreamWorker>();
-
-    if (tradeConfiguration.StopRollover)
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((context, services) =>
     {
-        builder.Services.AddHostedService<RolloverManager>();
-    }
-}
+        var constants = context.Configuration
+            .GetSection(nameof(Constants))
+            .Get<Constants>();
 
-if (tradeConfiguration.BackTest)
-{
-    builder.Services.AddMediatR(c =>
+        services.AddSingleton(constants);
+
+        var tradeConfiguration = context.Configuration.GetSection(nameof(TradeConfiguration))
+            .Get<TradeConfiguration>();
+
+        services.AddSingleton(tradeConfiguration);
+
+        var emailConfig = context.Configuration
+            .GetSection("EmailConfiguration")
+            .Get<EmailConfiguration>();
+
+        services.AddSingleton(emailConfig);
+
+        services.AddTransient<EmailService>();
+
+        services.AddOandaApiService(constants);
+
+        services.AddOandaStreamService(constants);
+
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(context.Configuration)
+            .CreateLogger();
+
+        if (!tradeConfiguration.RunBot) return;
+
+        services.AddSingleton<LiveTradeCache>();
+
+        services.AddHostedService<TradeManager>();
+
+        services.AddHostedService<StreamProcessor>();
+
+        services.AddHostedService<StreamWorker>();
+
+        if (tradeConfiguration.StopRollover)
+        {
+            services.AddHostedService<RolloverManager>();
+        }
+    })
+    .ConfigureLogging(logging =>
     {
-        c.Lifetime = ServiceLifetime.Scoped;
+        logging.ClearProviders();
 
-        c.RegisterServicesFromAssemblyContaining<Program>();
-    });
+        logging.Services.AddSerilog();
+    })
+    .Build();
 
-    builder.Services.AddEndpointsApiExplorer();
-
-    builder.Services.AddSwaggerGen();
-}
-
-var app = builder.Build();
-
-// Configure
-
-if (tradeConfiguration.BackTest)
-{
-    app.UseSwagger();
-
-    app.UseSwaggerUI();
-
-    app.MapAccountEndpoints();
-
-    app.MapInstrumentEndpoints();
-
-    app.MapCandleEndpoints();
-
-    app.MapSimulationEndpoints();
-}
-
-app.Run();
+await host.RunAsync();
