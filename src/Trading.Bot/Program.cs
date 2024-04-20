@@ -8,7 +8,8 @@ var host = Host.CreateDefaultBuilder(args)
 
         services.AddSingleton(constants);
 
-        var tradeConfiguration = context.Configuration.GetSection(nameof(TradeConfiguration))
+        var tradeConfiguration = context.Configuration
+            .GetSection(nameof(TradeConfiguration))
             .Get<TradeConfiguration>();
 
         services.AddSingleton(tradeConfiguration);
@@ -28,8 +29,6 @@ var host = Host.CreateDefaultBuilder(args)
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(context.Configuration)
             .CreateLogger();
-
-        if (!tradeConfiguration.RunBot) return;
 
         services.AddSingleton<LiveTradeCache>();
 
