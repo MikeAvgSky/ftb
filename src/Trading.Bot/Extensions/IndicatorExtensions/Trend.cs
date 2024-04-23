@@ -2,7 +2,7 @@
 
 public static partial class Indicator
 {
-    public static Signal[] CalcTrend(this Candle[] candles, int shortEma = 8, int longEma = 21,
+    public static Signal[] CalcTrend(this Candle[] candles, int shortEma = 21, int longEma = 55,
         double tolerance = 0.0004)
     {
         var prices = candles.Select(c => c.Mid_C).ToArray();
