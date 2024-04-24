@@ -32,16 +32,14 @@ public static partial class Indicator
                 _ => 0
             };
 
-            var ema = emaResult[i];
-
-            result[i].Gain = Math.Abs(candles[i].Mid_C - ema);
+            result[i].Gain = Math.Abs(candles[i].Mid_C - emaResult[i]);
 
             result[i].Signal = direction switch
             {
-                1 when candles[i].Mid_L > ema &&
+                1 when candles[i].Mid_L > emaResult[i] &&
                        candles[i].Spread <= maxSpread &&
                        result[i].Gain >= minGain => Signal.Buy,
-                -1 when candles[i].Mid_H < ema &&
+                -1 when candles[i].Mid_H < emaResult[i] &&
                         candles[i].Spread <= maxSpread &&
                         result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
