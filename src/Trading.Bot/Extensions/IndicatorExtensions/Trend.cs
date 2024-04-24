@@ -2,13 +2,11 @@
 
 public static partial class Indicator
 {
-    public static Signal[] CalcTrend(this Candle[] candles, int shortEma = 8, int longEma = 55)
+    public static Signal[] CalcTrend(this Candle[] candles, int ema = 100)
     {
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
-        var shortEmaResult = prices.CalcEma(shortEma).ToArray();
-
-        var longEmaResult = prices.CalcEma(longEma).ToArray();
+        var emaResult = prices.CalcEma(ema).ToArray();
 
         var length = candles.Length;
 
@@ -16,13 +14,11 @@ public static partial class Indicator
 
         for (var i = 0; i < length; i++)
         {
-            if (shortEmaResult[i] > longEmaResult[i] &&
-                shortEmaResult[i - 1] < shortEmaResult[i])
+            if (candles[i].Mid_L > emaResult[i])
             {
                 result[i] = Signal.Buy;
             }
-            else if (shortEmaResult[i] < longEmaResult[i] &&
-                     longEmaResult[i - 1] > longEmaResult[i])
+            else if (candles[i].Mid_H < emaResult[i])
             {
                 result[i] = Signal.Sell;
             }
