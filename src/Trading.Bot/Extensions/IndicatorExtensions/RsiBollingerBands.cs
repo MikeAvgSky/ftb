@@ -24,15 +24,13 @@ public static partial class Indicator
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
                 var candle when candle.Mid_C > bollingerBands[i].LowerBand &&
-                                candles[i - 1].Mid_C < bollingerBands[i - 1].LowerBand &&
-                                candle.Direction != candles[i - 1].Direction &&
+                                candle.Mid_O < bollingerBands[i].LowerBand &&
                                 rsiResults[i - 1].Rsi < rsiLower &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume &&
                                 result[i].Gain >= minGain => Signal.Buy,
                 var candle when candle.Mid_C < bollingerBands[i].UpperBand &&
-                                candles[i - 1].Mid_C > bollingerBands[i - 1].UpperBand &&
-                                candle.Direction != candles[i - 1].Direction &&
+                                candle.Mid_O > bollingerBands[i].UpperBand &&
                                 rsiResults[i - 1].Rsi > rsiUpper &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume &&
