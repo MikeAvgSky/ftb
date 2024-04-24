@@ -21,26 +21,23 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            var rsi = rsiResult[i].Rsi;
-
-            var ema = emaResult[i];
-
             var engulfing = i > 0 && candles[i].IsEngulfingCandle(candles[i - 1]);
 
-            result[i].Gain = Math.Abs(candles[i].Mid_C - ema);
+            result[i].Gain = Math.Abs(candles[i].Mid_C - emaResult[i]);
 
-            result[i].Signal = engulfing switch
+            result[i].Signal = candles[i].Direction switch
             {
-                true when candles[i].Direction == 1 &&
-                          candles[i].Mid_L > ema &&
-                          rsi > rsiLimit &&
-                          candles[i].Spread <= maxSpread &&
-                          result[i].Gain >= minGain => Signal.Buy,
-                true when candles[i].Direction == -1 &&
-                          candles[i].Mid_H < ema &&
-                          rsi < rsiLimit &&
-                          candles[i].Spread <= maxSpread &&
-                          result[i].Gain >= minGain => Signal.Sell,
+                1 when engulfing &&
+                       candles[i].Mid_L > emaResult[i] &&
+                       rsiResult[i].Rsi > rsiLimit &&
+                       candles[i].Spread <= maxSpread &&
+                       result[i].Gain >= minGain => Signal.Buy,
+                -1 when engulfing &&
+                        candles[i].Direction == -1 &&
+                        candles[i].Mid_H < emaResult[i] &&
+                        rsiResult[i].Rsi < rsiLimit &&
+                        candles[i].Spread <= maxSpread &&
+                        result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
             };
 
