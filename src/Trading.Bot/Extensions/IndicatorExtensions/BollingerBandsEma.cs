@@ -21,20 +21,20 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Gain = Math.Abs(candles[i].Mid_O - bollingerBands[i].Sma);
+            result[i].Gain = bollingerBands[i].UpperBand - bollingerBands[i].LowerBand;
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
                 var candle when candle.Mid_C > bollingerBands[i].LowerBand &&
-                                candle.Mid_O < bollingerBands[i].LowerBand &&
-                                candle.Direction != candles[i - 1].Direction &&
+                                candle.Mid_L < bollingerBands[i].LowerBand &&
+                                candle.Direction == 1 && candles[i - 1].Direction == -1 &&
                                 candle.Mid_L > emaResult[i] &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume &&
                                 result[i].Gain >= minGain => Signal.Buy,
                 var candle when candle.Mid_C < bollingerBands[i].UpperBand &&
-                                candle.Mid_O > bollingerBands[i].UpperBand &&
-                                candle.Direction != candles[i - 1].Direction &&
+                                candle.Mid_H > bollingerBands[i].UpperBand &&
+                                candle.Direction == -1 && candles[i - 1].Direction == 1 &&
                                 candle.Mid_H < emaResult[i] &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume &&
