@@ -21,18 +21,18 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Gain = Math.Abs(candles[i].Mid_C - bollingerBands[i].Sma);
+            result[i].Gain = Math.Abs(candles[i].Mid_O - bollingerBands[i].Sma);
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when candle.Mid_C < bollingerBands[i].LowerBand &&
-                                candle.Mid_O > bollingerBands[i].LowerBand &&
+                var candle when candle.Mid_O < bollingerBands[i].LowerBand &&
+                                candle.Mid_C > bollingerBands[i].LowerBand &&
                                 candle.Mid_L > emaResult[i] &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume &&
                                 result[i].Gain >= minGain => Signal.Buy,
-                var candle when candle.Mid_C > bollingerBands[i].UpperBand &&
-                                candle.Mid_O < bollingerBands[i].UpperBand &&
+                var candle when candle.Mid_O > bollingerBands[i].UpperBand &&
+                                candle.Mid_C < bollingerBands[i].UpperBand &&
                                 candle.Mid_H < emaResult[i] &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume &&
@@ -44,7 +44,7 @@ public static partial class Indicator
 
             result[i].StopLoss = candles[i].CalcStopLoss(result[i], riskReward);
 
-            result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
+            result[i].Loss = Math.Abs(candles[i].Mid_O - result[i].StopLoss);
         }
 
         return result;
