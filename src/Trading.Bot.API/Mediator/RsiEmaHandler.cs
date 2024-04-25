@@ -16,10 +16,6 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var rsiWindow = request.RsiWindow ?? 14;
-
-            var emaWindow = request.EmaWindow ?? 200;
-
             var rsiLimit = request.RsiLimit ?? 50;
 
             var maxSpread = request.MaxSpread ?? 0.0004;
@@ -28,16 +24,16 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
             var riskReward = request.RiskReward ?? 1.5;
 
-            var rsi = candles.CalcRsiEma(rsiWindow, emaWindow, rsiLimit, maxSpread, minGain, riskReward);
+            var rsi = candles.CalcRsiEma(request.RsiWindow, request.EmaWindow, rsiLimit, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(rsi.Cast<IndicatorBase>().ToArray());
 
             rsiList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_RSI_{rsiWindow}_EMA_{emaWindow}.csv",
+                $"{instrument}_{granularity}_RSI_{request.RsiWindow}_EMA_{request.EmaWindow}.csv",
                 request.ShowTradesOnly ? rsi.Where(ma => ma.Signal != Signal.None) : rsi));
 
             rsiList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_RSI_{rsiWindow}_EMA_{emaWindow}_SIM.csv", tradingSim));
+                $"{instrument}_{granularity}_RSI_{request.RsiWindow}_EMA_{request.EmaWindow}_SIM.csv", tradingSim));
         }
 
         if (!rsiList.Any()) return Task.FromResult(Results.Empty);
@@ -52,8 +48,8 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 public record RsiEmaRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; } = new FormFileCollection();
-    public int? RsiWindow { get; set; }
-    public int? EmaWindow { get; set; }
+    public int RsiWindow { get; set; }
+    public int EmaWindow { get; set; }
     public int? RsiLimit { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }

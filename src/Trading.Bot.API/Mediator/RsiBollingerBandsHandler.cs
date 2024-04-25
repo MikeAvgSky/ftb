@@ -16,12 +16,6 @@ public class RsiBollingerBandsHandler : IRequestHandler<RsiBollingerBandsRequest
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var bbWindow = request.BbWindow ?? 20;
-
-            var rsiWindow = request.RsiWindow ?? 13;
-
-            var stdDev = request.StandardDeviation ?? 2;
-
             var maxSpread = request.MaxSpread ?? 0.0004;
 
             var minGain = request.MinGain ?? 0.0006;
@@ -30,16 +24,17 @@ public class RsiBollingerBandsHandler : IRequestHandler<RsiBollingerBandsRequest
 
             var riskReward = request.RiskReward ?? 1.5;
 
-            var rsiBands = candles.CalcRsiBollingerBands(bbWindow, rsiWindow, stdDev, maxSpread, minGain, minVolume, riskReward);
+            var rsiBands = candles.CalcRsiBollingerBands(request.BbWindow, request.RsiWindow, request.StandardDeviation,
+                maxSpread, minGain, minVolume, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(rsiBands.Cast<IndicatorBase>().ToArray());
 
             bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-            $"{instrument}_{granularity}_RSI_BB_{rsiWindow}_{bbWindow}_{stdDev}.csv",
+            $"{instrument}_{granularity}_RSI_BB_{request.RsiWindow}_{request.BbWindow}_{request.StandardDeviation}.csv",
             request.ShowTradesOnly ? rsiBands.Where(ma => ma.Signal != Signal.None) : rsiBands));
 
             bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_RSI_BB_{rsiWindow}_{bbWindow}_{stdDev}_SIM.csv", tradingSim));
+                $"{instrument}_{granularity}_RSI_BB_{request.RsiWindow}_{request.BbWindow}_{request.StandardDeviation}_SIM.csv", tradingSim));
         }
 
         if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);
@@ -54,9 +49,9 @@ public class RsiBollingerBandsHandler : IRequestHandler<RsiBollingerBandsRequest
 public record RsiBollingerBandsRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; } = new FormFileCollection();
-    public int? BbWindow { get; set; }
-    public int? RsiWindow { get; set; }
-    public double? StandardDeviation { get; set; }
+    public int BbWindow { get; set; }
+    public int RsiWindow { get; set; }
+    public double StandardDeviation { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public int? MinVolume { get; set; }

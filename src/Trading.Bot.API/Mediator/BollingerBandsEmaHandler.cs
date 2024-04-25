@@ -1,8 +1,8 @@
 ﻿namespace Trading.Bot.API.Mediator;
 
-public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IResult>
+public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest, IResult>
 {
-    public Task<IResult> Handle(BollingerBandsRequest request, CancellationToken cancellationToken)
+    public Task<IResult> Handle(BollingerBandsEmaRequest request, CancellationToken cancellationToken)
     {
         var bollingerBandsList = new List<FileData<IEnumerable<object>>>();
 
@@ -16,26 +16,25 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var window = request.Window ?? 20;
-
-            var stdDev = request.StandardDeviation ?? 2;
-
             var maxSpread = request.MaxSpread ?? 0.0004;
 
             var minGain = request.MinGain ?? 0.0006;
 
+            var minVolume = request.MinVolume ?? 100;
+
             var riskReward = request.RiskReward ?? 1.5;
 
-            var bollingerBands = candles.CalcBollingerBands(window, stdDev, maxSpread, minGain, riskReward);
+            var bollingerBands = candles.CalcBollingerBandsEma(request.Window, request.EmaWindow,
+                request.StandardDeviation, maxSpread, minGain, minVolume, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray());
 
             bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-            $"{instrument}_{granularity}_BB_{window}_{stdDev}.csv",
+            $"{instrument}_{granularity}_BB_EMA_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}.csv",
             request.ShowTradesOnly ? bollingerBands.Where(ma => ma.Signal != Signal.None) : bollingerBands));
 
             bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_BB_{window}_{stdDev}_SIM.csv", tradingSim));
+                $"{instrument}_{granularity}_BB_EMA_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}_SIM.csv", tradingSim));
         }
 
         if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);
@@ -47,13 +46,15 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
     }
 }
 
-public record BollingerBandsRequest : IHttpRequest
+public record BollingerBandsEmaRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; } = new FormFileCollection();
-    public int? Window { get; set; }
-    public double? StandardDeviation { get; set; }
+    public int Window { get; set; }
+    public int EmaWindow { get; set; }
+    public double StandardDeviation { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
+    public int? MinVolume { get; set; }
     public double? RiskReward { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
