@@ -21,7 +21,7 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Gain = Math.Abs(candles[i].Mid_O - bollingerBands[i].Sma);
+            result[i].Gain = bollingerBands[i].UpperBand - bollingerBands[i].LowerBand;
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
@@ -44,7 +44,7 @@ public static partial class Indicator
 
             result[i].StopLoss = candles[i].CalcStopLoss(result[i], riskReward);
 
-            result[i].Loss = Math.Abs(candles[i].Mid_O - result[i].StopLoss);
+            result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
 
         return result;
