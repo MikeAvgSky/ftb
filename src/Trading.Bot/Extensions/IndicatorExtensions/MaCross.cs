@@ -3,7 +3,7 @@
 public static partial class Indicator
 {
     public static MaCrossResult[] CalcMaCross(this Candle[] candles, int shortWindow = 10, int longWindow = 20,
-        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
+        double maxSpread = 0.0004, double minGain = 0.0006)
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
@@ -44,7 +44,7 @@ public static partial class Indicator
 
             result[i].TakeProfit = candles[i].CalcTakeProfit(result[i]);
 
-            result[i].StopLoss = candles[i].CalcStopLoss(result[i], riskReward);
+            result[i].StopLoss = candles[i].CalcStopLoss(result[i]);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }

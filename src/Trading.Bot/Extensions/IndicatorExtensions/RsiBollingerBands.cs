@@ -3,7 +3,7 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcRsiBollingerBands(this Candle[] candles, int bbWindow = 20, int rsiWindow = 14, double stdDev = 2,
-        double maxSpread = 0.0004, double minGain = 0.0006, int minVolume = 100, double riskReward = 1.5, double rsiLower = 30, double rsiUpper = 70)
+        double maxSpread = 0.0004, double minGain = 0.0006, int minVolume = 100, double rsiLower = 30, double rsiUpper = 70)
     {
         var rsiResults = candles.CalcRsi(rsiWindow);
 
@@ -42,7 +42,7 @@ public static partial class Indicator
 
             result[i].TakeProfit = candles[i].CalcTakeProfit(result[i]);
 
-            result[i].StopLoss = candles[i].CalcStopLoss(result[i], riskReward);
+            result[i].StopLoss = candles[i].CalcStopLoss(result[i]);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }

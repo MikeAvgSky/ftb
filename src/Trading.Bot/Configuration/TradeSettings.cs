@@ -12,4 +12,5 @@ public class TradeSettings
     public double MinGain { get; set; }
     public int MinVolume { get; set; }
     public double RiskReward { get; set; }
+    public bool TrailingStop { get; set; }
 }

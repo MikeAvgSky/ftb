@@ -40,12 +40,12 @@ public static class MiscellaneousExtensions
         };
     }
 
-    public static double CalcStopLoss(this Candle candle, IndicatorBase result, double riskReward)
+    public static double CalcStopLoss(this Candle candle, IndicatorBase result)
     {
         return result.Signal switch
         {
-            Signal.Buy => candle.Mid_C - result.Gain / riskReward,
-            Signal.Sell => candle.Mid_C + result.Gain / riskReward,
+            Signal.Buy => candle.Mid_C - result.Gain,
+            Signal.Sell => candle.Mid_C + result.Gain,
             _ => 0.0
         };
     }

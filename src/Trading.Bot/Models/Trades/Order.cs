@@ -1,15 +1,5 @@
 ﻿namespace Trading.Bot.Models.Trades;
 
-public class OrderRequest
-{
-    public Order Order { get; set; }
-
-    public OrderRequest(Order order)
-    {
-        Order = order;
-    }
-}
-
 public class Order
 {
     public string Type { get; set; }
@@ -50,7 +40,6 @@ public class StopLossOnFill
 {
     public double Price { get; set; }
 }
-
 
 public class TakeProfitOnFill
 {

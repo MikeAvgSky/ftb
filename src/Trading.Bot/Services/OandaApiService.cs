@@ -235,6 +235,15 @@ public class OandaApiService
             : null;
     }
 
+    public async Task<bool> UpdateTrade(OrderUpdate update, string tradeId)
+    {
+        var endpoint = $"accounts/{_accountId}/trades/{tradeId}/close";
+
+        var response = await PutAsync<OrderUpdatedResponse>(endpoint, update);
+
+        return response.StatusCode.IsSuccessStatusCode() && response.Value is not null;
+    }
+
     public async Task<bool> CloseTrade(string tradeId)
     {
         var endpoint = $"accounts/{_accountId}/trades/{tradeId}/close";

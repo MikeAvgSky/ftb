@@ -67,12 +67,14 @@ public class TradeManager : BackgroundService
 
         if (!candles.Any() || !GoodTradingTime())
         {
-            _logger.LogInformation("Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
+            _logger.LogInformation(
+                "Not placing a trade for {Instrument}, candles not found or not a good time to trade.",
+                settings.Instrument);
             return;
         }
 
-        var calcResult = candles.CalcBollingerBandsEma(settings.Integers[0], settings.Integers[1], settings.Doubles[0],
-            settings.MaxSpread, settings.MinGain, settings.MinVolume, settings.RiskReward).Last();
+        var calcResult = candles.CalcBollingerBandsEma(settings.Integers[0], settings.Integers[1],
+            settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.MinVolume).Last();
 
         if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
         {
@@ -146,7 +148,9 @@ public class TradeManager : BackgroundService
 
         var tradeUnits = await GetTradeUnits(settings, indicator);
 
-        var order = new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, indicator.TakeProfit);
+        var takeProfit = settings.TrailingStop ? 0 : indicator.TakeProfit * settings.RiskReward;
+
+        var order = new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, takeProfit);
 
         var ofResponse = await _apiService.PlaceTrade(order);
 
@@ -154,6 +158,13 @@ public class TradeManager : BackgroundService
         {
             _logger.LogWarning("Failed to place order for {Instrument}", settings.Instrument);
             return;
+        }
+
+        if (settings.TrailingStop)
+        {
+            var trailingStop = new TrailingStop(ofResponse.OrderID, indicator.TakeProfit);
+
+            await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(trailingStop);
         }
 
         await SendEmailNotification(new

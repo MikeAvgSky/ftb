@@ -2,13 +2,13 @@
 
 public class RolloverManager : BackgroundService
 {
-    private readonly OandaApiService _apiService;
     private readonly ILogger<RolloverManager> _logger;
+    private readonly OandaApiService _apiService;
 
-    public RolloverManager(OandaApiService apiService, ILogger<RolloverManager> logger)
+    public RolloverManager(ILogger<RolloverManager> logger, OandaApiService apiService)
     {
-        _apiService = apiService;
         _logger = logger;
+        _apiService = apiService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

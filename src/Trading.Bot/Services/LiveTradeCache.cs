@@ -5,4 +5,6 @@ public class LiveTradeCache
     public readonly Dictionary<string, LivePrice> LivePrices = new();
 
     public readonly Channel<LivePrice> LivePriceChannel = Channel.CreateUnbounded<LivePrice>();
+
+    public readonly Channel<TrailingStop> TrailingStopChannel = Channel.CreateUnbounded<TrailingStop>();
 }

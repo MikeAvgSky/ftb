@@ -3,7 +3,7 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcMacdEma(this Candle[] candles, int emaWindow = 100,
-        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
+        double maxSpread = 0.0004, double minGain = 0.0006)
     {
         var macd = candles.CalcMacd();
 
@@ -47,7 +47,7 @@ public static partial class Indicator
 
             result[i].TakeProfit = candles[i].CalcTakeProfit(result[i]);
 
-            result[i].StopLoss = candles[i].CalcStopLoss(result[i], riskReward);
+            result[i].StopLoss = candles[i].CalcStopLoss(result[i]);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
         }
