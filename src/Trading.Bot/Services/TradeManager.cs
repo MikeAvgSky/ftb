@@ -162,7 +162,7 @@ public class TradeManager : BackgroundService
 
         if (settings.TrailingStop)
         {
-            var trailingStop = new TrailingStop(ofResponse.OrderID, indicator.TakeProfit);
+            var trailingStop = new TrailingStop(ofResponse.OrderID, indicator.TakeProfit, instrument.DisplayPrecision);
 
             await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(trailingStop);
         }

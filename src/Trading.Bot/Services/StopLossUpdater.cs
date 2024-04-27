@@ -38,7 +38,10 @@ public class StopLossUpdater : BackgroundService
                         var tradeSettings =
                             _tradeConfiguration.TradeSettings.First(x => x.Instrument == trade.Instrument);
 
-                        if (trade.Price + trade.UnrealizedPL > trailingStop.StopLoss * tradeSettings.RiskReward)
+                        var profitTarget = GetProfitTarget(trade.Price, trailingStop.StopLoss, tradeSettings.RiskReward,
+                            trailingStop.DisplayPrecision);
+
+                        if (trade.Price + trade.UnrealizedPL >= profitTarget)
                         {
                             var update = new OrderUpdate(trailingStop.StopLoss);
 
@@ -46,9 +49,24 @@ public class StopLossUpdater : BackgroundService
 
                             if (success)
                             {
-                                var stopLoss = new TrailingStop(trade.Id, trailingStop.StopLoss * tradeSettings.RiskReward);
+                                var stopLoss = new TrailingStop(trade.Id, profitTarget, trailingStop.DisplayPrecision);
 
                                 await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(stopLoss, token);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Unable to update trade for {Instrument}", trade.Instrument);
+                            }
+                        }
+                        else if (trade.Price + trade.UnrealizedPL >= trailingStop.StopLoss)
+                        {
+                            var update = new OrderUpdate(trade.Price);
+
+                            var success = await _apiService.UpdateTrade(update, trade.Id);
+
+                            if (success)
+                            {
+                                await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(trailingStop, token);
                             }
                             else
                             {
@@ -70,6 +88,13 @@ public class StopLossUpdater : BackgroundService
                         _logger.LogError(ex, "An error occurred while trying to update a trade");
                     }
                 });
+
+            await Task.Delay(10, stoppingToken);
         }
+    }
+
+    private static double GetProfitTarget(double price, double stopLoss, double riskReward, int displayPrecision)
+    {
+        return Math.Round(stopLoss + (stopLoss - price) * riskReward, displayPrecision);
     }
 }
