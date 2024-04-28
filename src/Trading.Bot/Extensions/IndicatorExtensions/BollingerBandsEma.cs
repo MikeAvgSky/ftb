@@ -3,7 +3,7 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcBollingerBandsEma(this Candle[] candles, int bbWindow = 20, int emaWindow = 100,
-        double stdDev = 2, double maxSpread = 0.0004, double minGain = 0.0006, int minVolume = 100)
+        double stdDev = 2, double maxSpread = 0.0004, double minGain = 0.0006, int minVolume = 100, double riskReward = 1.5)
     {
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
@@ -40,7 +40,7 @@ public static partial class Indicator
                 _ => Signal.None
             };
 
-            result[i].TakeProfit = candles[i].CalcTakeProfit(result[i]);
+            result[i].TakeProfit = candles[i].CalcTakeProfit(result[i], riskReward);
 
             result[i].StopLoss = candles[i].CalcStopLoss(result[i]);
 

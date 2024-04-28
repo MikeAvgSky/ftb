@@ -2,13 +2,13 @@
 
 public class Instrument
 {
-    public string Name { get; }
-    public string Type { get; }
-    public string DisplayName { get; }
-    public double PipLocation { get; }
-    public int DisplayPrecision { get; }
-    public int TradeUnitsPrecision { get; }
-    public double MarginRate { get; }
+    public string Name { get; set; }
+    public string Type { get; set; }
+    public string DisplayName { get; set; }
+    public double PipLocation { get; set; }
+    public int DisplayPrecision { get; set; }
+    public int TradeUnitsPrecision { get; set; }
+    public double MarginRate { get; set; }
 
     public Instrument(InstrumentResponse instrument)
     {

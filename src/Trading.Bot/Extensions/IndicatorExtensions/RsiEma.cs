@@ -3,7 +3,7 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200,
-        double rsiLimit = 50.0, double maxSpread = 0.0004, double minGain = 0.0006)
+        double rsiLimit = 50.0, double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var rsiResult = candles.CalcRsi(rsiWindow);
 
@@ -41,7 +41,7 @@ public static partial class Indicator
                 _ => Signal.None
             };
 
-            result[i].TakeProfit = candles[i].CalcTakeProfit(result[i]);
+            result[i].TakeProfit = candles[i].CalcTakeProfit(result[i], riskReward);
 
             result[i].StopLoss = candles[i].CalcStopLoss(result[i]);
 

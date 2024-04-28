@@ -5,7 +5,6 @@ public class StopLossUpdater : BackgroundService
     private readonly ILogger<StopLossUpdater> _logger;
     private readonly OandaApiService _apiService;
     private readonly LiveTradeCache _liveTradeCache;
-    private readonly TradeConfiguration _tradeConfiguration;
     private readonly ParallelOptions _options = new();
 
     public StopLossUpdater(ILogger<StopLossUpdater> logger, OandaApiService apiService,
@@ -14,8 +13,7 @@ public class StopLossUpdater : BackgroundService
         _logger = logger;
         _apiService = apiService;
         _liveTradeCache = liveTradeCache;
-        _tradeConfiguration = tradeConfiguration;
-        _options.MaxDegreeOfParallelism = _tradeConfiguration.TradeSettings.Length;
+        _options.MaxDegreeOfParallelism = tradeConfiguration.TradeSettings.Length;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -27,61 +25,9 @@ public class StopLossUpdater : BackgroundService
                 {
                     try
                     {
-                        var trade = await _apiService.GetTrade(trailingStop.TradeId);
+                        await Task.Delay(1000, token);
 
-                        if (trade is null || trade.State != "OPEN")
-                        {
-                            _logger.LogWarning("Trade {TradeId} not found or not open", trailingStop.TradeId);
-                            return;
-                        }
-
-                        var tradeSettings =
-                            _tradeConfiguration.TradeSettings.First(x => x.Instrument == trade.Instrument);
-
-                        var profitTarget = GetProfitTarget(trade.Price, trailingStop.StopLoss, tradeSettings.RiskReward,
-                            trailingStop.DisplayPrecision);
-
-                        if (trade.Price + trade.UnrealizedPL >= profitTarget)
-                        {
-                            var update = new OrderUpdate(trailingStop.StopLoss);
-
-                            var success = await _apiService.UpdateTrade(update, trade.Id);
-
-                            if (success)
-                            {
-                                var stopLoss = new TrailingStop(trade.Id, profitTarget, trailingStop.DisplayPrecision);
-
-                                await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(stopLoss, token);
-                            }
-                            else
-                            {
-                                _logger.LogWarning("Unable to update trade for {Instrument}", trade.Instrument);
-                            }
-                        }
-                        else if (trade.Price + trade.UnrealizedPL >= trailingStop.StopLoss)
-                        {
-                            var update = new OrderUpdate(trade.Price);
-
-                            var success = await _apiService.UpdateTrade(update, trade.Id);
-
-                            if (success)
-                            {
-                                await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(trailingStop, token);
-                            }
-                            else
-                            {
-                                _logger.LogWarning("Unable to update trade for {Instrument}", trade.Instrument);
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogInformation("Trade for {Instrument} is currently at {CurrentPrice}. Waiting to reach {StopLoss}",
-                                trade.Instrument, trade.Price + trade.UnrealizedPL, trailingStop.StopLoss);
-
-                            await Task.Delay(tradeSettings.CandleSpan, token);
-
-                            await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(trailingStop, token);
-                        }
+                        await TryUpdateStopLoss(trailingStop, token);
                     }
                     catch (Exception ex)
                     {
@@ -93,8 +39,50 @@ public class StopLossUpdater : BackgroundService
         }
     }
 
-    private static double GetProfitTarget(double price, double stopLoss, double riskReward, int displayPrecision)
+    private async Task TryUpdateStopLoss(TrailingStop trailingStop, CancellationToken token)
     {
-        return Math.Round(stopLoss + (stopLoss - price) * riskReward, displayPrecision);
+        var trade = await _apiService.GetTrade(trailingStop.TradeId);
+
+        if (trade is null || trade.State != "OPEN")
+        {
+            _logger.LogInformation("Trade {TradeId} not found or not open", trailingStop.TradeId);
+            return;
+        }
+
+        if (trade.Price + trade.UnrealizedPL > trailingStop.StopLossTarget)
+        {
+            var update = new OrderUpdate(trailingStop.DisplayPrecision, trailingStop.StopLossTarget);
+
+            var success = await _apiService.UpdateTrade(update, trade.Id);
+
+            if (success)
+            {
+                var stopLoss = new TrailingStop
+                {
+                    TradeId = trade.Id,
+                    StopLossTarget = GetNewTarget(trailingStop.StopLossTarget, trade.Price, trailingStop.RiskReward),
+                    RiskReward = trailingStop.RiskReward,
+                    DisplayPrecision = trailingStop.DisplayPrecision
+                };
+
+                await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(stopLoss, token);
+            }
+            else
+            {
+                _logger.LogWarning("Unable to update trade for {Instrument}", trade.Instrument);
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Trade for {Instrument} is currently at {CurrentPrice}. Waiting to reach {Target}",
+                trade.Instrument, trade.Price + trade.UnrealizedPL, trailingStop.StopLossTarget);
+
+            await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(trailingStop, token);
+        }
+    }
+
+    private static double GetNewTarget(double target, double current, double riskReward)
+    {
+        return target + (target - current) * riskReward;
     }
 }

@@ -68,13 +68,12 @@ public class TradeManager : BackgroundService
         if (!candles.Any() || !GoodTradingTime())
         {
             _logger.LogInformation(
-                "Not placing a trade for {Instrument}, candles not found or not a good time to trade.",
-                settings.Instrument);
+                "Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
             return;
         }
 
         var calcResult = candles.CalcBollingerBandsEma(settings.Integers[0], settings.Integers[1],
-            settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.MinVolume).Last();
+            settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.MinVolume, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
         {
@@ -148,7 +147,7 @@ public class TradeManager : BackgroundService
 
         var tradeUnits = await GetTradeUnits(settings, indicator);
 
-        var takeProfit = settings.TrailingStop ? 0 : indicator.TakeProfit * settings.RiskReward;
+        var takeProfit = settings.TrailingStop ? 0 : indicator.TakeProfit;
 
         var order = new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, takeProfit);
 
@@ -162,9 +161,13 @@ public class TradeManager : BackgroundService
 
         if (settings.TrailingStop)
         {
-            var trailingStop = new TrailingStop(ofResponse.OrderID, indicator.TakeProfit, instrument.DisplayPrecision);
-
-            await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(trailingStop);
+            await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(new TrailingStop
+            {
+                TradeId = ofResponse.TradeOpened.TradeID,
+                StopLossTarget = indicator.TakeProfit,
+                RiskReward = settings.RiskReward,
+                DisplayPrecision = instrument.DisplayPrecision
+            });
         }
 
         await SendEmailNotification(new
@@ -172,12 +175,11 @@ public class TradeManager : BackgroundService
             ofResponse.AccountBalance,
             ofResponse.Instrument,
             Signal = indicator.Signal.ToString(),
-            ofResponse.Units,
-            TriggerPrice = indicator.Candle.Mid_C,
+            ofResponse.TradeOpened.Units,
+            ofResponse.TradeOpened.Price,
             TakeProfit = order.TakeProfitOnFill.Price,
             StopLoss = order.StopLossOnFill.Price,
-            indicator.Candle.Volume,
-            ofResponse.OrderID
+            indicator.Candle.Volume
         });
     }
 

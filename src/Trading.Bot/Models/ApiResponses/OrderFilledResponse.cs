@@ -40,6 +40,7 @@ public class TradeOpened
 {
     public string TradeID { get; set; }
     public double Units { get; set; }
+    public double Price { get; set; }
 }
 
 public class TradeClosed
