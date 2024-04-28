@@ -27,7 +27,7 @@ public class StopLossUpdater : BackgroundService
                     {
                         await Task.Delay(1000, token);
 
-                        await TryUpdateStopLoss(trailingStop, token);
+                        await DetectStopLossUpdate(trailingStop, token);
                     }
                     catch (Exception ex)
                     {
@@ -39,7 +39,7 @@ public class StopLossUpdater : BackgroundService
         }
     }
 
-    private async Task TryUpdateStopLoss(TrailingStop trailingStop, CancellationToken token)
+    private async Task DetectStopLossUpdate(TrailingStop trailingStop, CancellationToken token)
     {
         var trade = await _apiService.GetTrade(trailingStop.TradeId);
 
@@ -51,26 +51,7 @@ public class StopLossUpdater : BackgroundService
 
         if (trade.Price + trade.UnrealizedPL > trailingStop.StopLossTarget)
         {
-            var update = new OrderUpdate(trailingStop.DisplayPrecision, trailingStop.StopLossTarget);
-
-            var success = await _apiService.UpdateTrade(update, trade.Id);
-
-            if (success)
-            {
-                var stopLoss = new TrailingStop
-                {
-                    TradeId = trade.Id,
-                    StopLossTarget = GetNewTarget(trailingStop.StopLossTarget, trade.Price, trailingStop.RiskReward),
-                    RiskReward = trailingStop.RiskReward,
-                    DisplayPrecision = trailingStop.DisplayPrecision
-                };
-
-                await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(stopLoss, token);
-            }
-            else
-            {
-                _logger.LogWarning("Unable to update trade for {Instrument}", trade.Instrument);
-            }
+            await TryUpdateStopLoss(trailingStop, trade, token);
         }
         else
         {
@@ -78,6 +59,30 @@ public class StopLossUpdater : BackgroundService
                 trade.Instrument, trade.Price + trade.UnrealizedPL, trailingStop.StopLossTarget);
 
             await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(trailingStop, token);
+        }
+    }
+
+    private async Task TryUpdateStopLoss(TrailingStop trailingStop, TradeResponse trade, CancellationToken token)
+    {
+        var update = new OrderUpdate(trailingStop.DisplayPrecision, trailingStop.StopLossTarget);
+
+        var success = await _apiService.UpdateTrade(update, trade.Id);
+
+        if (success)
+        {
+            var stopLoss = new TrailingStop
+            {
+                TradeId = trade.Id,
+                StopLossTarget = GetNewTarget(trailingStop.StopLossTarget, trade.Price, trailingStop.RiskReward),
+                RiskReward = trailingStop.RiskReward,
+                DisplayPrecision = trailingStop.DisplayPrecision
+            };
+
+            await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(stopLoss, token);
+        }
+        else
+        {
+            _logger.LogWarning("Unable to update trade for {Instrument}", trade.Instrument);
         }
     }
 
