@@ -176,7 +176,7 @@ public class TradeManager : BackgroundService
             Signal = indicator.Signal.ToString(),
             ofResponse.TradeOpened.Units,
             ofResponse.TradeOpened.Price,
-            TakeProfit = order.TakeProfitOnFill.Price,
+            TakeProfit = order.TakeProfitOnFill?.Price ?? 0,
             StopLoss = order.StopLossOnFill.Price
         });
     }

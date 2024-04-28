@@ -60,7 +60,7 @@ public class TrailingStopManager : BackgroundService
             var newTrailingStop = new TrailingStop
             {
                 TradeId = trade.Id,
-                StopLossTarget = GetNewTarget(trailingStop.StopLossTarget, trade.Price, riskReward),
+                StopLossTarget = GetNewTarget(update.StopLoss.Price, trade.Price, riskReward),
                 DisplayPrecision = trailingStop.DisplayPrecision
             };
 
