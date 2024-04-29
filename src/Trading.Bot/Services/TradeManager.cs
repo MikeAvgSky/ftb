@@ -67,8 +67,7 @@ public class TradeManager : BackgroundService
 
         if (!candles.Any() || !GoodTradingTime())
         {
-            _logger.LogInformation(
-                "Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
+            _logger.LogInformation("Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
             return;
         }
 
@@ -164,6 +163,7 @@ public class TradeManager : BackgroundService
             await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(new TrailingStop
             {
                 TradeId = ofResponse.TradeOpened.TradeID,
+                Signal = indicator.Signal,
                 StopLossTarget = indicator.TakeProfit,
                 DisplayPrecision = instrument.DisplayPrecision
             });

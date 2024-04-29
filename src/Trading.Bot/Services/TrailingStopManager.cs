@@ -53,7 +53,7 @@ public class TrailingStopManager : BackgroundService
 
     private async Task DetectTrailingStop(TrailingStop trailingStop, TradeResponse trade, double riskReward)
     {
-        if (trade.Price + trade.UnrealizedPL > trailingStop.StopLossTarget)
+        if (StopLossTargetExceeded(trailingStop, trade.Instrument))
         {
             var update = new OrderUpdate(trailingStop.DisplayPrecision, trailingStop.StopLossTarget);
 
@@ -70,6 +70,18 @@ public class TrailingStopManager : BackgroundService
         {
             await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(trailingStop);
         }
+    }
+
+    private bool StopLossTargetExceeded(TrailingStop trailingStop, string instrument)
+    {
+        var currentPrice = trailingStop.Signal switch
+        {
+            Signal.Buy => _liveTradeCache.LivePrices[instrument].Bid,
+            Signal.Sell => _liveTradeCache.LivePrices[instrument].Ask,
+            _ => 0.0
+        };
+
+        return currentPrice > Math.Round(trailingStop.StopLossTarget, trailingStop.DisplayPrecision);
     }
 
     private async Task TryUpdateTrade(TrailingStop newTrailingStop, TradeResponse trade, OrderUpdate update)
