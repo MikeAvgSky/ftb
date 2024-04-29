@@ -9,9 +9,10 @@ public class Order
     public string PositionFill { get; set; }
     public StopLossOnFill StopLossOnFill { get; set; }
     public TakeProfitOnFill TakeProfitOnFill { get; set; }
+    public TrailingStopLossOnFill TrailingStopLossOnFill { get; set; }
 
     public Order(Instrument instrument, double units, Signal signal, double stopLoss = 0, double takeProfit = 0,
-        string type = "MARKET", string timeInForce = "FOK", string positionFill = "DEFAULT")
+        double trailingStop = 0, string type = "MARKET", string timeInForce = "FOK", string positionFill = "DEFAULT")
     {
         Type = type;
         Instrument = instrument.Name;
@@ -22,8 +23,7 @@ public class Order
         PositionFill = positionFill;
         StopLossOnFill = stopLoss == 0
             ? null
-            :
-            new StopLossOnFill
+            : new StopLossOnFill
             {
                 Price = Math.Round(stopLoss, instrument.DisplayPrecision)
             };
@@ -32,6 +32,12 @@ public class Order
             : new TakeProfitOnFill
             {
                 Price = Math.Round(takeProfit, instrument.DisplayPrecision)
+            };
+        TrailingStopLossOnFill = trailingStop == 0
+            ? null
+            : new TrailingStopLossOnFill
+            {
+                Distance = Math.Round(trailingStop, instrument.DisplayPrecision)
             };
     }
 }
@@ -44,4 +50,9 @@ public class StopLossOnFill
 public class TakeProfitOnFill
 {
     public double Price { get; set; }
+}
+
+public class TrailingStopLossOnFill
+{
+    public double Distance { get; set; }
 }

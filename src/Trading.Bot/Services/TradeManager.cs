@@ -67,7 +67,8 @@ public class TradeManager : BackgroundService
 
         if (!candles.Any() || !GoodTradingTime())
         {
-            _logger.LogInformation("Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
+            _logger.LogInformation(
+                "Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
             return;
         }
 
@@ -146,9 +147,9 @@ public class TradeManager : BackgroundService
 
         var tradeUnits = await GetTradeUnits(settings, indicator);
 
-        var takeProfit = settings.TrailingStop ? 0 : indicator.TakeProfit;
+        var trailingStop = settings.TrailingStop ? CalcTrailingStop(indicator) : 0;
 
-        var order = new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, takeProfit);
+        var order = new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, indicator.TakeProfit, trailingStop);
 
         var ofResponse = await _apiService.PlaceTrade(order);
 
@@ -156,17 +157,6 @@ public class TradeManager : BackgroundService
         {
             _logger.LogWarning("Failed to place order for {Instrument}", settings.Instrument);
             return;
-        }
-
-        if (settings.TrailingStop)
-        {
-            await _liveTradeCache.TrailingStopChannel.Writer.WriteAsync(new TrailingStop
-            {
-                TradeId = ofResponse.TradeOpened.TradeID,
-                Signal = indicator.Signal,
-                StopLossTarget = indicator.TakeProfit,
-                DisplayPrecision = instrument.DisplayPrecision
-            });
         }
 
         await SendEmailNotification(new
@@ -177,8 +167,18 @@ public class TradeManager : BackgroundService
             ofResponse.TradeOpened.Units,
             ofResponse.TradeOpened.Price,
             TakeProfit = order.TakeProfitOnFill?.Price ?? 0,
-            StopLoss = order.StopLossOnFill.Price
+            StopLoss = order.StopLossOnFill?.Price ?? 0
         });
+    }
+
+    private static double CalcTrailingStop(IndicatorBase indicator)
+    {
+        return indicator.Signal switch
+        {
+            Signal.Buy => (indicator.Candle.Mid_C - indicator.StopLoss) / 2,
+            Signal.Sell => (indicator.StopLoss - indicator.Candle.Mid_C) / 2,
+            _ => 0
+        };
     }
 
     private async Task SendEmailNotification(object emailBody)

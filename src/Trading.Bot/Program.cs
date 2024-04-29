@@ -38,8 +38,6 @@ var host = Host.CreateDefaultBuilder(args)
 
         services.AddHostedService<StreamWorker>();
 
-        services.AddHostedService<TrailingStopManager>();
-
         if (tradeConfiguration.StopRollover)
         {
             services.AddHostedService<RolloverManager>();
