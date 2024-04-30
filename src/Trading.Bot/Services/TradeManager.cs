@@ -147,7 +147,7 @@ public class TradeManager : BackgroundService
 
         var tradeUnits = await GetTradeUnits(settings, indicator);
 
-        var trailingStop = settings.TrailingStop ? CalcTrailingStop(indicator) : 0;
+        var trailingStop = settings.TrailingStop ? CalcTrailingStop(indicator, settings.RiskReward) : 0;
 
         var order = new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, indicator.TakeProfit, trailingStop);
 
@@ -171,12 +171,12 @@ public class TradeManager : BackgroundService
         });
     }
 
-    private static double CalcTrailingStop(IndicatorBase indicator)
+    private static double CalcTrailingStop(IndicatorBase indicator, double riskReward)
     {
         return indicator.Signal switch
         {
-            Signal.Buy => (indicator.Candle.Mid_C - indicator.StopLoss) / 2,
-            Signal.Sell => (indicator.StopLoss - indicator.Candle.Mid_C) / 2,
+            Signal.Buy => (indicator.Candle.Mid_C - indicator.StopLoss) * riskReward,
+            Signal.Sell => (indicator.StopLoss - indicator.Candle.Mid_C) * riskReward,
             _ => 0
         };
     }
