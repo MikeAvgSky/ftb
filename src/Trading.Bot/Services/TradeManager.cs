@@ -175,8 +175,8 @@ public class TradeManager : BackgroundService
     {
         return indicator.Signal switch
         {
-            Signal.Buy => (indicator.Candle.Mid_C - indicator.StopLoss) / riskReward,
-            Signal.Sell => (indicator.StopLoss - indicator.Candle.Mid_C) / riskReward,
+            Signal.Buy => (indicator.Candle.Ask_C - indicator.StopLoss) * riskReward,
+            Signal.Sell => (indicator.StopLoss - indicator.Candle.Bid_C) * riskReward,
             _ => 0
         };
     }
