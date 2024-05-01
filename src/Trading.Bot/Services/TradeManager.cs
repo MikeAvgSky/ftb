@@ -161,13 +161,13 @@ public class TradeManager : BackgroundService
 
         await SendEmailNotification(new
         {
-            ofResponse.AccountBalance,
             ofResponse.Instrument,
             Signal = indicator.Signal.ToString(),
             ofResponse.TradeOpened.Units,
             ofResponse.TradeOpened.Price,
             TakeProfit = order.TakeProfitOnFill?.Price ?? 0,
-            StopLoss = order.StopLossOnFill?.Price ?? 0
+            StopLoss = order.StopLossOnFill?.Price ?? 0,
+            TrailingStop = order.TrailingStopLossOnFill?.Distance ?? 0
         });
     }
 
@@ -175,8 +175,8 @@ public class TradeManager : BackgroundService
     {
         return indicator.Signal switch
         {
-            Signal.Buy => (indicator.Candle.Mid_C - indicator.StopLoss) * riskReward,
-            Signal.Sell => (indicator.StopLoss - indicator.Candle.Mid_C) * riskReward,
+            Signal.Buy => (indicator.Candle.Mid_C - indicator.StopLoss) / riskReward,
+            Signal.Sell => (indicator.StopLoss - indicator.Candle.Mid_C) / riskReward,
             _ => 0
         };
     }
