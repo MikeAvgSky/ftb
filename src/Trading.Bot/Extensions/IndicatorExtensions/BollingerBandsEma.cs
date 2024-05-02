@@ -21,7 +21,7 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Gain = Math.Abs(candles[i].Mid_C - bollingerBands[i].Sma);
+            result[i].Gain = Math.Abs(candles[i].Mid_C - emaResult[i]);
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
