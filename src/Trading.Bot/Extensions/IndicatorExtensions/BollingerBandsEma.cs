@@ -2,11 +2,9 @@
 
 public static partial class Indicator
 {
-    public static IndicatorResult[] CalcBollingerBandsEma(this Candle[] candles, int bbWindow = 20, int rsiWindow = 14, int emaWindow = 100,
-        double stdDev = 2, double rsiLower = 30, double rsiUpper = 70, double maxSpread = 0.0004, double minGain = 0.0006, int minVolume = 100, double riskReward = 1.5)
+    public static IndicatorResult[] CalcBollingerBandsEma(this Candle[] candles, int bbWindow = 20, int emaWindow = 100,
+        double stdDev = 2, double maxSpread = 0.0004, double minGain = 0.0006, int minVolume = 100, double riskReward = 1.5)
     {
-        var rsiResults = candles.CalcRsi(rsiWindow);
-
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
         var emaResult = prices.CalcEma(emaWindow).ToArray();
@@ -30,14 +28,12 @@ public static partial class Indicator
                 var candle when candle.Mid_O < bollingerBands[i].UpperBand &&
                                 candle.Mid_C > bollingerBands[i].UpperBand &&
                                 emaResult[i] < bollingerBands[i].LowerBand &&
-                                rsiResults[i].Rsi < rsiUpper &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume &&
                                 result[i].Gain >= minGain => Signal.Buy,
                 var candle when candle.Mid_O > bollingerBands[i].LowerBand &&
                                 candle.Mid_C < bollingerBands[i].LowerBand &&
                                 emaResult[i] > bollingerBands[i].UpperBand &&
-                                rsiResults[i].Rsi > rsiLower &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume &&
                                 result[i].Gain >= minGain => Signal.Sell,
