@@ -88,7 +88,7 @@ public class TradeManager : BackgroundService
     {
         var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity);
 
-        var generalTrend = candles.CalcTrend(settings.Integers[1]).Last();
+        var generalTrend = candles.CalcTrend(settings.Integers[2]).Last();
 
         return signal == generalTrend;
     }
