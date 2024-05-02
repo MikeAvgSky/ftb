@@ -67,13 +67,13 @@ public class TradeManager : BackgroundService
 
         if (!candles.Any() || !GoodTradingTime())
         {
-            _logger.LogInformation(
-                "Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
+            _logger.LogInformation("Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
             return;
         }
 
-        var calcResult = candles.CalcBollingerBandsEma(settings.Integers[0], settings.Integers[1],
-            settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.MinVolume, settings.RiskReward).Last();
+        var calcResult = candles.CalcBollingerBandsEma(settings.Integers[0], settings.Integers[1], settings.Integers[2],
+            settings.Doubles[0], settings.Doubles[1], settings.Doubles[2], settings.MaxSpread, settings.MinGain,
+            settings.MinVolume, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
         {
