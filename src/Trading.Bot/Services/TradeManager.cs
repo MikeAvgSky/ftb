@@ -88,7 +88,8 @@ public class TradeManager : BackgroundService
     {
         var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity);
 
-        var generalTrend = candles.CalcTrend(settings.Integers[1]).Last();
+        var generalTrend = candles.CalcTrend(settings.Integers[0], settings.Integers[1],
+            settings.Doubles[0]).Last();
 
         return signal == generalTrend;
     }
@@ -165,6 +166,7 @@ public class TradeManager : BackgroundService
             Signal = indicator.Signal.ToString(),
             ofResponse.TradeOpened.Units,
             ofResponse.TradeOpened.Price,
+            indicator.Gain,
             TakeProfit = order.TakeProfitOnFill?.Price ?? 0,
             StopLoss = order.StopLossOnFill?.Price ?? 0,
             TrailingStop = order.TrailingStopLossOnFill?.Distance ?? 0
