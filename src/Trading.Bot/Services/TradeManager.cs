@@ -67,8 +67,7 @@ public class TradeManager : BackgroundService
 
         if (!candles.Any() || !GoodTradingTime())
         {
-            _logger.LogInformation(
-                "Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
+            _logger.LogInformation("Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
             return;
         }
 
@@ -88,8 +87,7 @@ public class TradeManager : BackgroundService
     {
         var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity);
 
-        var generalTrend = candles.CalcTrend(settings.Integers[0], settings.Integers[1],
-            settings.Doubles[0]).Last();
+        var generalTrend = candles.CalcTrend().Last();
 
         return signal == generalTrend;
     }
