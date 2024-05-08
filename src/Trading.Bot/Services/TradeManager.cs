@@ -18,7 +18,7 @@ public class TradeManager : BackgroundService
         _liveTradeCache = liveTradeCache;
         _tradeConfiguration = tradeConfiguration;
         _emailService = emailService;
-        _options.MaxDegreeOfParallelism = _tradeConfiguration.TradeSettings.Length;
+        _options.MaxDegreeOfParallelism = _tradeConfiguration.TradeSettings.Length / 2;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -87,7 +87,7 @@ public class TradeManager : BackgroundService
     {
         var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity);
 
-        var generalTrend = candles.CalcTrend().Last();
+        var generalTrend = candles.CalcTrend(settings.Integers[1]).Last();
 
         return signal == generalTrend;
     }
