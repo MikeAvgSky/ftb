@@ -21,7 +21,7 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Gain = (bollingerBands[i].UpperBand - bollingerBands[i].LowerBand) / stdDev;
+            result[i].Gain = bollingerBands[i].UpperBand - bollingerBands[i].LowerBand;
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
