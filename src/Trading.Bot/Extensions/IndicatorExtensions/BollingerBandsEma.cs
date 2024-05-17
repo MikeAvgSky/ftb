@@ -27,22 +27,22 @@ public static partial class Indicator
             {
                 var candle when candle.Mid_O < bollingerBands[i].UpperBand &&
                                 candle.Mid_C > bollingerBands[i].UpperBand &&
-                                emaResult[i] < bollingerBands[i].LowerBand &&
+                                candle.Mid_L > emaResult[i] &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume => Signal.Buy,
                 var candle when candle.Mid_O < bollingerBands[i].LowerBand &&
                                 candle.Mid_C > bollingerBands[i].LowerBand &&
-                                emaResult[i] < candle.Mid_L &&
+                                candle.Mid_L > emaResult[i] &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume => Signal.Buy,
                 var candle when candle.Mid_O > bollingerBands[i].LowerBand &&
                                 candle.Mid_C < bollingerBands[i].LowerBand &&
-                                emaResult[i] > bollingerBands[i].UpperBand &&
+                                candle.Mid_H < emaResult[i] &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume => Signal.Sell,
                 var candle when candle.Mid_O > bollingerBands[i].UpperBand &&
                                 candle.Mid_C < bollingerBands[i].UpperBand &&
-                                emaResult[i] > candle.Mid_H &&
+                                candle.Mid_H < emaResult[i] &&
                                 candle.Spread <= maxSpread &&
                                 candle.Volume >= minVolume => Signal.Sell,
                 _ => Signal.None
