@@ -86,11 +86,15 @@ public class TradeManager : BackgroundService
 
     private async Task<bool> SignalFollowsTrend(TradeSettings settings, Signal signal)
     {
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.LongerGranularity);
+        var hgCandles = await _apiService.GetCandles(settings.Instrument, settings.HigherGranularity);
 
-        var generalTrend = candles.CalcTrend(settings.Integers[1]).Last();
+        var lgCandles = await _apiService.GetCandles(settings.Instrument, settings.LowerGranularity);
 
-        return signal == generalTrend;
+        var higherTrend = hgCandles.CalcTrend(settings.Integers[1]).Last();
+
+        var lowerTrend = lgCandles.CalcTrend(settings.Integers[1]).Last();
+
+        return signal == higherTrend && signal == lowerTrend;
     }
 
     private static bool GoodTradingTime()
@@ -147,7 +151,7 @@ public class TradeManager : BackgroundService
 
         var tradeUnits = await GetTradeUnits(settings, indicator);
 
-        var trailingStop = settings.TrailingStop ? CalcTrailingStop(indicator, settings.RiskReward) : 0;
+        var trailingStop = settings.TrailingStop ? CalcTrailingStop(indicator) : 0;
 
         var order = new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, indicator.TakeProfit, trailingStop);
 
@@ -165,20 +169,16 @@ public class TradeManager : BackgroundService
             Signal = indicator.Signal.ToString(),
             ofResponse.TradeOpened.Units,
             ofResponse.TradeOpened.Price,
+            indicator.Candle.Volume,
             TakeProfit = order.TakeProfitOnFill?.Price ?? 0,
             StopLoss = order.StopLossOnFill?.Price ?? 0,
             TrailingStop = order.TrailingStopLossOnFill?.Distance ?? 0
         });
     }
 
-    private static double CalcTrailingStop(IndicatorBase indicator, double riskReward)
+    private static double CalcTrailingStop(IndicatorBase indicator)
     {
-        return indicator.Signal switch
-        {
-            Signal.Buy => (indicator.Candle.Ask_C - indicator.StopLoss) * riskReward,
-            Signal.Sell => (indicator.StopLoss - indicator.Candle.Bid_C) * riskReward,
-            _ => 0
-        };
+        return indicator.StopLoss - indicator.Gain / 2;
     }
 
     private async Task SendEmailNotification(object emailBody)
