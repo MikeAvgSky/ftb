@@ -178,7 +178,7 @@ public class TradeManager : BackgroundService
 
     private static double CalcTrailingStop(IndicatorBase indicator)
     {
-        return indicator.StopLoss - indicator.Gain / 2;
+        return indicator.Gain * 1.5;
     }
 
     private async Task SendEmailNotification(object emailBody)
