@@ -73,7 +73,7 @@ public class TradeManager : BackgroundService
         }
 
         var calcResult = candles.CalcBollingerBandsEma(settings.Integers[0], settings.Integers[1],
-            settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.MinVolume, settings.RiskReward).Last();
+            settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
         {
@@ -169,7 +169,6 @@ public class TradeManager : BackgroundService
             Signal = indicator.Signal.ToString(),
             ofResponse.TradeOpened.Units,
             ofResponse.TradeOpened.Price,
-            indicator.Candle.Volume,
             TakeProfit = order.TakeProfitOnFill?.Price ?? 0,
             StopLoss = order.StopLossOnFill?.Price ?? 0,
             TrailingStop = order.TrailingStopLossOnFill?.Distance ?? 0

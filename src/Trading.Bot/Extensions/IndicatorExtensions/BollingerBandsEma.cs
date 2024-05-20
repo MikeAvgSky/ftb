@@ -3,7 +3,7 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcBollingerBandsEma(this Candle[] candles, int bbWindow = 20, int emaWindow = 100,
-        double stdDev = 2, double maxSpread = 0.0004, double minGain = 0.0006, int minVolume = 100, double riskReward = 1.5)
+        double stdDev = 2, double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
@@ -28,23 +28,19 @@ public static partial class Indicator
                 var candle when candle.Mid_O < bollingerBands[i].UpperBand &&
                                 candle.Mid_C > bollingerBands[i].UpperBand &&
                                 candle.Mid_L > emaResult[i] &&
-                                candle.Spread <= maxSpread &&
-                                candle.Volume >= minVolume => Signal.Buy,
+                                candle.Spread <= maxSpread => Signal.Buy,
                 var candle when candle.Mid_O < bollingerBands[i].LowerBand &&
                                 candle.Mid_C > bollingerBands[i].LowerBand &&
                                 candle.Mid_L > emaResult[i] &&
-                                candle.Spread <= maxSpread &&
-                                candle.Volume >= minVolume => Signal.Buy,
+                                candle.Spread <= maxSpread => Signal.Buy,
                 var candle when candle.Mid_O > bollingerBands[i].LowerBand &&
                                 candle.Mid_C < bollingerBands[i].LowerBand &&
                                 candle.Mid_H < emaResult[i] &&
-                                candle.Spread <= maxSpread &&
-                                candle.Volume >= minVolume => Signal.Sell,
+                                candle.Spread <= maxSpread => Signal.Sell,
                 var candle when candle.Mid_O > bollingerBands[i].UpperBand &&
                                 candle.Mid_C < bollingerBands[i].UpperBand &&
                                 candle.Mid_H < emaResult[i] &&
-                                candle.Spread <= maxSpread &&
-                                candle.Volume >= minVolume => Signal.Sell,
+                                candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
 
