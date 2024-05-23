@@ -13,7 +13,7 @@ public class RolloverManager : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new CronTimer("59 20 * * 1-5", TimeZoneInfo.Utc);
+        using var timer = new CronTimer("0 20 * * 1-5", TimeZoneInfo.Utc);
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
