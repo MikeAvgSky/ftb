@@ -13,9 +13,7 @@ public class RolloverManager : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var easternTime = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-
-        using var timer = new CronTimer("59 16 * * 1-5", easternTime);
+        using var timer = new CronTimer("59 20 * * 1-5", TimeZoneInfo.Utc);
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
