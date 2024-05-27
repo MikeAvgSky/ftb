@@ -82,6 +82,26 @@ public static class NumericExtensions
         }
     }
 
+    public static IEnumerable<double> CalcTema(this double[] sequence, int window)
+    {
+        var ema1 = sequence.CalcEma(window).ToArray();
+
+        var ema2 = ema1.CalcEma(window).ToArray();
+
+        var ema3 = ema2.CalcEma(window).ToArray();
+
+        var length = sequence.Length;
+
+        var tema = new double[length];
+
+        for (var i = 0; i < length; i++)
+        {
+            tema[i] = 3.0 * ema1[i] - 3 * ema2[i] + ema3[i];
+        }
+
+        return tema;
+    }
+
     public static IEnumerable<double> CalcRma(this double[] sequence, int window)
     {
         if (sequence is null)
