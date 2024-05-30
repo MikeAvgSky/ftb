@@ -130,7 +130,7 @@ public static class NumericExtensions
         }
     }
 
-    public static IEnumerable<double> CalcRolStdDev(this double[] sequence, int window, double std)
+    public static IEnumerable<double> CalcRolStdDev(this double[] sequence, int window)
     {
         if (sequence is null)
         {
@@ -155,11 +155,11 @@ public static class NumericExtensions
 
             queue.Enqueue(sequence[i]);
 
-            yield return queue.CalcStdDev(std);
+            yield return queue.CalcStdDev();
         }
     }
 
-    public static double CalcStdDev(this IEnumerable<double> sequence, double std)
+    public static double CalcStdDev(this IEnumerable<double> sequence)
     {
         if (sequence is null)
         {
@@ -177,14 +177,15 @@ public static class NumericExtensions
 
         var average = list.Average();
 
-        double sum = 0;
+        double sumSq = 0;
 
         for (var i = 0; i < length; i++)
         {
-            sum += Math.Pow(Math.Abs(list[i] - average), std);
+            var value = list[i];
+            sumSq += (value - average) * (value - average);
         }
 
-        return Math.Sqrt(sum / length).NaN2Zero();
+        return Math.Sqrt(sumSq / length).NaN2Zero();
     }
 
     public static double NaN2Zero(this double value)

@@ -6,7 +6,7 @@ public static partial class Indicator
     {
         var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
-        var rolStdDev = typicalPrice.CalcRolStdDev(window, stdDev).ToArray();
+        var rolStdDev = typicalPrice.CalcRolStdDev(window).ToArray();
 
         var sma = typicalPrice.CalcSma(window).ToArray();
 

@@ -59,16 +59,16 @@ public class TradeManager : BackgroundService
     {
         var settings = _tradeConfiguration.TradeSettings.First(x => x.Instrument == price.Instrument);
 
-        if (!await NewCandleAvailable(settings, price, stoppingToken)) return;
+        if (!await NewCandleAvailable(settings, price, stoppingToken) || !GoodTradingTime()) return;
 
         _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
 
         var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity);
 
-        if (!candles.Any() || !GoodTradingTime())
+        if (!candles.Any())
         {
             _logger.LogInformation(
-                "Not placing a trade for {Instrument}, candles not found or not a good time to trade.", settings.Instrument);
+                "Not placing a trade for {Instrument}, candles not found", settings.Instrument);
             return;
         }
 
