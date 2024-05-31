@@ -15,10 +15,6 @@ public static partial class Indicator
 
         var result = new IndicatorResult[length];
 
-        var crossedLowerBand = false;
-
-        var crossedUpperBand = false;
-
         for (var i = 0; i < length; i++)
         {
             result[i] ??= new IndicatorResult();
@@ -29,13 +25,13 @@ public static partial class Indicator
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when crossedLowerBand &&
-                                candle.Direction == 1 &&
-                                candle.Mid_L > emaResult[i] &&
+                var candle when candle.Mid_O < bollingerBands[i].UpperBand &&
+                                candle.Mid_C > bollingerBands[i].UpperBand &&
+                                emaResult[i] < bollingerBands[i].LowerBand &&
                                 candle.Spread <= maxSpread => Signal.Buy,
-                var candle when crossedUpperBand &&
-                                candle.Direction == -1 &&
-                                candle.Mid_H < emaResult[i] &&
+                var candle when candle.Mid_O > bollingerBands[i].LowerBand &&
+                                candle.Mid_C < bollingerBands[i].LowerBand &&
+                                emaResult[i] > bollingerBands[i].UpperBand &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
@@ -45,10 +41,6 @@ public static partial class Indicator
             result[i].StopLoss = candles[i].CalcStopLoss(result[i]);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
-
-            crossedLowerBand = candles[i].Mid_C < bollingerBands[i].LowerBand;
-
-            crossedUpperBand = candles[i].Mid_C > bollingerBands[i].UpperBand;
         }
 
         return result;
