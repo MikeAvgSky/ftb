@@ -72,7 +72,7 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        var calcResult = candles.CalcBollingerBandsEma(settings.Integers[0], settings.Integers[1],
+        var calcResult = candles.CalcBollingerRsiEma(settings.Integers[0], settings.Integers[1], settings.Integers[0],
             settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
