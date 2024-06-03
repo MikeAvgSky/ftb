@@ -2,9 +2,9 @@
 
 public static partial class Indicator
 {
-    public static StochasticResult[] CalcStochRsi(this Candle[] candles, int window = 14, int smoothK = 3, int smoothD = 3)
+    public static StochasticResult[] CalcStochRsi(this Candle[] candles, int rsiWindow = 14, int stochWindow = 14, int smoothK = 3, int smoothD = 3)
     {
-        var rsiResult = candles.CalcRsi(window).Select(r => r.Rsi).ToArray();
+        var rsiResult = candles.CalcRsi(rsiWindow).Select(r => r.Rsi).ToArray();
 
         var length = rsiResult.Length;
 
@@ -14,12 +14,12 @@ public static partial class Indicator
         {
             result[i] ??= new StochasticResult();
 
-            if (i < window - 1) continue;
+            if (i < stochWindow - 1) continue;
 
-            var lastRsiValues = new double[window];
+            var lastRsiValues = new double[stochWindow];
 
-            Array.Copy(rsiResult[..(i + 1)], i - (window - 1),
-                lastRsiValues, 0, window);
+            Array.Copy(rsiResult[..(i + 1)], i - (stochWindow - 1),
+                lastRsiValues, 0, stochWindow);
 
             var highestRsi = lastRsiValues.Max();
 

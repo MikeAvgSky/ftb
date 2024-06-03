@@ -23,7 +23,7 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
             var minVolume = request.MinVolume ?? 100;
 
             var bollingerBands = candles.CalcBollingerRsiEma(request.Window, request.EmaWindow,
-                request.Window, request.StandardDeviation, maxSpread, minGain, minVolume);
+                request.StandardDeviation, maxSpread, minGain, minVolume);
 
             var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray());
 
