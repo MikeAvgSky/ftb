@@ -14,7 +14,7 @@ public class StreamProcessor : BackgroundService
         _logger = logger;
         _liveTradeCache = liveTradeCache;
         _tradeConfiguration = tradeConfiguration;
-        _options.MaxDegreeOfParallelism = _tradeConfiguration.TradeSettings.Length / 2;
+        _options.MaxDegreeOfParallelism = _tradeConfiguration.TradeSettings.Length;
 
         foreach (var tradeSetting in _tradeConfiguration.TradeSettings)
         {

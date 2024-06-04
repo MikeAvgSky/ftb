@@ -17,6 +17,22 @@ public static partial class Indicator
 
         var result = new IndicatorResult[length];
 
+        var crossedLowerBand = false;
+
+        var crossedUpperBand = false;
+
+        var higherHigh = false;
+
+        var higherLow = false;
+
+        var lowerHigh = false;
+
+        var lowerLow = false;
+
+        var latestHigh = double.MinValue;
+
+        var latestLow = double.MinValue;
+
         for (var i = 0; i < length; i++)
         {
             result[i] ??= new IndicatorResult();
@@ -27,31 +43,18 @@ public static partial class Indicator
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                //var candle when candle.Mid_O < bollingerBands[i].UpperBand &&
-                //                candle.Mid_C > bollingerBands[i].UpperBand &&
-                //                emaResult[i] < bollingerBands[i].LowerBand &&
-                //                candle.Mid_C - emaResult[i] > minGain &&
-                //                rsiResults[i].Rsi > 70 &&
-                //                candle.Spread <= maxSpread => Signal.Buy,
-                //var candle when candle.Mid_O > bollingerBands[i].LowerBand &&
-                //                candle.Mid_C < bollingerBands[i].LowerBand &&
-                //                emaResult[i] > bollingerBands[i].UpperBand &&
-                //                emaResult[i] - candle.Mid_C > minGain &&
-                //                rsiResults[i].Rsi < 30 &&
-                //                candle.Spread <= maxSpread => Signal.Sell,
-                var candle when candle.Mid_O > bollingerBands[i].LowerBand &&
-                                candle.Mid_C < bollingerBands[i].LowerBand &&
+                var candle when crossedLowerBand &&
+                                candle.Direction == 1 &&
                                 candle.Mid_L > emaResult[i] &&
-                                stochRsi[i].KOscillator < 20 &&
-                                stochRsi[i].DOscillator < 20 &&
+                                higherHigh && higherLow &&
+                                stochRsi[i].KOscillator > stochRsi[i - 1].KOscillator &&
                                 candle.Spread <= maxSpread => Signal.Buy,
-                var candle when candle.Mid_O < bollingerBands[i].UpperBand &&
-                                candle.Mid_C > bollingerBands[i].UpperBand &&
+                var candle when crossedUpperBand &&
+                                candle.Direction == -1 &&
                                 candle.Mid_H < emaResult[i] &&
-                                stochRsi[i].KOscillator > 80 &&
-                                stochRsi[i].DOscillator > 80 &&
+                                lowerHigh && lowerLow &&
+                                stochRsi[i].KOscillator < stochRsi[i - 1].KOscillator &&
                                 candle.Spread <= maxSpread => Signal.Sell,
-
                 _ => Signal.None
             };
 
@@ -60,6 +63,28 @@ public static partial class Indicator
             result[i].StopLoss = candles[i].CalcStopLoss(result[i]);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
+
+            crossedLowerBand = candles[i].Mid_C < bollingerBands[i].LowerBand;
+
+            crossedUpperBand = candles[i].Mid_C > bollingerBands[i].UpperBand;
+
+            if (crossedLowerBand)
+            {
+                higherLow = candles[i].Mid_C > latestLow;
+
+                lowerLow = candles[i].Mid_C < latestLow;
+
+                latestLow = candles[i].Mid_C;
+            }
+
+            if (crossedUpperBand)
+            {
+                higherHigh = candles[i].Mid_C > latestHigh;
+
+                lowerHigh = candles[i].Mid_C < latestHigh;
+
+                latestHigh = candles[i].Mid_C;
+            }
         }
 
         return result;
