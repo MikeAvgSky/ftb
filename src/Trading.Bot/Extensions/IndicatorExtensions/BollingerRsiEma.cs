@@ -41,9 +41,9 @@ public static partial class Indicator
 
             result[i].Gain = minGain;
 
-            var stochRising = stochRsi[i].KOscillator > stochRsi[i - 1].KOscillator;
+            var stochRising = i > 0 && stochRsi[i].KOscillator > stochRsi[i - 1].KOscillator;
 
-            var stochFalling = stochRsi[i].KOscillator < stochRsi[i - 1].KOscillator;
+            var stochFalling = i > 0 && stochRsi[i].KOscillator < stochRsi[i - 1].KOscillator;
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
