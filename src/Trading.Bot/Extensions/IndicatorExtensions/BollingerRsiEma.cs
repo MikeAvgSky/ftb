@@ -21,17 +21,17 @@ public static partial class Indicator
 
         var crossedUpperBand = false;
 
-        var higherHigh = false;
+        //var higherHigh = false;
 
-        var higherLow = false;
+        //var higherLow = false;
 
-        var lowerHigh = false;
+        //var lowerHigh = false;
 
-        var lowerLow = false;
+        //var lowerLow = false;
 
-        var latestHigh = double.MinValue;
+        //var latestHigh = double.MinValue;
 
-        var latestLow = double.MinValue;
+        //var latestLow = double.MinValue;
 
         for (var i = 0; i < length; i++)
         {
@@ -46,13 +46,11 @@ public static partial class Indicator
                 var candle when crossedLowerBand &&
                                 candle.Direction == 1 &&
                                 candle.Mid_L > emaResult[i] &&
-                                higherHigh && higherLow &&
                                 stochRsi[i].KOscillator > stochRsi[i - 1].KOscillator &&
                                 candle.Spread <= maxSpread => Signal.Buy,
                 var candle when crossedUpperBand &&
                                 candle.Direction == -1 &&
                                 candle.Mid_H < emaResult[i] &&
-                                lowerHigh && lowerLow &&
                                 stochRsi[i].KOscillator < stochRsi[i - 1].KOscillator &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
@@ -64,27 +62,27 @@ public static partial class Indicator
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
 
-            crossedLowerBand = candles[i].Mid_L < bollingerBands[i].LowerBand;
+            crossedLowerBand = candles[i].Mid_C < bollingerBands[i].LowerBand;
 
-            crossedUpperBand = candles[i].Mid_H > bollingerBands[i].UpperBand;
+            crossedUpperBand = candles[i].Mid_C > bollingerBands[i].UpperBand;
 
-            if (crossedLowerBand)
-            {
-                higherLow = candles[i].Mid_C > latestLow;
+            //if (crossedLowerBand)
+            //{
+            //    higherLow = candles[i].Mid_C > latestLow;
 
-                lowerLow = candles[i].Mid_C < latestLow;
+            //    lowerLow = candles[i].Mid_C < latestLow;
 
-                latestLow = candles[i].Mid_C;
-            }
+            //    latestLow = candles[i].Mid_C;
+            //}
 
-            if (crossedUpperBand)
-            {
-                higherHigh = candles[i].Mid_C > latestHigh;
+            //if (crossedUpperBand)
+            //{
+            //    higherHigh = candles[i].Mid_C > latestHigh;
 
-                lowerHigh = candles[i].Mid_C < latestHigh;
+            //    lowerHigh = candles[i].Mid_C < latestHigh;
 
-                latestHigh = candles[i].Mid_C;
-            }
+            //    latestHigh = candles[i].Mid_C;
+            //}
         }
 
         return result;
