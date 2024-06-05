@@ -46,12 +46,12 @@ public static partial class Indicator
                 var candle when crossedLowerBand &&
                                 candle.Direction == 1 &&
                                 candle.Mid_L > emaResult[i] &&
-                                stochRsi[i].KOscillator > stochRsi[i - 1].KOscillator &&
+                                stochRsi[i].DOscillator > stochRsi[i - 1].DOscillator &&
                                 candle.Spread <= maxSpread => Signal.Buy,
                 var candle when crossedUpperBand &&
                                 candle.Direction == -1 &&
                                 candle.Mid_H < emaResult[i] &&
-                                stochRsi[i].KOscillator < stochRsi[i - 1].KOscillator &&
+                                stochRsi[i].DOscillator < stochRsi[i - 1].DOscillator &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
