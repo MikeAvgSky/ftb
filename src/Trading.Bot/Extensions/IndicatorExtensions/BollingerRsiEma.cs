@@ -41,17 +41,21 @@ public static partial class Indicator
 
             result[i].Gain = minGain;
 
+            var stochRising = stochRsi[i].KOscillator > stochRsi[i - 1].KOscillator;
+
+            var stochFalling = stochRsi[i].KOscillator < stochRsi[i - 1].KOscillator;
+
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
                 var candle when crossedLowerBand &&
+                                stochRising &&
                                 candle.Direction == 1 &&
                                 candle.Mid_L > emaResult[i] &&
-                                stochRsi[i].DOscillator > stochRsi[i - 1].DOscillator &&
                                 candle.Spread <= maxSpread => Signal.Buy,
                 var candle when crossedUpperBand &&
+                                stochFalling &&
                                 candle.Direction == -1 &&
                                 candle.Mid_H < emaResult[i] &&
-                                stochRsi[i].DOscillator < stochRsi[i - 1].DOscillator &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
@@ -62,9 +66,25 @@ public static partial class Indicator
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
 
-            crossedLowerBand = candles[i].Mid_C < bollingerBands[i].LowerBand;
+            if (candles[i].Mid_C < bollingerBands[i].LowerBand)
+            {
+                crossedLowerBand = true;
+            }
 
-            crossedUpperBand = candles[i].Mid_C > bollingerBands[i].UpperBand;
+            if (candles[i].Mid_C > bollingerBands[i].UpperBand)
+            {
+                crossedUpperBand = true;
+            }
+
+            if (crossedLowerBand && stochRising)
+            {
+                crossedLowerBand = false;
+            }
+
+            if (crossedUpperBand && stochFalling)
+            {
+                crossedUpperBand = false;
+            }
 
             //if (crossedLowerBand)
             //{
