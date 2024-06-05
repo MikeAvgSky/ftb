@@ -64,9 +64,9 @@ public static partial class Indicator
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
 
-            crossedLowerBand = candles[i].Mid_C < bollingerBands[i].LowerBand;
+            crossedLowerBand = candles[i].Mid_L < bollingerBands[i].LowerBand;
 
-            crossedUpperBand = candles[i].Mid_C > bollingerBands[i].UpperBand;
+            crossedUpperBand = candles[i].Mid_H > bollingerBands[i].UpperBand;
 
             if (crossedLowerBand)
             {
