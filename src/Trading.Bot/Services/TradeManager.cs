@@ -103,7 +103,7 @@ public class TradeManager : BackgroundService
 
         if (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday) return false;
 
-        return date.Hour is < 20 and >= 8;
+        return date.Hour is < 20 and >= 7;
     }
 
     private async Task<bool> NewCandleAvailable(TradeSettings settings, LivePrice price, CancellationToken stoppingToken)
