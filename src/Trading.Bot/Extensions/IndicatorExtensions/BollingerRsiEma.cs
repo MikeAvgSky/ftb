@@ -11,7 +11,7 @@ public static partial class Indicator
 
         var bollingerBands = candles.CalcBollingerBands(bbWindow, stdDev);
 
-        var stochRsi = candles.CalcStochRsi();
+        var stochRsi = candles.CalcStochRsi(bbWindow, bbWindow);
 
         var length = candles.Length;
 
