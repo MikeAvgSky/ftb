@@ -51,11 +51,13 @@ public static partial class Indicator
                                 stochRising &&
                                 candle.Direction == 1 &&
                                 candle.Mid_L > emaResult[i] &&
+                                candle.Mid_C - emaResult[i] > minGain &&
                                 candle.Spread <= maxSpread => Signal.Buy,
                 var candle when crossedUpperBand &&
                                 stochFalling &&
                                 candle.Direction == -1 &&
                                 candle.Mid_H < emaResult[i] &&
+                                emaResult[i] - candle.Mid_C > minGain &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
