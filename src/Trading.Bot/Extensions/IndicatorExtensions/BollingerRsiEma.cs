@@ -21,6 +21,10 @@ public static partial class Indicator
 
         var crossedUpperBand = false;
 
+        var lastCrossedLowerBandIndex = 0;
+
+        var lastCrossedUpperBandIndex = 0;
+
         var higherHigh = false;
 
         var higherLow = false;
@@ -47,24 +51,24 @@ public static partial class Indicator
 
             if (crossedLowerBand && stochRising)
             {
-                var lastBearishCandle = candles[..i].Last(c => c.Direction == -1);
+                var lastCrossedLowerBandCandle = candles[lastCrossedLowerBandIndex];
 
-                higherLow = lastBearishCandle.Mid_C > latestLow;
+                higherLow = lastCrossedLowerBandCandle.Mid_C > latestLow;
 
-                lowerLow = lastBearishCandle.Mid_C < latestLow;
+                lowerLow = lastCrossedLowerBandCandle.Mid_C < latestLow;
 
-                latestLow = lastBearishCandle.Mid_C;
+                latestLow = lastCrossedLowerBandCandle.Mid_C;
             }
 
             if (crossedUpperBand && stochFalling)
             {
-                var lastBullishCandle = candles[..i].Last(c => c.Direction == 1);
+                var lastCrossedUpperBandCandle = candles[lastCrossedUpperBandIndex];
 
-                higherHigh = lastBullishCandle.Mid_C > latestHigh;
+                higherHigh = lastCrossedUpperBandCandle.Mid_C > latestHigh;
 
-                lowerHigh = lastBullishCandle.Mid_C < latestHigh;
+                lowerHigh = lastCrossedUpperBandCandle.Mid_C < latestHigh;
 
-                latestHigh = lastBullishCandle.Mid_C;
+                latestHigh = lastCrossedUpperBandCandle.Mid_C;
             }
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
@@ -88,16 +92,6 @@ public static partial class Indicator
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
 
-            if (candles[i].Mid_C < bollingerBands[i].LowerBand)
-            {
-                crossedLowerBand = true;
-            }
-
-            if (candles[i].Mid_C > bollingerBands[i].UpperBand)
-            {
-                crossedUpperBand = true;
-            }
-
             if (crossedLowerBand && stochRising)
             {
                 crossedLowerBand = false;
@@ -106,6 +100,18 @@ public static partial class Indicator
             if (crossedUpperBand && stochFalling)
             {
                 crossedUpperBand = false;
+            }
+
+            if (candles[i].Mid_C < bollingerBands[i].LowerBand)
+            {
+                crossedLowerBand = true;
+                lastCrossedLowerBandIndex = i;
+            }
+
+            if (candles[i].Mid_C > bollingerBands[i].UpperBand)
+            {
+                crossedUpperBand = true;
+                lastCrossedUpperBandIndex = i;
             }
         }
 
