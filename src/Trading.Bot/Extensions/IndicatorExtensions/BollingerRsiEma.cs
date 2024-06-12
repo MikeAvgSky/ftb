@@ -29,9 +29,9 @@ public static partial class Indicator
 
         var lowerLow = false;
 
-        var latestHigh = double.MinValue;
+        var latestHigh = candles[0].Mid_C;
 
-        var latestLow = double.MinValue;
+        var latestLow = candles[0].Mid_C;
 
         for (var i = 0; i < length; i++)
         {
@@ -44,6 +44,28 @@ public static partial class Indicator
             var stochRising = i > 0 && stochRsi[i].KOscillator > stochRsi[i - 1].KOscillator;
 
             var stochFalling = i > 0 && stochRsi[i].KOscillator < stochRsi[i - 1].KOscillator;
+
+            if (crossedLowerBand && stochRising)
+            {
+                var lastBearishCandle = candles[..i].Last(c => c.Direction == -1);
+
+                higherLow = lastBearishCandle.Mid_C > latestLow;
+
+                lowerLow = lastBearishCandle.Mid_C < latestLow;
+
+                latestLow = lastBearishCandle.Mid_C;
+            }
+
+            if (crossedUpperBand && stochFalling)
+            {
+                var lastBullishCandle = candles[..i].Last(c => c.Direction == 1);
+
+                higherHigh = lastBullishCandle.Mid_C > latestHigh;
+
+                lowerHigh = lastBullishCandle.Mid_C < latestHigh;
+
+                latestHigh = lastBullishCandle.Mid_C;
+            }
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
@@ -69,23 +91,11 @@ public static partial class Indicator
             if (candles[i].Mid_C < bollingerBands[i].LowerBand)
             {
                 crossedLowerBand = true;
-
-                higherLow = candles[i].Mid_C > latestLow;
-
-                lowerLow = candles[i].Mid_C < latestLow;
-
-                latestLow = candles[i].Mid_C;
             }
 
             if (candles[i].Mid_C > bollingerBands[i].UpperBand)
             {
                 crossedUpperBand = true;
-
-                higherHigh = candles[i].Mid_C > latestHigh;
-
-                lowerHigh = candles[i].Mid_C < latestHigh;
-
-                latestHigh = candles[i].Mid_C;
             }
 
             if (crossedLowerBand && stochRising)
