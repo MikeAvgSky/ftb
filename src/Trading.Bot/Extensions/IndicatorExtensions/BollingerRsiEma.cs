@@ -13,6 +13,8 @@ public static partial class Indicator
 
         var stochRsi = candles.CalcStochRsi(bbWindow, bbWindow);
 
+        var atr = candles.CalcAtr(bbWindow);
+
         var length = candles.Length;
 
         var result = new IndicatorResult[length];
@@ -39,7 +41,7 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Gain = minGain;
+            result[i].Gain = atr[i].Atr * 2;
 
             var stochRising = i > 0 && stochRsi[i].KOscillator > stochRsi[i - 1].KOscillator;
 
@@ -51,13 +53,12 @@ public static partial class Indicator
                                 stochRising &&
                                 candle.Direction == 1 &&
                                 candle.Mid_L > emaResult[i] &&
-                                candle.Mid_C - emaResult[i] > minGain &&
-                                candle.Spread <= maxSpread => Signal.Buy,
+                                candle.Spread <= maxSpread &&
+                                result[i].Gain >= minGain => Signal.Buy,
                 var candle when crossedUpperBand &&
                                 stochFalling &&
                                 candle.Direction == -1 &&
                                 candle.Mid_H < emaResult[i] &&
-                                emaResult[i] - candle.Mid_C > minGain &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
