@@ -45,9 +45,9 @@ public static partial class Indicator
 
             result[i].Gain = minGain;
 
-            var stochRising = i > 0 && stochRsi[i].KOscillator > stochRsi[i - 1].KOscillator && stochRsi[i].KOscillator > 20;
+            var stochRising = i > 0 && stochRsi[i].KOscillator > stochRsi[i - 1].KOscillator && stochRsi[i].KOscillator > 10;
 
-            var stochFalling = i > 0 && stochRsi[i].KOscillator < stochRsi[i - 1].KOscillator && stochRsi[i].KOscillator < 80;
+            var stochFalling = i > 0 && stochRsi[i].KOscillator < stochRsi[i - 1].KOscillator && stochRsi[i].KOscillator < 90;
 
             if (crossedLowerBand && stochRising)
             {
@@ -102,13 +102,13 @@ public static partial class Indicator
                 crossedUpperBand = false;
             }
 
-            if (candles[i].Mid_C < bollingerBands[i].LowerBand && stochRsi[i].KOscillator < 20)
+            if (candles[i].Mid_C < bollingerBands[i].LowerBand && stochRsi[i].KOscillator < 10)
             {
                 crossedLowerBand = true;
                 lastCrossedLowerBandIndex = i;
             }
 
-            if (candles[i].Mid_C > bollingerBands[i].UpperBand && stochRsi[i].KOscillator > 80)
+            if (candles[i].Mid_C > bollingerBands[i].UpperBand && stochRsi[i].KOscillator > 90)
             {
                 crossedUpperBand = true;
                 lastCrossedUpperBandIndex = i;
