@@ -22,7 +22,9 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
             var minGain = request.MinGain ?? 0.0006;
 
-            var rsi = candles.CalcRsiEma(request.RsiWindow, request.EmaWindow, rsiLimit, maxSpread, minGain);
+            var riskReward = request.RiskReward ?? 1;
+
+            var rsi = candles.CalcRsiEma(request.RsiWindow, request.EmaWindow, rsiLimit, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(rsi.Cast<IndicatorBase>().ToArray());
 
@@ -51,6 +53,7 @@ public record RsiEmaRequest : IHttpRequest
     public int? RsiLimit { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
+    public int? RiskReward { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }

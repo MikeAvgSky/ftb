@@ -20,10 +20,10 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
 
             var minGain = request.MinGain ?? 0.0006;
 
-            var minVolume = request.MinVolume ?? 100;
+            var riskReward = request.RiskReward ?? 1;
 
             var bollingerBands = candles.CalcBollingerRsiEma(request.Window, request.EmaWindow,
-                request.StandardDeviation, maxSpread, minGain, minVolume);
+                request.StandardDeviation, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray());
 
@@ -39,7 +39,7 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
 
         return Task.FromResult(request.Download
             ? Results.File(bollingerBandsList.GetZipFromFileData(),
-                "application/octet-stream", "bb.zip")
+                "application/octet-stream", "bb_ema.zip")
             : Results.Ok(bollingerBandsList.Select(l => l.Value)));
     }
 }
@@ -52,7 +52,7 @@ public record BollingerBandsEmaRequest : IHttpRequest
     public double StandardDeviation { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
-    public int? MinVolume { get; set; }
+    public int? RiskReward { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }
