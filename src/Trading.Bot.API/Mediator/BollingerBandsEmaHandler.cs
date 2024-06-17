@@ -22,7 +22,7 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
 
             var riskReward = request.RiskReward ?? 1;
 
-            var bollingerBands = candles.CalcTrendPullback(request.Window, request.EmaWindow,
+            var bollingerBands = candles.CalcTrendBreakout(request.Window, request.EmaWindow,
                 request.StandardDeviation, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray());

@@ -25,13 +25,13 @@ public static partial class Indicator
 
         var lastCrossedUpperBandIndex = 0;
 
-        var higherHigh = false;
+        var higherHighs = false;
 
-        var higherLow = false;
+        var higherLows = false;
 
-        var lowerHigh = false;
+        var lowerHighs = false;
 
-        var lowerLow = false;
+        var lowerLows = false;
 
         var latestHigh = candles[0].Mid_C;
 
@@ -53,9 +53,9 @@ public static partial class Indicator
             {
                 var lastCrossedLowerBandCandle = candles[lastCrossedLowerBandIndex];
 
-                higherLow = lastCrossedLowerBandCandle.Mid_C > latestLow;
+                higherLows = lastCrossedLowerBandCandle.Mid_C > latestLow;
 
-                lowerLow = lastCrossedLowerBandCandle.Mid_C < latestLow;
+                lowerLows = lastCrossedLowerBandCandle.Mid_C < latestLow;
 
                 latestLow = lastCrossedLowerBandCandle.Mid_C;
             }
@@ -64,9 +64,9 @@ public static partial class Indicator
             {
                 var lastCrossedUpperBandCandle = candles[lastCrossedUpperBandIndex];
 
-                higherHigh = lastCrossedUpperBandCandle.Mid_C > latestHigh;
+                higherHighs = lastCrossedUpperBandCandle.Mid_C > latestHigh;
 
-                lowerHigh = lastCrossedUpperBandCandle.Mid_C < latestHigh;
+                lowerHighs = lastCrossedUpperBandCandle.Mid_C < latestHigh;
 
                 latestHigh = lastCrossedUpperBandCandle.Mid_C;
             }
@@ -74,12 +74,12 @@ public static partial class Indicator
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
                 var candle when crossedLowerBand && stochRising &&
-                                higherHigh && higherLow &&
+                                higherHighs && higherLows &&
                                 candle.Direction == 1 &&
                                 candle.Mid_L > emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Buy,
                 var candle when crossedUpperBand && stochFalling &&
-                                lowerHigh && lowerLow &&
+                                lowerHighs && lowerLows &&
                                 candle.Direction == -1 &&
                                 candle.Mid_H < emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Sell,
