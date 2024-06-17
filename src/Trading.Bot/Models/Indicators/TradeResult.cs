@@ -63,14 +63,15 @@ public class TradeResult
     {
         if (trade.Signal == Signal.Buy)
         {
-            if (indicator.Candle.Bid_L <= trade.StopLoss && indicator.Candle.Bid_H < trade.TakeProfit)
-            {
-                CloseTrade(trade, -1, indicator.Candle.Time, indicator.Candle.Bid_L);
-            }
 
             if (indicator.Candle.Bid_H >= trade.TakeProfit && indicator.Candle.Bid_L > trade.StopLoss)
             {
                 CloseTrade(trade, 1, indicator.Candle.Time, indicator.Candle.Bid_H);
+            }
+
+            if (indicator.Candle.Bid_L <= trade.StopLoss && indicator.Candle.Bid_H < trade.TakeProfit)
+            {
+                CloseTrade(trade, -1, indicator.Candle.Time, indicator.Candle.Bid_L);
             }
 
             if (indicator.Candle.Bid_L <= trade.StopLoss && indicator.Candle.Bid_H >= trade.TakeProfit)
@@ -81,14 +82,14 @@ public class TradeResult
 
         if (trade.Signal == Signal.Sell)
         {
-            if (indicator.Candle.Ask_H >= trade.StopLoss && indicator.Candle.Ask_L > trade.TakeProfit)
-            {
-                CloseTrade(trade, -1, indicator.Candle.Time, indicator.Candle.Ask_H);
-            }
-
             if (indicator.Candle.Ask_L <= trade.TakeProfit && indicator.Candle.Ask_H < trade.StopLoss)
             {
                 CloseTrade(trade, 1, indicator.Candle.Time, indicator.Candle.Ask_L);
+            }
+
+            if (indicator.Candle.Ask_H >= trade.StopLoss && indicator.Candle.Ask_L > trade.TakeProfit)
+            {
+                CloseTrade(trade, -1, indicator.Candle.Time, indicator.Candle.Ask_H);
             }
 
             if (indicator.Candle.Ask_H >= trade.StopLoss && indicator.Candle.Ask_L <= trade.TakeProfit)

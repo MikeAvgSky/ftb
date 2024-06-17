@@ -72,7 +72,7 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        var calcResult = candles.CalcBollingerRsiEma(settings.Integers[0], settings.Integers[1],
+        var calcResult = candles.CalcTrendPullback(settings.Integers[0], settings.Integers[1],
             settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
@@ -90,9 +90,9 @@ public class TradeManager : BackgroundService
 
         var lgCandles = await _apiService.GetCandles(settings.Instrument, settings.LowerGranularity);
 
-        var higherTrend = hgCandles.CalcTrend(settings.Integers[1]).Last();
+        var higherTrend = hgCandles.CalcEmaTrend(settings.Integers[1]).Last();
 
-        var lowerTrend = lgCandles.CalcTrend(settings.Integers[1]).Last();
+        var lowerTrend = lgCandles.CalcEmaTrend(settings.Integers[1]).Last();
 
         return signal == higherTrend && signal == lowerTrend;
     }

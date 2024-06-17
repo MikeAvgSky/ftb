@@ -2,7 +2,7 @@
 
 public static partial class Indicator
 {
-    public static IndicatorResult[] CalcBollingerRsiEma(this Candle[] candles, int bbWindow = 20, int emaWindow = 100,
+    public static IndicatorResult[] CalcTrendPullback(this Candle[] candles, int bbWindow = 20, int emaWindow = 100,
         double stdDev = 2, double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var prices = candles.Select(c => c.Mid_C).ToArray();
