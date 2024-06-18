@@ -23,7 +23,7 @@ public class TradeResult
 
         for (var i = 0; i < length; i++)
         {
-            if (indicators[i].Signal != Signal.None)
+            if (indicators[i].Signal != Signal.None && !openTrades.Any())
             {
                 openTrades.Add(new TradeResult
                 {

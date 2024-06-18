@@ -70,7 +70,7 @@ public static partial class Indicator
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
                 var candle when crossedUpperBand && higherHighs && higherLows &&
-                                bollingerBands[i].LowerBand > emaResult[i] &&
+                                candle.Mid_L > emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Buy,
                 var candle when crossedLowerBand && lowerHighs && lowerLows &&
                                 candle.Mid_H < emaResult[i] &&
