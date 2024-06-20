@@ -19,9 +19,13 @@ public static partial class Indicator
 
         var crossedUpperBand = false;
 
+        var higherHighs = false;
+
         var higherLows = false;
 
         var lowerHighs = false;
+
+        var lowerLows = false;
 
         var latestHigh = candles[0].Mid_C;
 
@@ -49,6 +53,8 @@ public static partial class Indicator
             {
                 higherLows = candles[i].Mid_C > latestLow;
 
+                lowerLows = candles[i].Mid_C < latestLow;
+
                 latestLow = candles[i].Mid_C;
             }
 
@@ -56,15 +62,17 @@ public static partial class Indicator
             {
                 lowerHighs = candles[i].Mid_C < latestHigh;
 
+                higherHighs = candles[i].Mid_C > latestLow;
+
                 latestHigh = candles[i].Mid_C;
             }
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when crossedUpperBand && higherLows &&
+                var candle when crossedUpperBand && higherLows && higherHighs &&
                                 bollingerBands[i].LowerBand > emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Buy,
-                var candle when crossedLowerBand && lowerHighs &&
+                var candle when crossedLowerBand && lowerHighs && lowerLows &&
                                 bollingerBands[i].UpperBand < emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
