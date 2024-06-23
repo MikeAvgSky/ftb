@@ -62,7 +62,7 @@ public static partial class Indicator
             {
                 lowerHighs = candles[i].Mid_C < latestHigh;
 
-                higherHighs = candles[i].Mid_C > latestLow;
+                higherHighs = candles[i].Mid_C > latestHigh;
 
                 latestHigh = candles[i].Mid_C;
             }
