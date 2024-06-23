@@ -6,6 +6,16 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
     {
         var bollingerBandsList = new List<FileData<IEnumerable<object>>>();
 
+        var maxSpread = request.MaxSpread ?? 0.03;
+
+        var minGain = request.MinGain ?? 0.3;
+
+        var riskReward = request.RiskReward ?? 1;
+
+        var showTradesOnly = request.ShowTradesOnly ?? true;
+
+        var download = request.Download ?? true;
+
         foreach (var file in request.Files)
         {
             var candles = file.GetObjectFromCsv<Candle>();
@@ -16,12 +26,6 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var maxSpread = request.MaxSpread ?? 0.0004;
-
-            var minGain = request.MinGain ?? 0.0006;
-
-            var riskReward = request.RiskReward ?? 1;
-
             var bollingerBands = candles.CalcTrendBreakout(request.Window, request.EmaWindow,
                 request.StandardDeviation, maxSpread, minGain, riskReward);
 
@@ -29,7 +33,7 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
 
             bollingerBandsList.Add(new FileData<IEnumerable<object>>(
             $"{instrument}_{granularity}_BB_EMA_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}.csv",
-            request.ShowTradesOnly ? bollingerBands.Where(ma => ma.Signal != Signal.None) : bollingerBands));
+            showTradesOnly ? bollingerBands.Where(ma => ma.Signal != Signal.None) : bollingerBands));
 
             bollingerBandsList.Add(new FileData<IEnumerable<object>>(
                 $"{instrument}_{granularity}_BB_EMA_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}_SIM.csv", tradingSim));
@@ -37,7 +41,7 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
 
         if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(request.Download
+        return Task.FromResult(download
             ? Results.File(bollingerBandsList.GetZipFromFileData(),
                 "application/octet-stream", "bb_ema.zip")
             : Results.Ok(bollingerBandsList.Select(l => l.Value)));
@@ -53,6 +57,6 @@ public record BollingerBandsEmaRequest : IHttpRequest
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public int? RiskReward { get; set; }
-    public bool Download { get; set; }
-    public bool ShowTradesOnly { get; set; }
+    public bool? Download { get; set; }
+    public bool? ShowTradesOnly { get; set; }
 }

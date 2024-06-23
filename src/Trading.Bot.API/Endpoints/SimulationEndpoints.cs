@@ -8,7 +8,7 @@ public static class SimulationEndpoints
         builder.MapPost("api/simulation/bb", SimulateBollingerBands).DisableAntiforgery();
         builder.MapPost("api/simulation/rsi_ema", SimulateRsiEma).DisableAntiforgery();
         builder.MapPost("api/simulation/macd_ema", SimulateMacdEma).DisableAntiforgery();
-        builder.MapPost("api/simulation/rsi_bb_ema", SimulateRsiBbEma).DisableAntiforgery();
+        builder.MapPost("api/simulation/bb_ema", SimulateBbEma).DisableAntiforgery();
     }
 
     private static async Task<IResult> SimulateMovingAverageCross(ISender sender,
@@ -63,7 +63,7 @@ public static class SimulationEndpoints
         }
     }
 
-    private static async Task<IResult> SimulateRsiBbEma(ISender sender,
+    private static async Task<IResult> SimulateBbEma(ISender sender,
         [AsParameters] BollingerBandsEmaRequest request)
     {
         try
