@@ -15,10 +15,6 @@ public static partial class Indicator
 
         var result = new IndicatorResult[length];
 
-        var crossedLowerBand = false;
-
-        var crossedUpperBand = false;
-
         var higherLows = false;
 
         var lowerHighs = false;
@@ -35,15 +31,9 @@ public static partial class Indicator
 
             result[i].Gain = minGain;
 
-            if (candles[i].Mid_O > bollingerBands[i].LowerBand && candles[i].Mid_C < bollingerBands[i].LowerBand)
-            {
-                crossedLowerBand = true;
-            }
+            var crossedLowerBand = candles[i].Mid_O > bollingerBands[i].LowerBand && candles[i].Mid_C < bollingerBands[i].LowerBand;
 
-            if (candles[i].Mid_O < bollingerBands[i].UpperBand && candles[i].Mid_C > bollingerBands[i].UpperBand)
-            {
-                crossedUpperBand = true;
-            }
+            var crossedUpperBand = candles[i].Mid_O < bollingerBands[i].UpperBand && candles[i].Mid_C > bollingerBands[i].UpperBand;
 
             if (crossedLowerBand)
             {
@@ -75,16 +65,6 @@ public static partial class Indicator
             result[i].StopLoss = candles[i].CalcStopLoss(result[i]);
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
-
-            if (crossedLowerBand)
-            {
-                crossedLowerBand = false;
-            }
-
-            if (crossedUpperBand)
-            {
-                crossedUpperBand = false;
-            }
         }
 
         return result;
