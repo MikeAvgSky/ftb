@@ -69,7 +69,7 @@ public static partial class Indicator
                                 candle.Direction == 1 && higherHighs &&
                                 candle.Mid_L > emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Buy,
-                var candle when crossedUpperBand && macdFalling && 
+                var candle when crossedUpperBand && macdFalling &&
                                 candle.Direction == -1 && lowerLows &&
                                 candle.Mid_H < emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Sell,
