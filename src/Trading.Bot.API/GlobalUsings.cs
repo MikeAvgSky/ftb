@@ -12,3 +12,5 @@ global using Trading.Bot.Models.DataTransferObjects;
 global using Trading.Bot.Models.Enums;
 global using Trading.Bot.Models.Indicators;
 global using Trading.Bot.Services;
+global using Microsoft.AspNetCore.Http.Features;
+global using Microsoft.AspNetCore.Server.Kestrel.Core;

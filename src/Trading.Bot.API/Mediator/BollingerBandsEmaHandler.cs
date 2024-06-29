@@ -56,7 +56,7 @@ public record BollingerBandsEmaRequest : IHttpRequest
     public double StandardDeviation { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
-    public int? RiskReward { get; set; }
+    public double? RiskReward { get; set; }
     public bool? Download { get; set; }
     public bool? ShowTradesOnly { get; set; }
 }
