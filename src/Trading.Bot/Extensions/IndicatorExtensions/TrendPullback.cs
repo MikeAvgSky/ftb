@@ -41,9 +41,9 @@ public static partial class Indicator
 
             result[i].Gain = minGain;
 
-            var macdRising = i > 0 && macd[i].Histogram > macd[i - 1].Histogram;
+            var macdRising = crossedLowerBand && macd[i].Histogram > macd[i - 1].Histogram;
 
-            var macdFalling = i > 0 && macd[i].Histogram < macd[i - 1].Histogram;
+            var macdFalling = crossedUpperBand && macd[i].Histogram < macd[i - 1].Histogram;
 
             if (crossedLowerBand && macdRising)
             {
@@ -67,11 +67,11 @@ public static partial class Indicator
             {
                 var candle when crossedLowerBand && macdRising &&
                                 candle.Direction == 1 && higherHighs &&
-                                candle.Mid_L > emaResult[i] &&
+                                bollingerBands[i].LowerBand > emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Buy,
                 var candle when crossedUpperBand && macdFalling &&
                                 candle.Direction == -1 && lowerLows &&
-                                candle.Mid_H < emaResult[i] &&
+                                bollingerBands[i].UpperBand < emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };

@@ -26,7 +26,7 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var bollingerBands = candles.CalcTrendBreakout(request.Window, request.EmaWindow,
+            var bollingerBands = candles.CalcTrendPullback(request.Window, request.EmaWindow,
                 request.StandardDeviation, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray());
