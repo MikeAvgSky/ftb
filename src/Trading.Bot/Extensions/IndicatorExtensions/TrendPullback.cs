@@ -41,11 +41,11 @@ public static partial class Indicator
 
             result[i].Gain = minGain;
 
-            var macdRising = crossedLowerBand && macd[i].Histogram > macd[i - 1].Histogram;
+            var rising = crossedLowerBand && macd[i].Histogram > macd[i - 1].Histogram;
 
-            var macdFalling = crossedUpperBand && macd[i].Histogram < macd[i - 1].Histogram;
+            var falling = crossedUpperBand && macd[i].Histogram < macd[i - 1].Histogram;
 
-            if (crossedLowerBand && macdRising)
+            if (crossedLowerBand && rising)
             {
                 var lastCrossedLowerBandCandle = candles[lastCrossedLowerBandIndex];
 
@@ -54,7 +54,7 @@ public static partial class Indicator
                 latestLow = lastCrossedLowerBandCandle.Mid_C;
             }
 
-            if (crossedUpperBand && macdFalling)
+            if (crossedUpperBand && falling)
             {
                 var lastCrossedUpperBandCandle = candles[lastCrossedUpperBandIndex];
 
@@ -65,13 +65,13 @@ public static partial class Indicator
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when crossedLowerBand && higherHighs &&
-                                candle.Mid_C > latestLow &&
-                                candle.Mid_L > emaResult[i] &&
+                var candle when crossedLowerBand && rising && higherHighs &&
+                                candle.Direction == 1 && !lowerLows &&
+                                bollingerBands[i].LowerBand > emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Buy,
-                var candle when crossedUpperBand && lowerLows &&
-                                candle.Mid_C < latestHigh &&
-                                candle.Mid_H < emaResult[i] &&
+                var candle when crossedUpperBand && falling && lowerLows &&
+                                candle.Direction == -1 && !higherHighs &&
+                                bollingerBands[i].UpperBand < emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
@@ -82,12 +82,12 @@ public static partial class Indicator
 
             result[i].Loss = Math.Abs(candles[i].Mid_C - result[i].StopLoss);
 
-            if (crossedLowerBand && macdRising)
+            if (crossedLowerBand && rising)
             {
                 crossedLowerBand = false;
             }
 
-            if (crossedUpperBand && macdFalling)
+            if (crossedUpperBand && falling)
             {
                 crossedUpperBand = false;
             }
