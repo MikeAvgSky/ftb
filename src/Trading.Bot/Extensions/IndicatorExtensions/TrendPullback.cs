@@ -65,13 +65,13 @@ public static partial class Indicator
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when crossedLowerBand && macdRising &&
-                                candle.Direction == 1 && higherHighs &&
-                                bollingerBands[i].LowerBand > emaResult[i] &&
+                var candle when crossedLowerBand && higherHighs &&
+                                candle.Mid_C > latestLow &&
+                                candle.Mid_L > emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Buy,
-                var candle when crossedUpperBand && macdFalling &&
-                                candle.Direction == -1 && lowerLows &&
-                                bollingerBands[i].UpperBand < emaResult[i] &&
+                var candle when crossedUpperBand && lowerLows &&
+                                candle.Mid_C < latestHigh &&
+                                candle.Mid_H < emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
