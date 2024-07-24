@@ -69,10 +69,10 @@ public static partial class Indicator
                                 candle.Direction == 1 && !lowerLows &&
                                 bollingerBands[i].LowerBand > emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Buy,
-                //var candle when crossedUpperBand && falling && lowerLows &&
-                //                candle.Direction == -1 && !higherHighs &&
-                //                bollingerBands[i].UpperBand < emaResult[i] &&
-                //                candle.Spread <= maxSpread => Signal.Sell,
+                var candle when crossedUpperBand && falling && lowerLows &&
+                                candle.Direction == -1 && !higherHighs &&
+                                bollingerBands[i].UpperBand < emaResult[i] &&
+                                candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
 

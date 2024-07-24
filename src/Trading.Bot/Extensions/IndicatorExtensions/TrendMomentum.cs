@@ -2,7 +2,7 @@
 
 public static partial class Indicator
 {
-    public static IndicatorResult[] CalcTrendBreakout(this Candle[] candles, int bbWindow = 20, int emaWindow = 100,
+    public static IndicatorResult[] CalcTrendMomentum(this Candle[] candles, int bbWindow = 20, int emaWindow = 100,
         double stdDev = 2, double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
     {
         var prices = candles.Select(c => c.Mid_C).ToArray();
@@ -51,10 +51,10 @@ public static partial class Indicator
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when crossedUpperBand && higherLows &&
+                var candle when crossedUpperBand && higherLows && !lowerHighs &&
                                 bollingerBands[i].LowerBand > emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Buy,
-                var candle when crossedLowerBand && lowerHighs &&
+                var candle when crossedLowerBand && lowerHighs && !higherLows &&
                                 bollingerBands[i].UpperBand < emaResult[i] &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
