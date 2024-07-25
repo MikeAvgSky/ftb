@@ -72,7 +72,7 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        var calcResult = candles.CalcTrendMomentum(settings.Integers[0], settings.Integers[1],
+        var calcResult = candles.CalcMeanReversion(settings.Integers[0], settings.Integers[1],
             settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
