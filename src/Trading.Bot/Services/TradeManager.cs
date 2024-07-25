@@ -88,13 +88,13 @@ public class TradeManager : BackgroundService
     {
         var hgCandles = await _apiService.GetCandles(settings.Instrument, settings.HigherGranularity);
 
-        var lgCandles = await _apiService.GetCandles(settings.Instrument, settings.LowerGranularity);
+        //var lgCandles = await _apiService.GetCandles(settings.Instrument, settings.LowerGranularity);
 
         var higherTrend = hgCandles.CalcEmaTrend(settings.Integers[1]).Last();
 
-        var lowerTrend = lgCandles.CalcEmaTrend(settings.Integers[1]).Last();
+        //var lowerTrend = lgCandles.CalcEmaTrend(settings.Integers[1]).Last();
 
-        return signal == higherTrend && signal == lowerTrend;
+        return signal == higherTrend;
     }
 
     private static bool GoodTradingTime()
