@@ -72,8 +72,8 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        var calcResult = candles.CalcMeanReversion(settings.Integers[0], settings.Integers[1],
-            settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
+        var calcResult = candles.CalcMeanReversion(settings.Integers[0], settings.Doubles[0],
+            settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
         {
@@ -88,13 +88,13 @@ public class TradeManager : BackgroundService
     {
         var hgCandles = await _apiService.GetCandles(settings.Instrument, settings.HigherGranularity);
 
-        //var lgCandles = await _apiService.GetCandles(settings.Instrument, settings.LowerGranularity);
+        var lgCandles = await _apiService.GetCandles(settings.Instrument, settings.LowerGranularity);
 
         var higherTrend = hgCandles.CalcEmaTrend(settings.Integers[1]).Last();
 
-        //var lowerTrend = lgCandles.CalcEmaTrend(settings.Integers[1]).Last();
+        var lowerTrend = lgCandles.CalcEmaTrend(settings.Integers[1]).Last();
 
-        return signal == higherTrend;
+        return signal == higherTrend && signal == lowerTrend;
     }
 
     private static bool GoodTradingTime()
