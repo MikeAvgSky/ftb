@@ -86,9 +86,15 @@ public class TradeManager : BackgroundService
 
     private async Task<bool> SignalFollowsTrend(TradeSettings settings, Signal signal)
     {
-        var hgCandles = await _apiService.GetCandles(settings.Instrument, settings.HigherGranularity);
+        var hgCandleTask = _apiService.GetCandles(settings.Instrument, settings.HigherGranularity);
 
-        var lgCandles = await _apiService.GetCandles(settings.Instrument, settings.LowerGranularity);
+        var lgCandleTask = _apiService.GetCandles(settings.Instrument, settings.LowerGranularity);
+
+        await Task.WhenAll(hgCandleTask, lgCandleTask);
+
+        var hgCandles = await hgCandleTask;
+
+        var lgCandles = await lgCandleTask;
 
         var higherTrend = hgCandles.CalcEmaTrend(settings.Integers[1]).Last();
 

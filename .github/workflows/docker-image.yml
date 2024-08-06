@@ -20,8 +20,8 @@ jobs:
       with:
         files: './src/Trading.Bot/appsettings.json'
       env:
-        Constants.ApiKey: ${{ secrets.OANDAAPIKEY }}
-        Constants.AccountId: ${{ secrets.OANDAACCOUNTID }}
+        Constants.ApiKey: ${{ secrets.OANDA_API_KEY_LIVE }}
+        Constants.AccountId: ${{ secrets.OANDA_ACCOUNT_ID_LIVE }}
         EmailConfiguration.Password: ${{ secrets.EMAILPASSWORD }}
 
     - name: Build and Push Docker Image
