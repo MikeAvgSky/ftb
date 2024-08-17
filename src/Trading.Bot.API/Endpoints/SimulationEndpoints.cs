@@ -25,7 +25,7 @@ public static class SimulationEndpoints
     }
 
     private static async Task<IResult> SimulateBollingerBands(ISender sender,
-        [AsParameters] BollingerBandsEmaRequest request)
+        [AsParameters] BollingerBandsRequest request)
     {
         try
         {

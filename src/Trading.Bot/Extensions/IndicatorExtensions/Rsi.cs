@@ -2,7 +2,7 @@
 
 public static partial class Indicator
 {
-    public static RsiResult[] CalcRsi(this Candle[] candles, int window = 13)
+    public static RsiResult[] CalcRsi(this Candle[] candles, int window = 12)
     {
         var length = candles.Length;
 
