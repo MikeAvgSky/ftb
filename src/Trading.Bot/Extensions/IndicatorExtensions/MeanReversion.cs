@@ -3,7 +3,7 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcMeanReversion(this Candle[] candles, int window = 20, double stdDev = 2,
-        double rsiLower = 30, double rsiUpper = 70, double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
+        double rsiLower = 30, double rsiUpper = 70, double maxSpread = 0.0004, double minBandSpread = 0.0006, double riskReward = 1.5)
     {
         var bollingerBands = candles.CalcBollingerBands(window, stdDev);
 
@@ -19,7 +19,7 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Gain = bollingerBands[i].UpperBand - bollingerBands[i].LowerBand;
+            var bandSpread = bollingerBands[i].UpperBand - bollingerBands[i].LowerBand;
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
@@ -27,13 +27,21 @@ public static partial class Indicator
                                 candles[i].Mid_C < bollingerBands[i].LowerBand &&
                                 rsiResult[i].Rsi <= rsiLower &&
                                 candle.Spread <= maxSpread &&
-                                result[i].Gain >= minGain => Signal.Buy,
+                                bandSpread >= minBandSpread => Signal.Buy,
                 var candle when candles[i].Mid_O < bollingerBands[i].UpperBand &&
                                 candles[i].Mid_C > bollingerBands[i].UpperBand &&
                                 rsiResult[i].Rsi >= rsiUpper &&
                                 candle.Spread <= maxSpread &&
-                                result[i].Gain >= minGain => Signal.Sell,
+                                bandSpread >= minBandSpread => Signal.Sell,
                 _ => Signal.None
+            };
+
+            result[i].Gain = result[i].Signal switch
+            {
+                Signal.Buy => bollingerBands[i].UpperBand - candles[i].Mid_C,
+                Signal.Sell => candles[i].Mid_C - bollingerBands[i].LowerBand,
+                Signal.None => 0,
+                _ => 0
             };
 
             result[i].TakeProfit = candles[i].CalcTakeProfit(result[i], riskReward);
