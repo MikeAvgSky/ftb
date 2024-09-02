@@ -92,10 +92,8 @@ public class TradeManager : BackgroundService
 
         var results = await Task.WhenAll(tasks);
 
-        var signals = new List<Signal>();
-
-        signals.AddRange(results.Select(candles =>
-            candles.CalcEmaTrend(settings.Integers[1]).Last()));
+        var signals = results.Select(candles =>
+            candles.CalcEmaTrend(settings.Integers[1]).Last());
 
         return signals.All(s => s == signal);
     }
