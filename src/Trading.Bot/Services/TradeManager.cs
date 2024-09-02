@@ -86,21 +86,18 @@ public class TradeManager : BackgroundService
 
     private async Task<bool> SignalFollowsTrend(TradeSettings settings, Signal signal)
     {
-        var hgCandleTask = _apiService.GetCandles(settings.Instrument, settings.HigherGranularity);
 
-        var lgCandleTask = _apiService.GetCandles(settings.Instrument, settings.LowerGranularity);
+        var tasks = settings.OtherGranularities.Select(granularity =>
+            _apiService.GetCandles(settings.Instrument, granularity));
 
-        await Task.WhenAll(hgCandleTask, lgCandleTask);
+        var results = await Task.WhenAll(tasks);
 
-        var hgCandles = await hgCandleTask;
+        var signals = new List<Signal>();
 
-        var lgCandles = await lgCandleTask;
+        signals.AddRange(results.Select(candles =>
+            candles.CalcEmaTrend(settings.Integers[1]).Last()));
 
-        var higherTrend = hgCandles.CalcEmaTrend(settings.Integers[1]).Last();
-
-        var lowerTrend = lgCandles.CalcEmaTrend(settings.Integers[1]).Last();
-
-        return signal == higherTrend && signal == lowerTrend;
+        return signals.All(s => s == signal);
     }
 
     private static bool GoodTradingTime()
