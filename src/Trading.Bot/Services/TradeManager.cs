@@ -61,8 +61,6 @@ public class TradeManager : BackgroundService
 
         if (!await NewCandleAvailable(settings, price, stoppingToken) || !GoodTradingTime()) return;
 
-        _logger.LogInformation("New candle found for {Instrument} at {Time}", price.Instrument, price.Time);
-
         var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity);
 
         if (!candles.Any())
