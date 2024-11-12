@@ -29,9 +29,9 @@ public static partial class Indicator
 
             result[i].Gain = bollingerBands[i].UpperBand - bollingerBands[i].LowerBand;
 
-            var crossedLowerBand = candles[i].Mid_O > bollingerBands[i].LowerBand && candles[i].Mid_L < bollingerBands[i].LowerBand;
+            var crossedLowerBand = candles[i].Mid_O > bollingerBands[i].LowerBand && candles[i].Mid_C < bollingerBands[i].LowerBand;
 
-            var crossedUpperBand = candles[i].Mid_O < bollingerBands[i].UpperBand && candles[i].Mid_H > bollingerBands[i].UpperBand;
+            var crossedUpperBand = candles[i].Mid_O < bollingerBands[i].UpperBand && candles[i].Mid_C > bollingerBands[i].UpperBand;
 
             if (crossedLowerBand)
             {
