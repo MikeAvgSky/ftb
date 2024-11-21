@@ -7,7 +7,7 @@ public static partial class Indicator
     {
         var bollingerBands = candles.CalcBollingerBands(window, stdDev);
 
-        var rsiResult = candles.CalcRsi();
+        var rsiResult = candles.CalcRsi(12);
 
         var length = candles.Length;
 
