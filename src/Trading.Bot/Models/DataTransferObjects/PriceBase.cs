@@ -3,6 +3,5 @@
 public abstract class PriceBase
 {
     public string Instrument { get; set; }
-    public double Bid { get; set; }
-    public double Ask { get; set; }
+    public double Price { get; set; }
 }

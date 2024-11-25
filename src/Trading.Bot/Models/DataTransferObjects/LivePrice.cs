@@ -7,8 +7,7 @@ public class LivePrice : PriceBase
     public LivePrice(PriceResponse price)
     {
         Instrument = price.Instrument;
-        Bid = price.Bids[0].Price;
-        Ask = price.Asks[0].Price;
+        Price = (price.Bids[0].Price + price.Asks[0].Price) / 2;
         Time = price.Time;
     }
 }
