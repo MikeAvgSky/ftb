@@ -73,7 +73,7 @@ public class TradeManager : BackgroundService
         var calcResult = candles.CalcMeanReversion(settings.Integers[0], settings.Doubles[0], settings.Doubles[1],
             settings.Doubles[2], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
-        if (calcResult.Signal != Signal.None && await SignalFollowsTrend(settings, calcResult.Signal))
+        if (calcResult.Signal != Signal.None)
         {
             await TryPlaceTrade(settings, calcResult);
             return;
