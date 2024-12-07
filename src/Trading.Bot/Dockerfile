@@ -5,8 +5,8 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["Trading.Bot/Trading.Bot.csproj", "Trading.Bot/"]
+WORKDIR /
+COPY ["src/Trading.Bot/Trading.Bot.csproj", "Trading.Bot/"]
 RUN dotnet restore "Trading.Bot/Trading.Bot.csproj"
 COPY . .
 WORKDIR "/src/Trading.Bot"
