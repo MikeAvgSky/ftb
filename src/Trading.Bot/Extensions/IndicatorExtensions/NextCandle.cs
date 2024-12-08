@@ -19,7 +19,7 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Signal = candles[i].Mid_C switch
+            result[i].Signal = candles[i].Mid_L switch
             {
                 var price when price < emaResult[i] => Signal.Buy,
                 var price when price > emaResult[i] => Signal.Sell,
