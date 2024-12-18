@@ -2,12 +2,12 @@
 
 public static partial class Indicator
 {
-    public static IndicatorResult[] CalcNextCandle(this Candle[] candles, int window = 20,
-        double maxSpread = 0.0003, double minGain = 0.0006, double riskReward = 1)
+    public static IndicatorResult[] CalcNextCandle(this Candle[] candles, double maxSpread = 0.0003,
+        double minGain = 0.0006, double riskReward = 1)
     {
-        var prices = candles.Select(c => c.Mid_C).ToArray();
+        var macd = candles.CalcMacd(5, 12, 5);
 
-        var emaResult = prices.CalcEma(window).ToArray();
+        var rsi = candles.CalcRsi(9);
 
         var length = candles.Length;
 
@@ -19,16 +19,26 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Signal = candles[i].Mid_L switch
+            var macdFalling = i != 0 && Math.Round(macd[i].Macd, 5) < Math.Round(macd[i - 1].Macd, 5);
+
+            var signalFalling = i != 0 && Math.Round(macd[i].SignalLine, 5) < Math.Round(macd[i - 1].SignalLine, 5);
+
+            var macdRising = i != 0 && Math.Round(macd[i].Macd, 5) > Math.Round(macd[i - 1].Macd, 5);
+
+            var signalRising = i != 0 && Math.Round(macd[i].SignalLine, 5) > Math.Round(macd[i - 1].SignalLine, 5);
+
+            result[i].Signal = rsi[i].Rsi switch
             {
-                var price when price < emaResult[i] => Signal.Buy,
-                var price when price > emaResult[i] => Signal.Sell,
+                < 55 when macdRising && signalRising &&
+                          candles[i].Spread <= maxSpread => Signal.Buy,
+                > 45 when macdFalling && signalFalling &&
+                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
 
             result[i].Gain = minGain;
 
-            result[i].TakeProfit = 0;
+            result[i].TakeProfit = candles[i].CalcTakeProfit(result[i], riskReward);
 
             result[i].StopLoss = candles[i].CalcStopLoss(result[i]);
 
