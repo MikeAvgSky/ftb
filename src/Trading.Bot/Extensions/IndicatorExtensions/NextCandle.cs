@@ -5,7 +5,7 @@ public static partial class Indicator
     public static IndicatorResult[] CalcNextCandle(this Candle[] candles, double maxSpread = 0.0003,
         double minGain = 0.0006, double riskReward = 1)
     {
-        var macd = candles.CalcMacd(5, 12, 5);
+        var macd = candles.CalcMacd(21, 50);
 
         var rsi = candles.CalcRsi(9);
 
@@ -29,9 +29,11 @@ public static partial class Indicator
 
             result[i].Signal = rsi[i].Rsi switch
             {
-                < 55 when macdRising && signalRising &&
+                < 70 when macdRising && signalRising &&
+                          candles[i].Direction == 1 &&
                           candles[i].Spread <= maxSpread => Signal.Buy,
-                > 45 when macdFalling && signalFalling &&
+                > 30 when macdFalling && signalFalling &&
+                          candles[i].Direction == -1 &&
                           candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
