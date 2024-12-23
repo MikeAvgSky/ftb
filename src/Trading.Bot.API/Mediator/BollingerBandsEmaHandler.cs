@@ -37,10 +37,8 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
 
         if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(request.Download
-            ? Results.File(bollingerBandsList.GetZipFromFileData(),
-                "application/octet-stream", "bb_ema.zip")
-            : Results.Ok(bollingerBandsList.Select(l => l.Value)));
+        return Task.FromResult(Results.File(bollingerBandsList.GetZipFromFileData(),
+            "application/octet-stream", "bb_ema.zip"));
     }
 }
 
@@ -53,6 +51,5 @@ public record BollingerBandsEmaRequest : IHttpRequest
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }
-    public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }

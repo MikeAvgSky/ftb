@@ -7,7 +7,7 @@ public static partial class Indicator
     {
         var bollingerBands = candles.CalcBollingerBands(window, stdDev);
 
-        var rsiResult = candles.CalcRsi(12);
+        var rsiResult = candles.CalcRsi();
 
         var length = candles.Length;
 
@@ -33,14 +33,14 @@ public static partial class Indicator
 
             var crossedUpperBand = candles[i].Mid_O < bollingerBands[i].UpperBand && candles[i].Mid_C > bollingerBands[i].UpperBand;
 
-            if (crossedLowerBand && rsiResult[i].Rsi <= rsiLower)
+            if (crossedLowerBand && rsiResult[i].Rsi < rsiLower)
             {
                 higherLows = candles[i].Mid_C > latestLow;
 
                 latestLow = candles[i].Mid_C;
             }
 
-            if (crossedUpperBand && rsiResult[i].Rsi >= rsiUpper)
+            if (crossedUpperBand && rsiResult[i].Rsi > rsiUpper)
             {
                 lowerHighs = candles[i].Mid_C < latestHigh;
 
@@ -50,10 +50,10 @@ public static partial class Indicator
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
                 var candle when crossedLowerBand && higherLows &&
-                                rsiResult[i].Rsi <= rsiLower &&
+                                rsiResult[i].Rsi < rsiLower &&
                                 candle.Spread <= maxSpread => Signal.Buy,
                 var candle when crossedUpperBand && lowerHighs &&
-                                rsiResult[i].Rsi >= rsiUpper &&
+                                rsiResult[i].Rsi > rsiUpper &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };

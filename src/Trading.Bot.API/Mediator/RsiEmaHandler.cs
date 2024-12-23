@@ -38,10 +38,8 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
         if (!rsiList.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(request.Download
-            ? Results.File(rsiList.GetZipFromFileData(),
-                "application/octet-stream", "rsi_ema.zip")
-            : Results.Ok(rsiList.Select(l => l.Value)));
+        return Task.FromResult(Results.File(rsiList.GetZipFromFileData(),
+            "application/octet-stream", "rsi_ema.zip"));
     }
 }
 
@@ -50,10 +48,9 @@ public record RsiEmaRequest : IHttpRequest
     public IFormFileCollection Files { get; set; } = new FormFileCollection();
     public int RsiWindow { get; set; }
     public int EmaWindow { get; set; }
-    public int? RsiLimit { get; set; }
+    public double? RsiLimit { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
-    public int? RiskReward { get; set; }
-    public bool Download { get; set; }
+    public double? RiskReward { get; set; }
     public bool ShowTradesOnly { get; set; }
 }

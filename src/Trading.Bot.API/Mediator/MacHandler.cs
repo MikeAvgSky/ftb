@@ -47,10 +47,8 @@ public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IRes
 
         if (!movingAvgCrossList.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(request.Download
-            ? Results.File(movingAvgCrossList.GetZipFromFileData(),
-                "application/octet-stream", "mac.zip")
-            : Results.Ok(movingAvgCrossList.Select(l => l.Value)));
+        return Task.FromResult(Results.File(movingAvgCrossList.GetZipFromFileData(),
+            "application/octet-stream", "mac.zip"));
     }
 }
 
@@ -61,7 +59,6 @@ public record MovingAverageCrossRequest : IHttpRequest
     public string LongWindow { get; set; } = "";
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
-    public int? RiskReward { get; set; }
-    public bool Download { get; set; }
+    public double? RiskReward { get; set; }
     public bool ShowTradesOnly { get; set; }
 }

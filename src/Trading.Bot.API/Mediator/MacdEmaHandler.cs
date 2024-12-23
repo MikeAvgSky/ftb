@@ -49,7 +49,7 @@ public record MacdEmaRequest : IHttpRequest
     public int EmaWindow { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
-    public int? RiskReward { get; set; }
+    public double? RiskReward { get; set; }
     public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }
