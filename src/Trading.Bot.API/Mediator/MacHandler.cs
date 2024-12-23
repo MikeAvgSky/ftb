@@ -41,7 +41,10 @@ public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IRes
                     request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Signal != Signal.None) : movingAvgCross));
 
                 movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
-                    $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}_SIM.csv", tradingSim));
+                    $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}_SIM.csv", tradingSim.Result));
+
+                movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
+                    $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}_Summary.csv", new[] { tradingSim.Summary }));
             }
         }
 

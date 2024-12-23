@@ -31,7 +31,10 @@ public class MacdEmaHandler : IRequestHandler<MacdEmaRequest, IResult>
                 request.ShowTradesOnly ? macdEma.Where(ma => ma.Signal != Signal.None) : macdEma));
 
             macdEmaList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_MACD_EMA_{request.EmaWindow}_SIM.csv", tradingSim));
+                $"{instrument}_{granularity}_MACD_EMA_{request.EmaWindow}_SIM.csv", tradingSim.Result));
+
+            macdEmaList.Add(new FileData<IEnumerable<object>>(
+                $"{instrument}_{granularity}_MACD_EMA_{request.EmaWindow}_Summary.csv", new[] { tradingSim.Summary }));
         }
 
         if (!macdEmaList.Any()) return Task.FromResult(Results.Empty);

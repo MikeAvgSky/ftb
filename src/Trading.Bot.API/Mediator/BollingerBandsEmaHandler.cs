@@ -32,7 +32,10 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
             request.ShowTradesOnly ? bollingerBands.Where(ma => ma.Signal != Signal.None) : bollingerBands));
 
             bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_BB_EMA_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}_SIM.csv", tradingSim));
+                $"{instrument}_{granularity}_BB_EMA_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}_SIM.csv", tradingSim.Result));
+
+            bollingerBandsList.Add(new FileData<IEnumerable<object>>(
+                $"{instrument}_{granularity}_BB_EMA_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}_Summary.csv", new[] { tradingSim.Summary }));
         }
 
         if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);

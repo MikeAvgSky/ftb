@@ -33,7 +33,10 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
                 request.ShowTradesOnly ? rsi.Where(ma => ma.Signal != Signal.None) : rsi));
 
             rsiList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_RSI_{request.RsiWindow}_EMA_{request.EmaWindow}_SIM.csv", tradingSim));
+                $"{instrument}_{granularity}_RSI_{request.RsiWindow}_EMA_{request.EmaWindow}_SIM.csv", tradingSim.Result));
+
+            rsiList.Add(new FileData<IEnumerable<object>>(
+                $"{instrument}_{granularity}_RSI_{request.RsiWindow}_EMA_{request.EmaWindow}_Summary.csv", new[] { tradingSim.Summary }));
         }
 
         if (!rsiList.Any()) return Task.FromResult(Results.Empty);

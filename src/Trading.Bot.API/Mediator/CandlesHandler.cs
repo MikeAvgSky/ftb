@@ -72,10 +72,8 @@ public sealed class CandlesHandler : IRequestHandler<CandlesRequest, IResult>
             }
         });
 
-        return request.Download
-            ? Results.File(candlesBag.GetZipFromFileData(),
-                "application/octet-stream", "candles.zip")
-            : Results.Ok(candlesBag.Select(bag => bag.Value));
+        return Results.File(candlesBag.GetZipFromFileData(),
+            "application/octet-stream", "candles.zip");
     }
 }
 
@@ -87,5 +85,4 @@ public record CandlesRequest : IHttpRequest
     public string FromDate { get; set; } = "";
     public string ToDate { get; set; } = "";
     public string Count { get; set; } = "";
-    public bool Download { get; set; }
 }

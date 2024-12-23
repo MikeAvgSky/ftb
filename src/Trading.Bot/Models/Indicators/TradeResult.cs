@@ -13,7 +13,7 @@ public class TradeResult
     public DateTime EndTime { get; set; }
     public double Result { get; set; }
 
-    public static TradeResult[] SimulateTrade(IndicatorBase[] indicators)
+    public static (TradeResult[] Result, SimulationSummary Summary) SimulateTrade(IndicatorBase[] indicators)
     {
         var length = indicators.Length;
 
@@ -56,7 +56,15 @@ public class TradeResult
             openTrades.RemoveAll(ot => !ot.Running);
         }
 
-        return closedTrades.ToArray();
+        var summary = new SimulationSummary
+        {
+            Trades = closedTrades.Count,
+            Wins = closedTrades.Count(t => t.Result > 0),
+            Losses = closedTrades.Count(t => t.Result < 0),
+            Total = closedTrades.Sum(t => t.Result)
+        };
+
+        return (closedTrades.ToArray(), summary);
     }
 
     private static void UpdateTrade(TradeResult trade, IndicatorBase indicator)
