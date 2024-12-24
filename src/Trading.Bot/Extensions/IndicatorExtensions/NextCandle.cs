@@ -5,9 +5,9 @@ public static partial class Indicator
     public static IndicatorResult[] CalcNextCandle(this Candle[] candles, double maxSpread = 0.0003,
         double minGain = 0.0006, double riskReward = 1)
     {
-        var macd = candles.CalcMacd(21, 50);
+        var bollingerBands = candles.CalcBollingerBands();
 
-        var rsi = candles.CalcRsi(9);
+        var rsi = candles.CalcRsi();
 
         var length = candles.Length;
 
@@ -19,24 +19,39 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            var macdFalling = i != 0 && Math.Round(macd[i].Macd, 5) < Math.Round(macd[i - 1].Macd, 5);
+            var crossedLowerBand = candles[i].Mid_O > bollingerBands[i].LowerBand && candles[i].Mid_C < bollingerBands[i].LowerBand;
 
-            var signalFalling = i != 0 && Math.Round(macd[i].SignalLine, 5) < Math.Round(macd[i - 1].SignalLine, 5);
+            var crossedUpperBand = candles[i].Mid_O < bollingerBands[i].UpperBand && candles[i].Mid_C > bollingerBands[i].UpperBand;
 
-            var macdRising = i != 0 && Math.Round(macd[i].Macd, 5) > Math.Round(macd[i - 1].Macd, 5);
-
-            var signalRising = i != 0 && Math.Round(macd[i].SignalLine, 5) > Math.Round(macd[i - 1].SignalLine, 5);
+            var bandWidth = bollingerBands[i].UpperBand - bollingerBands[i].LowerBand;
 
             result[i].Signal = rsi[i].Rsi switch
             {
-                < 70 when macdRising && signalRising &&
-                          candles[i].Direction == 1 &&
+                < 30 when crossedLowerBand && bandWidth > 0.0015 &&
                           candles[i].Spread <= maxSpread => Signal.Buy,
-                > 30 when macdFalling && signalFalling &&
-                          candles[i].Direction == -1 &&
+                > 70 when crossedUpperBand && bandWidth > 0.0015 &&
                           candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
+
+            //var macdFalling = i != 0 && Math.Round(macd[i].Macd, 5) < Math.Round(macd[i - 1].Macd, 5);
+
+            //var signalFalling = i != 0 && Math.Round(macd[i].SignalLine, 5) < Math.Round(macd[i - 1].SignalLine, 5);
+
+            //var macdRising = i != 0 && Math.Round(macd[i].Macd, 5) > Math.Round(macd[i - 1].Macd, 5);
+
+            //var signalRising = i != 0 && Math.Round(macd[i].SignalLine, 5) > Math.Round(macd[i - 1].SignalLine, 5);
+
+            //result[i].Signal = rsi[i].Rsi switch
+            //{
+            //    < 70 when macdRising && signalRising &&
+            //              candles[i].Direction == 1 &&
+            //              candles[i].Spread <= maxSpread => Signal.Buy,
+            //    > 30 when macdFalling && signalFalling &&
+            //              candles[i].Direction == -1 &&
+            //              candles[i].Spread <= maxSpread => Signal.Sell,
+            //    _ => Signal.None
+            //};
 
             result[i].Gain = minGain;
 

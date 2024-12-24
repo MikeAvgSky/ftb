@@ -60,9 +60,10 @@ public class TradeResult
         {
             Trades = closedTrades.Count,
             Wins = closedTrades.Count(t => t.Result > 0),
-            Losses = closedTrades.Count(t => t.Result < 0),
-            Total = closedTrades.Sum(t => t.Result)
+            Losses = closedTrades.Count(t => t.Result < 0)
         };
+
+        summary.WinRate = Math.Round((double)(100 * summary.Wins) / summary.Trades, 2);
 
         return (closedTrades.ToArray(), summary);
     }
