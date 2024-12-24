@@ -51,6 +51,5 @@ public record MacdEmaRequest : IHttpRequest
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }
-    public bool Download { get; set; }
     public bool ShowTradesOnly { get; set; }
 }
