@@ -2,8 +2,8 @@
 
 public static partial class Indicator
 {
-    public static IndicatorResult[] CalcNextCandle(this Candle[] candles, double maxSpread = 0.0003,
-        double minGain = 0.0006, double riskReward = 1)
+    public static IndicatorResult[] CalcNextCandle(this Candle[] candles, double minWidth = 0.001,
+        double maxSpread = 0.0003, double minGain = 0.0006, double riskReward = 1)
     {
         var bollingerBands = candles.CalcBollingerBands();
 
@@ -27,9 +27,9 @@ public static partial class Indicator
 
             result[i].Signal = rsi[i].Rsi switch
             {
-                < 30 when crossedLowerBand && bandWidth > 0.0015 &&
+                < 30 when crossedLowerBand && bandWidth > minWidth &&
                           candles[i].Spread <= maxSpread => Signal.Buy,
-                > 70 when crossedUpperBand && bandWidth > 0.0015 &&
+                > 70 when crossedUpperBand && bandWidth > minWidth &&
                           candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };

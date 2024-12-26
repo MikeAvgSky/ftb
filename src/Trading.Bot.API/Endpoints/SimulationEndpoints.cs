@@ -5,10 +5,11 @@ public static class SimulationEndpoints
     public static void MapSimulationEndpoints(this IEndpointRouteBuilder builder)
     {
         builder.MapPost("api/simulation/ma_cross", SimulateMovingAverageCross).DisableAntiforgery();
-        builder.MapPost("api/simulation/bb", SimulateBollingerBands).DisableAntiforgery();
+        builder.MapPost("api/simulation/mean_reversion", SimulateBollingerBands).DisableAntiforgery();
         builder.MapPost("api/simulation/rsi_ema", SimulateRsiEma).DisableAntiforgery();
         builder.MapPost("api/simulation/macd_ema", SimulateMacdEma).DisableAntiforgery();
-        builder.MapPost("api/simulation/bb_ema", SimulateBbEma).DisableAntiforgery();
+        builder.MapPost("api/simulation/trend_momentum", SimulateBbEma).DisableAntiforgery();
+        builder.MapPost("api/simulation/next_candle", SimulateNextCandle).DisableAntiforgery();
     }
 
     private static async Task<IResult> SimulateMovingAverageCross(ISender sender,
@@ -65,6 +66,19 @@ public static class SimulationEndpoints
 
     private static async Task<IResult> SimulateBbEma(ISender sender,
         [AsParameters] BollingerBandsEmaRequest request)
+    {
+        try
+        {
+            return await sender.Send(request);
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
+
+    private static async Task<IResult> SimulateNextCandle(ISender sender,
+        [AsParameters] NextCandleRequest request)
     {
         try
         {

@@ -69,9 +69,7 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        await CloseWinningTrades(settings);
-
-        var calcResult = candles.CalcNextCandle(settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
+        var calcResult = candles.CalcNextCandle(settings.Doubles[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None)
         {
@@ -80,16 +78,6 @@ public class TradeManager : BackgroundService
         }
 
         _logger.LogInformation("Not placing a trade for {Instrument} based on the indicator", settings.Instrument);
-    }
-
-    private async Task CloseWinningTrades(TradeSettings settings)
-    {
-        var openTrade = (await _apiService.GetOpenTrades()).FirstOrDefault(ot => ot.Instrument == settings.Instrument);
-
-        if (openTrade is not null && openTrade.UnrealizedPL > 0)
-        {
-            await _apiService.CloseTrade(openTrade.Id);
-        }
     }
 
     private static bool GoodTradingTime()

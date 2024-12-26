@@ -1,6 +1,6 @@
 ﻿namespace Trading.Bot.API.Mediator;
 
-public sealed class MacHandler : IRequestHandler<MovingAverageCrossRequest, IResult>
+public sealed class MaCrossHandler : IRequestHandler<MovingAverageCrossRequest, IResult>
 {
     public Task<IResult> Handle(MovingAverageCrossRequest request, CancellationToken cancellationToken)
     {
