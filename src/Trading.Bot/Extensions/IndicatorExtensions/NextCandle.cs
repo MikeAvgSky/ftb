@@ -5,9 +5,9 @@ public static partial class Indicator
     public static IndicatorResult[] CalcNextCandle(this Candle[] candles, double minWidth = 0.001,
         double maxSpread = 0.0003, double minGain = 0.0006, double riskReward = 1)
     {
-        var bollingerBands = candles.CalcBollingerBands();
+        var keltnerChannels = candles.CalcKeltnerChannels();
 
-        var rsi = candles.CalcRsi();
+        var rsi = candles.CalcRsi(12);
 
         var length = candles.Length;
 
@@ -19,11 +19,11 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            var crossedLowerBand = candles[i].Mid_O > bollingerBands[i].LowerBand && candles[i].Mid_C < bollingerBands[i].LowerBand;
+            var crossedLowerBand = candles[i].Mid_O > keltnerChannels[i].LowerBand && candles[i].Mid_C < keltnerChannels[i].LowerBand;
 
-            var crossedUpperBand = candles[i].Mid_O < bollingerBands[i].UpperBand && candles[i].Mid_C > bollingerBands[i].UpperBand;
+            var crossedUpperBand = candles[i].Mid_O < keltnerChannels[i].UpperBand && candles[i].Mid_C > keltnerChannels[i].UpperBand;
 
-            var bandWidth = bollingerBands[i].UpperBand - bollingerBands[i].LowerBand;
+            var bandWidth = keltnerChannels[i].UpperBand - keltnerChannels[i].LowerBand;
 
             result[i].Signal = rsi[i].Rsi switch
             {
