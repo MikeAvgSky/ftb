@@ -7,7 +7,7 @@ public static partial class Indicator
     {
         var keltnerChannels = candles.CalcKeltnerChannels();
 
-        var rsi = candles.CalcRsi(12);
+        var rsi = candles.CalcRsi();
 
         var length = candles.Length;
 
