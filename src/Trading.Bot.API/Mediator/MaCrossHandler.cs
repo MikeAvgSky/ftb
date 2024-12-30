@@ -12,6 +12,8 @@ public sealed class MaCrossHandler : IRequestHandler<MovingAverageCrossRequest, 
 
         var riskReward = request.RiskReward ?? 1;
 
+        var tradeRisk = request.TradeRisk ?? 10;
+
         foreach (var file in request.Files)
         {
             var candles = file.GetObjectFromCsv<Candle>();
@@ -34,24 +36,24 @@ public sealed class MaCrossHandler : IRequestHandler<MovingAverageCrossRequest, 
             {
                 var movingAvgCross = candles.CalcMaCross(window.Item1, window.Item2, maxSpread, minGain, riskReward);
 
-                var tradingSim = TradeResult.SimulateTrade(movingAvgCross.Cast<IndicatorBase>().ToArray());
+                var tradingSim = TradeResult.SimulateTrade(movingAvgCross.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
 
                 movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
-                    $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}.csv",
-                    request.ShowTradesOnly ? movingAvgCross.Where(ma => ma.Signal != Signal.None) : movingAvgCross));
+                    $"{instrument}_{granularity}_MaCross_{window.Item1}_{window.Item2}.csv",
+                    movingAvgCross.Where(ma => ma.Signal != Signal.None)));
 
                 movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
-                    $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}_SIM.csv", tradingSim.Result));
+                    $"{instrument}_{granularity}_MaCross_{window.Item1}_{window.Item2}_Simulation.csv", tradingSim.Result));
 
                 movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
-                    $"{instrument}_{granularity}_MA_{window.Item1}_{window.Item2}_Summary.csv", new[] { tradingSim.Summary }));
+                    $"{instrument}_{granularity}_MaCross_{window.Item1}_{window.Item2}_Summary.csv", new[] { tradingSim.Summary }));
             }
         }
 
         if (!movingAvgCrossList.Any()) return Task.FromResult(Results.Empty);
 
         return Task.FromResult(Results.File(movingAvgCrossList.GetZipFromFileData(),
-            "application/octet-stream", "mac.zip"));
+            "application/octet-stream", "MaCross.zip"));
     }
 }
 
@@ -63,5 +65,5 @@ public record MovingAverageCrossRequest : IHttpRequest
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }
-    public bool ShowTradesOnly { get; set; }
+    public int? TradeRisk { get; set; }
 }

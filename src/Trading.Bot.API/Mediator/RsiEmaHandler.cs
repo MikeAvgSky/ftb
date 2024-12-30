@@ -14,6 +14,8 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
         var riskReward = request.RiskReward ?? 1;
 
+        var tradeRisk = request.TradeRisk ?? 10;
+
         foreach (var file in request.Files)
         {
             var candles = file.GetObjectFromCsv<Candle>();
@@ -26,23 +28,23 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
             var rsi = candles.CalcRsiEma(request.RsiWindow, request.EmaWindow, rsiLimit, maxSpread, minGain, riskReward);
 
-            var tradingSim = TradeResult.SimulateTrade(rsi.Cast<IndicatorBase>().ToArray());
+            var tradingSim = TradeResult.SimulateTrade(rsi.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
 
             rsiList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_RSI_{request.RsiWindow}_EMA_{request.EmaWindow}.csv",
-                request.ShowTradesOnly ? rsi.Where(ma => ma.Signal != Signal.None) : rsi));
+                $"{instrument}_{granularity}_RsiEma_{request.RsiWindow}_{request.EmaWindow}.csv",
+                rsi.Where(ma => ma.Signal != Signal.None)));
 
             rsiList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_RSI_{request.RsiWindow}_EMA_{request.EmaWindow}_SIM.csv", tradingSim.Result));
+                $"{instrument}_{granularity}_RsiEma_{request.RsiWindow}_{request.EmaWindow}_Simulation.csv", tradingSim.Result));
 
             rsiList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_RSI_{request.RsiWindow}_EMA_{request.EmaWindow}_Summary.csv", new[] { tradingSim.Summary }));
+                $"{instrument}_{granularity}_RsiEma_{request.RsiWindow}_{request.EmaWindow}_Summary.csv", new[] { tradingSim.Summary }));
         }
 
         if (!rsiList.Any()) return Task.FromResult(Results.Empty);
 
         return Task.FromResult(Results.File(rsiList.GetZipFromFileData(),
-            "application/octet-stream", "rsi_ema.zip"));
+            "application/octet-stream", "RsiEma.zip"));
     }
 }
 
@@ -55,5 +57,5 @@ public record RsiEmaRequest : IHttpRequest
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }
-    public bool ShowTradesOnly { get; set; }
+    public int? TradeRisk { get; set; }
 }

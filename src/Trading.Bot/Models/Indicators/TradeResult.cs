@@ -13,7 +13,7 @@ public class TradeResult
     public DateTime EndTime { get; set; }
     public double Result { get; set; }
 
-    public static (TradeResult[] Result, SimulationSummary Summary) SimulateTrade(IndicatorBase[] indicators)
+    public static (TradeResult[] Result, SimulationSummary Summary) SimulateTrade(IndicatorBase[] indicators, int tradeRisk, double riskReward)
     {
         var length = indicators.Length;
 
@@ -64,6 +64,8 @@ public class TradeResult
         };
 
         summary.WinRate = Math.Round((double)summary.Wins * 100 / summary.Trades, 2);
+
+        summary.Winnings = Math.Round(summary.Wins * (tradeRisk * riskReward) - summary.Losses * tradeRisk, 2);
 
         return (closedTrades.ToArray(), summary);
     }

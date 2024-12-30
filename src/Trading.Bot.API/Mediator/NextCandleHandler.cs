@@ -12,6 +12,8 @@ public class NextCandleHandler : IRequestHandler<NextCandleRequest, IResult>
 
         var riskReward = request.RiskReward ?? 1;
 
+        var tradeRisk = request.TradeRisk ?? 10;
+
         foreach (var file in request.Files)
         {
             var candles = file.GetObjectFromCsv<Candle>();
@@ -24,17 +26,17 @@ public class NextCandleHandler : IRequestHandler<NextCandleRequest, IResult>
 
             var macdEma = candles.CalcNextCandle(0.001, maxSpread, minGain, riskReward);
 
-            var tradingSim = TradeResult.SimulateTrade(macdEma.Cast<IndicatorBase>().ToArray());
+            var tradingSim = TradeResult.SimulateTrade(macdEma.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
 
             macdEmaList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_NEXT_CANDLE.csv",
-                request.ShowTradesOnly ? macdEma.Where(ma => ma.Signal != Signal.None) : macdEma));
+                $"{instrument}_{granularity}_NextCandle.csv",
+                macdEma.Where(ma => ma.Signal != Signal.None)));
 
             macdEmaList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_NEXT_CANDLE_SIM.csv", tradingSim.Result));
+                $"{instrument}_{granularity}_NextCandle_Simulation.csv", tradingSim.Result));
 
             macdEmaList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_NEXT_CANDLE_Summary.csv", new[] { tradingSim.Summary }));
+                $"{instrument}_{granularity}_NextCandle_Summary.csv", new[] { tradingSim.Summary }));
         }
 
         if (!macdEmaList.Any()) return Task.FromResult(Results.Empty);
@@ -50,5 +52,5 @@ public record NextCandleRequest : IHttpRequest
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }
-    public bool ShowTradesOnly { get; set; }
+    public int? TradeRisk { get; set; }
 }
