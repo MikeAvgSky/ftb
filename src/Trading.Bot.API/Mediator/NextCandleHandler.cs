@@ -6,6 +6,8 @@ public class NextCandleHandler : IRequestHandler<NextCandleRequest, IResult>
     {
         var macdEmaList = new List<FileData<IEnumerable<object>>>();
 
+        var minWidth = request.MinWidth ?? 0.001;
+
         var maxSpread = request.MaxSpread ?? 0.0004;
 
         var minGain = request.MinGain ?? 0.0006;
@@ -24,7 +26,7 @@ public class NextCandleHandler : IRequestHandler<NextCandleRequest, IResult>
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var macdEma = candles.CalcNextCandle(0.001, maxSpread, minGain, riskReward);
+            var macdEma = candles.CalcNextCandle(minWidth, maxSpread, minGain, riskReward);
 
             var tradingSim = TradeResult.SimulateTrade(macdEma.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
 
@@ -49,6 +51,7 @@ public class NextCandleHandler : IRequestHandler<NextCandleRequest, IResult>
 public record NextCandleRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; } = new FormFileCollection();
+    public double? MinWidth { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }
