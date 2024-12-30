@@ -8,7 +8,7 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
         var rsiLimit = request.RsiLimit ?? 50;
 
-        var maxSpread = request.MaxSpread ?? 0.0004;
+        var maxSpread = request.MaxSpread ?? 0.0003;
 
         var minGain = request.MinGain ?? 0.0006;
 

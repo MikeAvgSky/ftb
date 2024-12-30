@@ -44,7 +44,7 @@ public class NextCandleHandler : IRequestHandler<NextCandleRequest, IResult>
         if (!macdEmaList.Any()) return Task.FromResult(Results.Empty);
 
         return Task.FromResult(Results.File(macdEmaList.GetZipFromFileData(),
-            "application/octet-stream", "next_candle.zip"));
+            "application/octet-stream", "NextCandle.zip"));
     }
 }
 

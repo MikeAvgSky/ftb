@@ -6,7 +6,7 @@ public sealed class MaCrossHandler : IRequestHandler<MovingAverageCrossRequest, 
     {
         var movingAvgCrossList = new List<FileData<IEnumerable<object>>>();
 
-        var maxSpread = request.MaxSpread ?? 0.0004;
+        var maxSpread = request.MaxSpread ?? 0.0003;
 
         var minGain = request.MinGain ?? 0.0006;
 
