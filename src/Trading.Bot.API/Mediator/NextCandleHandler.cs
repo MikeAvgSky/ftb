@@ -4,11 +4,11 @@ public class NextCandleHandler : IRequestHandler<NextCandleRequest, IResult>
 {
     public Task<IResult> Handle(NextCandleRequest request, CancellationToken cancellationToken)
     {
-        var macdEmaList = new List<FileData<IEnumerable<object>>>();
+        var fileData = new List<FileData<IEnumerable<object>>>();
 
         var minWidth = request.MinWidth ?? 0.001;
 
-        var maxSpread = request.MaxSpread ?? 0.0004;
+        var maxSpread = request.MaxSpread ?? 0.0003;
 
         var minGain = request.MinGain ?? 0.0006;
 
@@ -26,24 +26,16 @@ public class NextCandleHandler : IRequestHandler<NextCandleRequest, IResult>
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var macdEma = candles.CalcNextCandle(minWidth, maxSpread, minGain, riskReward);
+            var nextCandle = candles.CalcNextCandle(minWidth, maxSpread, minGain, riskReward);
 
-            var tradingSim = TradeResult.SimulateTrade(macdEma.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
+            var fileName = $"NextCandle_{instrument}_{granularity}";
 
-            macdEmaList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_NextCandle.csv",
-                macdEma.Where(ma => ma.Signal != Signal.None)));
-
-            macdEmaList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_NextCandle_Simulation.csv", tradingSim.Result));
-
-            macdEmaList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_NextCandle_Summary.csv", new[] { tradingSim.Summary }));
+            fileData.AddRange(nextCandle.GetFileData(fileName, tradeRisk, riskReward));
         }
 
-        if (!macdEmaList.Any()) return Task.FromResult(Results.Empty);
+        if (!fileData.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(Results.File(macdEmaList.GetZipFromFileData(),
+        return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
             "application/octet-stream", "NextCandle.zip"));
     }
 }

@@ -4,7 +4,7 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 {
     public Task<IResult> Handle(RsiEmaRequest request, CancellationToken cancellationToken)
     {
-        var rsiList = new List<FileData<IEnumerable<object>>>();
+        var fileData = new List<FileData<IEnumerable<object>>>();
 
         var rsiLimit = request.RsiLimit ?? 50;
 
@@ -28,22 +28,14 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
             var rsi = candles.CalcRsiEma(request.RsiWindow, request.EmaWindow, rsiLimit, maxSpread, minGain, riskReward);
 
-            var tradingSim = TradeResult.SimulateTrade(rsi.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
+            var fileName = $"RsiEma_{instrument}_{granularity}_{request.RsiWindow}_{request.EmaWindow}";
 
-            rsiList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_RsiEma_{request.RsiWindow}_{request.EmaWindow}.csv",
-                rsi.Where(ma => ma.Signal != Signal.None)));
-
-            rsiList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_RsiEma_{request.RsiWindow}_{request.EmaWindow}_Simulation.csv", tradingSim.Result));
-
-            rsiList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_RsiEma_{request.RsiWindow}_{request.EmaWindow}_Summary.csv", new[] { tradingSim.Summary }));
+            fileData.AddRange(rsi.GetFileData(fileName, tradeRisk, riskReward));
         }
 
-        if (!rsiList.Any()) return Task.FromResult(Results.Empty);
+        if (!fileData.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(Results.File(rsiList.GetZipFromFileData(),
+        return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
             "application/octet-stream", "RsiEma.zip"));
     }
 }

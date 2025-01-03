@@ -4,7 +4,7 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
 {
     public Task<IResult> Handle(BollingerBandsEmaRequest request, CancellationToken cancellationToken)
     {
-        var bollingerBandsList = new List<FileData<IEnumerable<object>>>();
+        var fileData = new List<FileData<IEnumerable<object>>>();
 
         var maxSpread = request.MaxSpread ?? 0.0003;
 
@@ -27,22 +27,14 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
             var bollingerBands = candles.CalcTrendMomentum(request.Window, request.EmaWindow,
                 request.StandardDeviation, maxSpread, minGain, riskReward);
 
-            var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
+            var fileName = $"TrendMomentum_{instrument}_{granularity}_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}";
 
-            bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-            $"{instrument}_{granularity}_TrendMomentum_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}.csv",
-            bollingerBands.Where(ma => ma.Signal != Signal.None)));
-
-            bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_TrendMomentum_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}_Simulation.csv", tradingSim.Result));
-
-            bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_TrendMomentum_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}_Summary.csv", new[] { tradingSim.Summary }));
+            fileData.AddRange(bollingerBands.GetFileData(fileName, tradeRisk, riskReward));
         }
 
-        if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);
+        if (!fileData.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(Results.File(bollingerBandsList.GetZipFromFileData(),
+        return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
             "application/octet-stream", "TrendMomentum.zip"));
     }
 }

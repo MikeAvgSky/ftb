@@ -4,11 +4,11 @@ public class MacdEmaHandler : IRequestHandler<MacdEmaRequest, IResult>
 {
     public Task<IResult> Handle(MacdEmaRequest request, CancellationToken cancellationToken)
     {
-        var macdEmaList = new List<FileData<IEnumerable<object>>>();
+        var fileData = new List<FileData<IEnumerable<object>>>();
 
         var maxSpread = request.MaxSpread ?? 0.0003;
 
-        var minGain = request.MinGain ?? 0.002;
+        var minGain = request.MinGain ?? 0.0006;
 
         var riskReward = request.RiskReward ?? 1;
 
@@ -26,22 +26,14 @@ public class MacdEmaHandler : IRequestHandler<MacdEmaRequest, IResult>
 
             var macdEma = candles.CalcMacdEma(request.EmaWindow, maxSpread, minGain, riskReward);
 
-            var tradingSim = TradeResult.SimulateTrade(macdEma.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
+            var fileName = $"MacdEma_{instrument}_{granularity}_{request.EmaWindow}";
 
-            macdEmaList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_MacdEma_{request.EmaWindow}.csv",
-                macdEma.Where(ma => ma.Signal != Signal.None)));
-
-            macdEmaList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_MacdEma_{request.EmaWindow}_Simulation.csv", tradingSim.Result));
-
-            macdEmaList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_MacdEma_{request.EmaWindow}_Summary.csv", new[] { tradingSim.Summary }));
+            fileData.AddRange(macdEma.GetFileData(fileName, tradeRisk, riskReward));
         }
 
-        if (!macdEmaList.Any()) return Task.FromResult(Results.Empty);
+        if (!fileData.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(Results.File(macdEmaList.GetZipFromFileData(),
+        return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
             "application/octet-stream", "MacdEma.zip"));
     }
 }

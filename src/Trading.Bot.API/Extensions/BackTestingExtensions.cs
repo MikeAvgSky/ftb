@@ -1,9 +1,4 @@
-﻿using CsvHelper;
-using CsvHelper.TypeConversion;
-using System.Globalization;
-using System.IO.Compression;
-
-namespace Trading.Bot.API.Extensions;
+﻿namespace Trading.Bot.API.Extensions;
 
 public static class BackTestingExtensions
 {
@@ -89,6 +84,24 @@ public static class BackTestingExtensions
         }
 
         return memoryStream.ToArray();
+    }
+
+    public static IEnumerable<FileData<IEnumerable<object>>> GetFileData(this IndicatorResult[] indicator, string fileName, int tradeRisk, double riskReward)
+    {
+        var fileData = new List<FileData<IEnumerable<object>>>();
+
+        var tradingSim = TradeResult.SimulateTrade(indicator.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
+
+        fileData.Add(new FileData<IEnumerable<object>>(
+            $"{fileName}.csv", indicator.Where(ma => ma.Signal != Signal.None)));
+
+        fileData.Add(new FileData<IEnumerable<object>>(
+            $"{fileName}_Simulation.csv", tradingSim.Result));
+
+        fileData.Add(new FileData<IEnumerable<object>>(
+            $"{fileName}_Summary.csv", new[] { tradingSim.Summary }));
+
+        return fileData;
     }
 
     public static byte[] GetZipFromFileData<T>(this IEnumerable<FileData<IEnumerable<T>>> files)

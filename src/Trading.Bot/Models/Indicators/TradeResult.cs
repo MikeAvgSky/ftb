@@ -42,6 +42,8 @@ public class TradeResult
                     EndTime = indicators[i].Candle.Time,
                     Result = 0.0
                 });
+
+                continue;
             }
 
             foreach (var trade in openTrades)
@@ -77,7 +79,6 @@ public class TradeResult
     {
         if (trade.Signal == Signal.Buy)
         {
-
             if (indicator.Candle.Bid_H >= trade.TakeProfit && indicator.Candle.Bid_L > trade.StopLoss)
             {
                 CloseTrade(trade, 1, indicator.Candle.Time, indicator.Candle.Bid_H);

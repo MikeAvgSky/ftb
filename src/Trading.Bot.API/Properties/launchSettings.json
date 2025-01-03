@@ -3,10 +3,12 @@
     "Trading.Bot.API": {
       "commandName": "Project",
       "launchBrowser": true,
+      "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:56543;http://localhost:56544"
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5003"
     }
   }
 }

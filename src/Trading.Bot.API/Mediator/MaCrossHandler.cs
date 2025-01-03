@@ -4,7 +4,7 @@ public sealed class MaCrossHandler : IRequestHandler<MovingAverageCrossRequest, 
 {
     public Task<IResult> Handle(MovingAverageCrossRequest request, CancellationToken cancellationToken)
     {
-        var movingAvgCrossList = new List<FileData<IEnumerable<object>>>();
+        var fileData = new List<FileData<IEnumerable<object>>>();
 
         var maxSpread = request.MaxSpread ?? 0.0003;
 
@@ -24,11 +24,9 @@ public sealed class MaCrossHandler : IRequestHandler<MovingAverageCrossRequest, 
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var maShortList = request.ShortWindow?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
-                              ?? new[] { 10 };
+            var maShortList = request.ShortWindow?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse) ?? new[] { 10 };
 
-            var maLongList = request.LongWindow?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
-                             ?? new[] { 20 };
+            var maLongList = request.LongWindow?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse) ?? new[] { 20 };
 
             var mergedWindows = maShortList.Concat(maLongList).GetAllWindowCombinations().Distinct();
 
@@ -36,23 +34,15 @@ public sealed class MaCrossHandler : IRequestHandler<MovingAverageCrossRequest, 
             {
                 var movingAvgCross = candles.CalcMaCross(window.Item1, window.Item2, maxSpread, minGain, riskReward);
 
-                var tradingSim = TradeResult.SimulateTrade(movingAvgCross.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
+                var fileName = $"MaCross_{instrument}_{granularity}_{window.Item1}_{window.Item2}";
 
-                movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
-                    $"{instrument}_{granularity}_MaCross_{window.Item1}_{window.Item2}.csv",
-                    movingAvgCross.Where(ma => ma.Signal != Signal.None)));
-
-                movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
-                    $"{instrument}_{granularity}_MaCross_{window.Item1}_{window.Item2}_Simulation.csv", tradingSim.Result));
-
-                movingAvgCrossList.Add(new FileData<IEnumerable<object>>(
-                    $"{instrument}_{granularity}_MaCross_{window.Item1}_{window.Item2}_Summary.csv", new[] { tradingSim.Summary }));
+                fileData.AddRange(movingAvgCross.Cast<IndicatorResult>().ToArray().GetFileData(fileName, tradeRisk, riskReward));
             }
         }
 
-        if (!movingAvgCrossList.Any()) return Task.FromResult(Results.Empty);
+        if (!fileData.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(Results.File(movingAvgCrossList.GetZipFromFileData(),
+        return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
             "application/octet-stream", "MaCross.zip"));
     }
 }

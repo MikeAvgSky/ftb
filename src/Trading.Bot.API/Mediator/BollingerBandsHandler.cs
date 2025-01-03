@@ -4,11 +4,11 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
 {
     public Task<IResult> Handle(BollingerBandsRequest request, CancellationToken cancellationToken)
     {
-        var bollingerBandsList = new List<FileData<IEnumerable<object>>>();
+        var fileData = new List<FileData<IEnumerable<object>>>();
 
         var maxSpread = request.MaxSpread ?? 0.0003;
 
-        var minGain = request.MinGain ?? 0.002;
+        var minGain = request.MinGain ?? 0.0006;
 
         var riskReward = request.RiskReward ?? 1;
 
@@ -27,22 +27,14 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
             var bollingerBands = candles.CalcMeanReversion(request.Window, request.StandardDeviation,
                 30, 70, maxSpread, minGain, riskReward);
 
-            var tradingSim = TradeResult.SimulateTrade(bollingerBands.Cast<IndicatorBase>().ToArray(), tradeRisk, riskReward);
+            var fileName = $"MeanReversion_{instrument}_{granularity}_{request.Window}_{request.StandardDeviation}";
 
-            bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-            $"{instrument}_{granularity}_MeanReversion_{request.Window}_{request.StandardDeviation}_{request.MinGain}.csv",
-            bollingerBands.Where(ma => ma.Signal != Signal.None)));
-
-            bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_MeanReversion_{request.Window}_{request.StandardDeviation}_{request.MinGain}_Simulation.csv", tradingSim.Result));
-
-            bollingerBandsList.Add(new FileData<IEnumerable<object>>(
-                $"{instrument}_{granularity}_MeanReversion_{request.Window}_{request.StandardDeviation}_Summary.csv", new[] { tradingSim.Summary }));
+            fileData.AddRange(bollingerBands.GetFileData(fileName, tradeRisk, riskReward));
         }
 
-        if (!bollingerBandsList.Any()) return Task.FromResult(Results.Empty);
+        if (!fileData.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(Results.File(bollingerBandsList.GetZipFromFileData(),
+        return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
             "application/octet-stream", "_MeanReversion_.zip"));
     }
 }

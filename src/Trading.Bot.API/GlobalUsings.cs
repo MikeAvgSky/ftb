@@ -1,7 +1,11 @@
-﻿global using MediatR;
+﻿global using CsvHelper;
+global using CsvHelper.TypeConversion;
+global using MediatR;
 global using Microsoft.AspNetCore.Http.Features;
 global using Microsoft.AspNetCore.Server.Kestrel.Core;
 global using System.Collections.Concurrent;
+global using System.Globalization;
+global using System.IO.Compression;
 global using Trading.Bot.API.Endpoints;
 global using Trading.Bot.API.Extensions;
 global using Trading.Bot.API.Interfaces;
