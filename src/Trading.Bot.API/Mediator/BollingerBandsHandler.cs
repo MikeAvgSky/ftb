@@ -6,9 +6,13 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
     {
         var fileData = new List<FileData<IEnumerable<object>>>();
 
+        var rsiLow = request.RsiLow ?? 30;
+
+        var rsiHigh = request.RsiHigh ?? 70;
+
         var maxSpread = request.MaxSpread ?? 0.0003;
 
-        var minGain = request.MinGain ?? 0.0006;
+        var minGain = request.MinGain ?? 0;
 
         var riskReward = request.RiskReward ?? 1;
 
@@ -25,7 +29,7 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
             var bollingerBands = candles.CalcMeanReversion(request.Window, request.StandardDeviation,
-                30, 70, maxSpread, minGain, riskReward);
+                rsiLow, rsiHigh, maxSpread, minGain, riskReward);
 
             var fileName = $"MeanReversion_{instrument}_{granularity}_{request.Window}_{request.StandardDeviation}";
 
@@ -44,6 +48,8 @@ public record BollingerBandsRequest : IHttpRequest
     public IFormFileCollection Files { get; set; } = new FormFileCollection();
     public int Window { get; set; }
     public double StandardDeviation { get; set; }
+    public double? RsiLow { get; set; }
+    public double? RsiHigh { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }

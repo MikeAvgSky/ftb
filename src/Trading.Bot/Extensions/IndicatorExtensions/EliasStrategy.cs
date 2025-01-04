@@ -29,10 +29,10 @@ public static partial class Indicator
 
             result[i].Signal = macDelta switch
             {
-                > 0 when macd[i].Macd > 0 &&
+                > 0 when macd[i].Macd > 0 && candles[i].Direction == -1 &&
                          shortEma[i] > medEma[i] &&
                          medEma[i] > longSma[i] => Signal.Buy,
-                < 0 when macd[i].Macd < 0 &&
+                < 0 when macd[i].Macd < 0 && candles[i].Direction == 1 &&
                          shortEma[i] < medEma[i] &&
                          medEma[i] < longSma[i] => Signal.Sell,
                 _ => Signal.None

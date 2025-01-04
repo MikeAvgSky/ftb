@@ -6,9 +6,13 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
     {
         var fileData = new List<FileData<IEnumerable<object>>>();
 
+        var rsiLow = request.RsiLow ?? 30;
+
+        var rsiHigh = request.RsiHigh ?? 70;
+
         var maxSpread = request.MaxSpread ?? 0.0003;
 
-        var minGain = request.MinGain ?? 0.002;
+        var minGain = request.MinGain ?? 0;
 
         var riskReward = request.RiskReward ?? 1;
 
@@ -25,7 +29,7 @@ public class BollingerBandsEmaHandler : IRequestHandler<BollingerBandsEmaRequest
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
             var bollingerBands = candles.CalcTrendMomentum(request.Window, request.EmaWindow,
-                request.StandardDeviation, maxSpread, minGain, riskReward);
+                request.StandardDeviation, rsiLow, rsiHigh, maxSpread, minGain, riskReward);
 
             var fileName = $"TrendMomentum_{instrument}_{granularity}_{request.Window}_{request.EmaWindow}_{request.StandardDeviation}";
 
@@ -45,6 +49,8 @@ public record BollingerBandsEmaRequest : IHttpRequest
     public int Window { get; set; }
     public int EmaWindow { get; set; }
     public double StandardDeviation { get; set; }
+    public double? RsiLow { get; set; }
+    public double? RsiHigh { get; set; }
     public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }
