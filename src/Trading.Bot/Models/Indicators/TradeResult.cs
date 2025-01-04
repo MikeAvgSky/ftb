@@ -60,15 +60,22 @@ public class TradeResult
 
         var summary = new SimulationSummary
         {
+            Days = indicators.Last().Candle.Time.Subtract(indicators.First().Candle.Time).Days,
             Candles = indicators.Length,
             Trades = closedTrades.Count,
             Wins = closedTrades.Count(t => t.Result > 0),
+            WinsBuy = closedTrades.Count(t => t.Result > 0 && t.Signal == Signal.Buy),
+            WinsSell = closedTrades.Count(t => t.Result > 0 && t.Signal == Signal.Sell),
             Losses = closedTrades.Count(t => t.Result < 0),
-            Unknowns = closedTrades.Count(t => t.Result == 0),
+            LossesBuy = closedTrades.Count(t => t.Result < 0 && t.Signal == Signal.Buy),
+            LossesSell = closedTrades.Count(t => t.Result < 0 && t.Signal == Signal.Sell),
+            Unknown = closedTrades.Count(t => t.Result == 0),
+            UnknownBuy = closedTrades.Count(t => t.Result == 0 && t.Signal == Signal.Buy),
+            UnknownSell = closedTrades.Count(t => t.Result == 0 && t.Signal == Signal.Sell),
             TradeRisk = tradeRisk
         };
 
-        summary.WinRate = Math.Round((double)summary.Wins * 100 / summary.Trades, 2);
+        summary.WinRate = Math.Round((double)summary.Wins * 100 / (summary.Trades - summary.Unknown), 2);
 
         summary.Winnings = Math.Round(summary.Wins * (tradeRisk * riskReward) - summary.Losses * tradeRisk, 2);
 

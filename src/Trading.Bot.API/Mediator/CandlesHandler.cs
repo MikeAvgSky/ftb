@@ -73,7 +73,7 @@ public sealed class CandlesHandler : IRequestHandler<CandlesRequest, IResult>
         });
 
         return Results.File(candlesBag.GetZipFromFileData(),
-            "application/octet-stream", "candles.zip");
+            "application/octet-stream", $"{request.Currencies}_{request.Granularity}_candles.zip");
     }
 }
 
