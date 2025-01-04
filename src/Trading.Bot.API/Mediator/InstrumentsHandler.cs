@@ -23,7 +23,7 @@ public sealed class InstrumentsHandler : IRequestHandler<InstrumentsRequest, IRe
 
         return request.Download
             ? Results.File(instrumentList.GetCsvBytes(),
-                "text/csv", "instruments.csv")
+                "text/csv", $"{request.Instruments}_Instruments.csv")
             : Results.Ok(instrumentList);
     }
 }

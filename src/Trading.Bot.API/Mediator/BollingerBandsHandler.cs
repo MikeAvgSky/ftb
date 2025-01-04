@@ -35,7 +35,7 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
         if (!fileData.Any()) return Task.FromResult(Results.Empty);
 
         return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
-            "application/octet-stream", "_MeanReversion_.zip"));
+            "application/octet-stream", "MeanReversion.zip"));
     }
 }
 
