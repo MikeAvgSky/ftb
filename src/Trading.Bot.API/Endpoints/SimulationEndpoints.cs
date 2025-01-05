@@ -9,7 +9,7 @@ public static class SimulationEndpoints
         builder.MapPost("api/simulation/rsi_ema", SimulateRsiEma).DisableAntiforgery();
         builder.MapPost("api/simulation/macd_ema", SimulateMacdEma).DisableAntiforgery();
         builder.MapPost("api/simulation/trend_momentum", SimulateBbEma).DisableAntiforgery();
-        builder.MapPost("api/simulation/next_candle", SimulateNextCandle).DisableAntiforgery();
+        builder.MapPost("api/simulation/mike_strategy", SimulateMikeStrategy).DisableAntiforgery();
         builder.MapPost("api/simulation/elias_strategy", SimulateEliasStrategy).DisableAntiforgery();
     }
 
@@ -78,8 +78,8 @@ public static class SimulationEndpoints
         }
     }
 
-    private static async Task<IResult> SimulateNextCandle(ISender sender,
-        [AsParameters] NextCandleRequest request)
+    private static async Task<IResult> SimulateMikeStrategy(ISender sender,
+        [AsParameters] MikeStrategyRequest request)
     {
         try
         {

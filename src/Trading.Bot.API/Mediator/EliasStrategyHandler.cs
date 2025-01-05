@@ -21,17 +21,17 @@ public class EliasStrategyHandler : IRequestHandler<EliasStrategyRequest, IResul
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
             var macdEma = candles.CalcEliasStrategy(request.ShortWindow, request.MediumWindow, request.LongWindow,
-                request.RiskReward ?? 1, request.StopLoss ?? 0);
+                request.Macd ?? 12, request.SignalLine ?? 26, request.RiskReward ?? 1, request.StopLoss ?? 0, request.MaxSpread);
 
-            var fileName = $"Elias_{instrument}_{granularity}";
+            var fileName = $"EliasStrategy_{instrument}_{granularity}";
 
             fileData.AddRange(macdEma.GetFileData(fileName, tradeRisk, riskReward));
         }
 
         if (!fileData.Any()) return Task.FromResult(Results.Empty);
 
-        return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
-            "application/octet-stream", "Elias_Strategy.zip"));
+        return Task.FromResult(Results.File(fileData.GetZipFromFileData(), "application/octet-stream",
+            "Elias_Strategy.zip"));
     }
 }
 
@@ -41,6 +41,9 @@ public record EliasStrategyRequest : IHttpRequest
     public int ShortWindow { get; set; }
     public int MediumWindow { get; set; }
     public int LongWindow { get; set; }
+    public double MaxSpread { get; set; }
+    public int? Macd { get; set; }
+    public int? SignalLine { get; set; }
     public double? RiskReward { get; set; }
     public double? StopLoss { get; set; }
     public int? TradeRisk { get; set; }

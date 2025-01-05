@@ -3,9 +3,10 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcEliasStrategy(this Candle[] candles, int emaShort = 8,
-        int emaMedium = 21, int smaLong = 50, double riskReward = 1, double gain = 0)
+        int emaMedium = 21, int smaLong = 50, int macdShort = 12, int macdLong = 26,
+        double riskReward = 1, double gain = 0, double maxSpread = 0.0003)
     {
-        var macd = candles.CalcMacd();
+        var macd = candles.CalcMacd(macdShort, macdLong);
 
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
@@ -14,6 +15,10 @@ public static partial class Indicator
         var medEma = prices.CalcEma(emaMedium).ToArray();
 
         var longSma = prices.CalcSma(smaLong).ToArray();
+
+        var trendLine = prices.CalcEma(200).ToArray();
+
+        var atr = candles.CalcAtr();
 
         var length = candles.Length;
 
@@ -29,21 +34,16 @@ public static partial class Indicator
 
             result[i].Signal = macDelta switch
             {
-                > 0 when macd[i].Macd > 0 && candles[i].Direction == -1 &&
-                         shortEma[i] > medEma[i] &&
-                         medEma[i] > longSma[i] => Signal.Buy,
-                < 0 when macd[i].Macd < 0 && candles[i].Direction == 1 &&
-                         shortEma[i] < medEma[i] &&
-                         medEma[i] < longSma[i] => Signal.Sell,
+                > 0 when macd[i].Macd > 0 && candles[i].Mid_L > trendLine[i] &&
+                         shortEma[i] > medEma[i] && medEma[i] > longSma[i] &&
+                         candles[i].Spread <= maxSpread => Signal.Buy,
+                < 0 when macd[i].Macd < 0 && candles[i].Mid_H < trendLine[i] &&
+                         shortEma[i] < medEma[i] && medEma[i] < longSma[i] &&
+                         candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
 
-            result[i].Gain = gain != 0 ? gain : result[i].Signal switch
-            {
-                Signal.Buy => i > 6 ? Math.Abs(candles[i].Mid_C - candles[(i - 6)..i].Min(c => c.Mid_C)) : 0,
-                Signal.Sell => i > 6 ? Math.Abs(candles[i].Mid_C - candles[(i - 6)..i].Max(c => c.Mid_C)) : 0,
-                _ => 0
-            };
+            result[i].Gain = gain != 0 ? gain : Math.Round(atr[i].Atr * 2, 5);
 
             result[i].TakeProfit = candles[i].CalcTakeProfit(result[i], riskReward);
 
