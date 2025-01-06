@@ -16,8 +16,6 @@ public static partial class Indicator
 
         var longSma = prices.CalcSma(smaLong).ToArray();
 
-        var trendLine = prices.CalcEma(200).ToArray();
-
         var atr = candles.CalcAtr();
 
         var length = candles.Length;
@@ -34,10 +32,10 @@ public static partial class Indicator
 
             result[i].Signal = macDelta switch
             {
-                > 0 when macd[i].Macd > 0 && candles[i].Mid_L > trendLine[i] &&
+                > 0 when macd[i].Macd > 0 &&
                          shortEma[i] > medEma[i] && medEma[i] > longSma[i] &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
-                < 0 when macd[i].Macd < 0 && candles[i].Mid_H < trendLine[i] &&
+                < 0 when macd[i].Macd < 0 &&
                          shortEma[i] < medEma[i] && medEma[i] < longSma[i] &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None

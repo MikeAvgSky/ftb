@@ -64,14 +64,12 @@ public class TradeResult
             Candles = indicators.Length,
             Trades = closedTrades.Count,
             Wins = closedTrades.Count(t => t.Result > 0),
-            WinsBuy = closedTrades.Count(t => t.Result > 0 && t.Signal == Signal.Buy),
-            WinsSell = closedTrades.Count(t => t.Result > 0 && t.Signal == Signal.Sell),
+            BuyWins = closedTrades.Count(t => t.Result > 0 && t.Signal == Signal.Buy),
+            SellWins = closedTrades.Count(t => t.Result > 0 && t.Signal == Signal.Sell),
             Losses = closedTrades.Count(t => t.Result < 0),
-            LossesBuy = closedTrades.Count(t => t.Result < 0 && t.Signal == Signal.Buy),
-            LossesSell = closedTrades.Count(t => t.Result < 0 && t.Signal == Signal.Sell),
+            BuyLosses = closedTrades.Count(t => t.Result < 0 && t.Signal == Signal.Buy),
+            SellLosses = closedTrades.Count(t => t.Result < 0 && t.Signal == Signal.Sell),
             Unknown = closedTrades.Count(t => t.Result == 0),
-            UnknownBuy = closedTrades.Count(t => t.Result == 0 && t.Signal == Signal.Buy),
-            UnknownSell = closedTrades.Count(t => t.Result == 0 && t.Signal == Signal.Sell),
             TradeRisk = tradeRisk
         };
 

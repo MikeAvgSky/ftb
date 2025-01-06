@@ -12,6 +12,8 @@ public class MikeStrategyHandler : IRequestHandler<MikeStrategyRequest, IResult>
 
         var minWidth = request.MinWidth ?? 0.001;
 
+        var minGain = request.MinGain ?? 0;
+
         var riskReward = request.RiskReward ?? 1;
 
         var tradeRisk = request.TradeRisk ?? 10;
@@ -27,7 +29,7 @@ public class MikeStrategyHandler : IRequestHandler<MikeStrategyRequest, IResult>
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
             var nextCandle = candles.CalcMikeStrategy(request.Window ?? 20, request.Multiplier ?? 2,
-                minWidth, rsiLow, rsiHigh, request.MaxSpread, request.MinGain ?? 0, riskReward);
+                minWidth, rsiLow, rsiHigh, request.MaxSpread, minGain, riskReward);
 
             var fileName = $"MikeStrategy_{instrument}_{granularity}";
 
