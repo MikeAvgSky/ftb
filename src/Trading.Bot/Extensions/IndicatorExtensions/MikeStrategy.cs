@@ -3,15 +3,16 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcMikeStrategy(this Candle[] candles,
-        int window = 20, double multiplier = 20, double minWidth = 0.0015,
-        double rsiLow = 30, double rsiHigh = 70, double maxSpread = 0.0003,
-        double gain = 0, double riskReward = 1)
+        int window = 20, double stDev = 2, int emaMedium = 20, int smaLong = 50,
+        double maxSpread = 0.0003, double minGain = 0.001, double riskReward = 1)
     {
-        var keltnerChannels = candles.CalcKeltnerChannels(window, multiplier: multiplier);
+        var bollingerBands = candles.CalcBollingerBands(window, stDev);
 
-        var rsi = candles.CalcRsi();
+        var prices = candles.Select(c => c.Mid_C).ToArray();
 
-        var atr = candles.CalcAtr();
+        var medEma = prices.CalcEma(emaMedium).ToArray();
+
+        var longSma = prices.CalcSma(smaLong).ToArray();
 
         var length = candles.Length;
 
@@ -23,26 +24,20 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            var crossedLowerBand = candles[i].Mid_O > keltnerChannels[i].LowerBand && candles[i].Mid_C < keltnerChannels[i].LowerBand;
-
-            var crossedUpperBand = candles[i].Mid_O < keltnerChannels[i].UpperBand && candles[i].Mid_C > keltnerChannels[i].UpperBand;
-
-            var bandWidth = keltnerChannels[i].UpperBand - keltnerChannels[i].LowerBand;
+            result[i].Gain = Math.Round(Math.Abs(candles[i].Mid_C - bollingerBands[i].Sma), 5);
 
             result[i].Signal = i == 0 ? Signal.None : candles[i] switch
             {
-                var candle when crossedLowerBand &&
-                                bandWidth > minWidth &&
-                                rsi[i].Rsi < rsiLow &&
+                var candle when candle.Mid_O > bollingerBands[i].LowerBand &&
+                                candle.Mid_C < bollingerBands[i].LowerBand &&
+                                medEma[i] > longSma[i] && result[i].Gain >= minGain &&
                                 candle.Spread <= maxSpread => Signal.Buy,
-                var candle when crossedUpperBand &&
-                                bandWidth > minWidth &&
-                                rsi[i].Rsi > rsiHigh &&
+                var candle when candle.Mid_O < bollingerBands[i].LowerBand &&
+                                candle.Mid_C > bollingerBands[i].LowerBand &&
+                                medEma[i] < longSma[i] && result[i].Gain >= minGain &&
                                 candle.Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
-
-            result[i].Gain = gain != 0 ? gain : Math.Round(atr[i].Atr * 2, 5);
 
             result[i].TakeProfit = candles[i].CalcTakeProfit(result[i], riskReward);
 

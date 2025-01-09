@@ -6,17 +6,13 @@ public class MikeStrategyHandler : IRequestHandler<MikeStrategyRequest, IResult>
     {
         var fileData = new List<FileData<IEnumerable<object>>>();
 
-        var rsiLow = request.RsiLow ?? 30;
+        var maxSpread = request.MaxSpread ?? 0.0004;
 
-        var rsiHigh = request.RsiHigh ?? 70;
-
-        var minWidth = request.MinWidth ?? 0.001;
-
-        var minGain = request.MinGain ?? 0;
+        var minGain = request.MinGain ?? 0.001;
 
         var riskReward = request.RiskReward ?? 1;
 
-        var tradeRisk = request.TradeRisk ?? 10;
+        var tradeRisk = request.TradeRisk ?? 20;
 
         foreach (var file in request.Files)
         {
@@ -28,8 +24,8 @@ public class MikeStrategyHandler : IRequestHandler<MikeStrategyRequest, IResult>
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var nextCandle = candles.CalcMikeStrategy(request.Window ?? 20, request.Multiplier ?? 2,
-                minWidth, rsiLow, rsiHigh, request.MaxSpread, minGain, riskReward);
+            var nextCandle = candles.CalcMikeStrategy(request.BbWindow, request.StandardDeviation,
+                request.EmaWindow, request.SmaWindow, maxSpread, minGain, riskReward);
 
             var fileName = $"MikeStrategy_{instrument}_{granularity}";
 
@@ -46,12 +42,11 @@ public class MikeStrategyHandler : IRequestHandler<MikeStrategyRequest, IResult>
 public record MikeStrategyRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; } = new FormFileCollection();
-    public double MaxSpread { get; set; }
-    public int? Window { get; set; }
-    public double? Multiplier { get; set; }
-    public double? RsiLow { get; set; }
-    public double? RsiHigh { get; set; }
-    public double? MinWidth { get; set; }
+    public int BbWindow { get; set; }
+    public double StandardDeviation { get; set; }
+    public int EmaWindow { get; set; }
+    public int SmaWindow { get; set; }
+    public double? MaxSpread { get; set; }
     public double? MinGain { get; set; }
     public double? RiskReward { get; set; }
     public int? TradeRisk { get; set; }
