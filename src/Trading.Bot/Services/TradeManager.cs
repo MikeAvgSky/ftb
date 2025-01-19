@@ -69,7 +69,7 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        var calcResult = candles.CalcEliasStrategy().Last();
+        var calcResult = candles.CalcMikeStrategy(settings.Integers[1], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None)
         {

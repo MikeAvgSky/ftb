@@ -3,16 +3,17 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcMikeStrategy(this Candle[] candles,
-        int window = 20, double stDev = 2, int emaMedium = 20, int smaLong = 50,
-        double maxSpread = 0.0003, double minGain = 0.001, double riskReward = 1)
+        int window, double maxSpread = 0.0004, double minGain = 0.002, double riskReward = 1)
     {
-        var bollingerBands = candles.CalcBollingerBands(window, stDev);
+        var macd = candles.CalcMacd();
 
         var prices = candles.Select(c => c.Mid_C).ToArray();
 
-        var medEma = prices.CalcEma(emaMedium).ToArray();
+        var ema = prices.CalcEma(window).ToArray();
 
-        var longSma = prices.CalcSma(smaLong).ToArray();
+        var sma = prices.CalcSma(window).ToArray();
+
+        var resistance = prices.CalcEma(window * 2).ToArray();
 
         var length = candles.Length;
 
@@ -24,18 +25,28 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Gain = Math.Round(Math.Abs(candles[i].Mid_C - bollingerBands[i].Sma), 5);
+            var truncatedSma = Math.Floor(sma[i] * 10000) / 10000;
 
-            result[i].Signal = i == 0 ? Signal.None : candles[i] switch
+            var truncatedSmaPrev = i == 0 ? 0.0 : Math.Floor(sma[i - 1] * 10000) / 10000;
+
+            var smaRising = i != 0 && truncatedSma > truncatedSmaPrev;
+
+            var smaFalling = i != 0 && truncatedSma < truncatedSmaPrev;
+
+            var macDelta = Math.Floor(macd[i].Macd * 10000) / 10000 - Math.Floor(macd[i].SignalLine * 10000) / 10000;
+
+            result[i].Gain = Math.Abs(candles[i].Mid_C - resistance[i]);
+
+            result[i].Signal = i < window ? Signal.None : macDelta switch
             {
-                var candle when candle.Mid_O > bollingerBands[i].LowerBand &&
-                                candle.Mid_C < bollingerBands[i].LowerBand &&
-                                medEma[i] > longSma[i] && result[i].Gain >= minGain &&
-                                candle.Spread <= maxSpread => Signal.Buy,
-                var candle when candle.Mid_O < bollingerBands[i].LowerBand &&
-                                candle.Mid_C > bollingerBands[i].LowerBand &&
-                                medEma[i] < longSma[i] && result[i].Gain >= minGain &&
-                                candle.Spread <= maxSpread => Signal.Sell,
+                > 0 when macd[i].Macd > 0 &&
+                         smaRising && ema[i] > sma[i] &&
+                         candles[i].Spread <= maxSpread &&
+                         result[i].Gain >= minGain => Signal.Buy,
+                < 0 when macd[i].Macd < 0 &&
+                         smaFalling && ema[i] < sma[i] &&
+                         candles[i].Spread <= maxSpread &&
+                         result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None
             };
 

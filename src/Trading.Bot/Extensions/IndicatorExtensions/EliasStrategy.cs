@@ -4,7 +4,7 @@ public static partial class Indicator
 {
     public static IndicatorResult[] CalcEliasStrategy(this Candle[] candles, int emaShort = 8,
         int emaMedium = 21, int smaLong = 50, int stopLossWindow = 100, int macdShort = 12,
-        int macdLong = 26, double riskReward = 1, double minGain = 0.001, double maxSpread = 0.0003)
+        int macdLong = 26, double riskReward = 1, double minGain = 0.002, double maxSpread = 0.0003)
     {
         var macd = candles.CalcMacd(macdShort, macdLong);
 
