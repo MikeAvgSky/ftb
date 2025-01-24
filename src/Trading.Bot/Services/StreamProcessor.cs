@@ -32,9 +32,9 @@ public class StreamProcessor : BackgroundService
             {
                 try
                 {
-                    if (_liveTradeCache.LivePrices.ContainsKey(instrument))
+                    if (_liveTradeCache.LivePrices.TryGetValue(instrument, out var value))
                     {
-                        await DetectNewCandle(_liveTradeCache.LivePrices[instrument], token);
+                        await DetectNewCandle(value, token);
                     }
                 }
                 catch (Exception ex)

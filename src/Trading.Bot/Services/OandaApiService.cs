@@ -16,7 +16,7 @@ public class OandaApiService
         _accountId = constants.AccountId;
     }
 
-    private async Task<ApiResponse<T>> GetAsync<T>(string endpoint, string dataKey = default) where T : class
+    private async Task<ApiResponse<T>> GetAsync<T>(string endpoint, string dataKey = null) where T : class
     {
         try
         {
@@ -31,23 +31,23 @@ public class OandaApiService
 
             _logger.LogWarning("Get request to Oanda API unsuccessful.\r\n{StringResponse}", stringResponse);
 
-            return new ApiResponse<T>(response.StatusCode, default);
+            return new ApiResponse<T>(response.StatusCode, null);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while getting data from {Endpoint}", endpoint);
 
-            return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
+            return new ApiResponse<T>(HttpStatusCode.InternalServerError, null);
         }
     }
 
-    private async Task<ApiResponse<T>> PostAsync<T>(string endpoint, object body = default, string dataKey = default) where T : class
+    private async Task<ApiResponse<T>> PostAsync<T>(string endpoint, object body = null, string dataKey = null) where T : class
     {
         try
         {
             HttpResponseMessage response;
 
-            if (body == default)
+            if (body == null)
             {
                 response = await _httpClient.PostAsync(endpoint, new StringContent(string.Empty));
             }
@@ -67,23 +67,23 @@ public class OandaApiService
 
             _logger.LogWarning("Post request to Oanda API unsuccessful.\r\n{StringResponse}", stringResponse);
 
-            return new ApiResponse<T>(response.StatusCode, default);
+            return new ApiResponse<T>(response.StatusCode, null);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while posting to {Endpoint}.\r\n{Body}", Serialize(body), endpoint);
 
-            return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
+            return new ApiResponse<T>(HttpStatusCode.InternalServerError, null);
         }
     }
 
-    private async Task<ApiResponse<T>> PutAsync<T>(string endpoint, object body = default, string dataKey = default) where T : class
+    private async Task<ApiResponse<T>> PutAsync<T>(string endpoint, object body = null, string dataKey = null) where T : class
     {
         try
         {
             HttpResponseMessage response;
 
-            if (body == default)
+            if (body == null)
             {
                 response = await _httpClient.PutAsync(endpoint, new StringContent(string.Empty));
             }
@@ -103,13 +103,13 @@ public class OandaApiService
 
             _logger.LogWarning("Put request to Oanda API unsuccessful.\r\n{StringResponse}", stringResponse);
 
-            return new ApiResponse<T>(response.StatusCode, default);
+            return new ApiResponse<T>(response.StatusCode, null);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while posting and update to {Endpoint}.\r\n{Body}", Serialize(body), endpoint);
 
-            return new ApiResponse<T>(HttpStatusCode.InternalServerError, default);
+            return new ApiResponse<T>(HttpStatusCode.InternalServerError, null);
         }
     }
 
@@ -136,7 +136,7 @@ public class OandaApiService
 
         T value;
 
-        if (dataKey == default)
+        if (dataKey == null)
         {
             value = Deserialize<T>(stringResponse);
 
@@ -145,14 +145,12 @@ public class OandaApiService
 
         var dictResponse = JsonSerializer.Deserialize<Dictionary<string, object>>(stringResponse);
 
-        if (dictResponse.ContainsKey(dataKey))
-        {
-            value = Deserialize<T>(JsonSerializer.Serialize(dictResponse[dataKey]));
+        if (!dictResponse.TryGetValue(dataKey, out var dictValue))
+            return new ApiResponse<T>(HttpStatusCode.NotFound, null);
 
-            return new ApiResponse<T>(response.StatusCode, value);
-        }
+        value = Deserialize<T>(JsonSerializer.Serialize(dictValue));
 
-        return new ApiResponse<T>(HttpStatusCode.NotFound, default);
+        return new ApiResponse<T>(response.StatusCode, value);
     }
 
     private static T Deserialize<T>(string stringResponse) where T : class
@@ -198,8 +196,8 @@ public class OandaApiService
             : Array.Empty<Instrument>();
     }
 
-    public async Task<Candle[]> GetCandles(string instrument, string granularity = default,
-        string price = default, int count = 500, DateTime fromDate = default, DateTime toDate = default)
+    public async Task<Candle[]> GetCandles(string instrument, string granularity = null,
+        string price = null, int count = 500, DateTime fromDate = default, DateTime toDate = default)
     {
         var endpoint = BuildCandlesEndpoint(instrument, granularity, price, count,
             fromDate, toDate);
@@ -211,7 +209,7 @@ public class OandaApiService
             : Array.Empty<Candle>();
     }
 
-    public async Task<DateTime> GetLastCandleTime(string instrument, string granularity = default)
+    public async Task<DateTime> GetLastCandleTime(string instrument, string granularity = null)
     {
         var endpoint = BuildCandlesEndpoint(instrument, granularity, count: 1);
 
@@ -279,7 +277,7 @@ public class OandaApiService
     {
         var endpoint = $"accounts/{_accountId}/instruments";
 
-        if (instruments != default)
+        if (instruments != null)
         {
             endpoint += $"?instruments={instruments}";
         }
@@ -287,8 +285,8 @@ public class OandaApiService
         return endpoint;
     }
 
-    private static string BuildCandlesEndpoint(string instrument, string granularity = default,
-        string price = default, int count = 500, DateTime fromDate = default, DateTime toDate = default)
+    private static string BuildCandlesEndpoint(string instrument, string granularity = null,
+        string price = null, int count = 500, DateTime fromDate = default, DateTime toDate = default)
     {
         var endpoint = $"instruments/{instrument}/candles";
 

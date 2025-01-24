@@ -33,7 +33,6 @@ public static partial class Indicator
                        candles[i].Spread <= maxSpread &&
                        result[i].Gain >= minGain => Signal.Buy,
                 -1 when engulfing &&
-                        candles[i].Direction == -1 &&
                         candles[i].Mid_H < emaResult[i] &&
                         rsiResult[i].Rsi < rsiLimit &&
                         candles[i].Spread <= maxSpread &&

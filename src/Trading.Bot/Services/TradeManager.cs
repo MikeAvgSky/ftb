@@ -61,15 +61,17 @@ public class TradeManager : BackgroundService
 
         if (!await NewCandleAvailable(settings, price, stoppingToken) || !GoodTradingTime()) return;
 
+        await CloseWinningTrades(settings);
+
         var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity);
 
-        if (!candles.Any())
+        if (candles.Length == 0)
         {
             _logger.LogInformation("Not placing a trade for {Instrument}, candles not found", settings.Instrument);
             return;
         }
 
-        var calcResult = candles.CalcMikeStrategy(settings.Integers[1], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
+        var calcResult = candles.CalcMikeStrategy(settings.Integers[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         if (calcResult.Signal != Signal.None)
         {
@@ -199,5 +201,15 @@ public class TradeManager : BackgroundService
         var openTrades = await _apiService.GetOpenTrades();
 
         return openTrades.All(ot => ot.Instrument != settings.Instrument);
+    }
+
+    private async Task CloseWinningTrades(TradeSettings settings)
+    {
+        var openTrade = (await _apiService.GetOpenTrades()).FirstOrDefault(ot => ot.Instrument == settings.Instrument);
+
+        if (openTrade is not null && openTrade.UnrealizedPL > 0)
+        {
+            await _apiService.CloseTrade(openTrade.Id);
+        }
     }
 }
