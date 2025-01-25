@@ -1,6 +1,3 @@
 ﻿namespace Trading.Bot.API.Interfaces;
 
-public interface IHttpRequest : IRequest<IResult>
-{
-
-}
+public interface IHttpRequest : IRequest<IResult>;

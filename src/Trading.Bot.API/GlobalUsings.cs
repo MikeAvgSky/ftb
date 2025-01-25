@@ -10,6 +10,7 @@ global using Trading.Bot.API.Endpoints;
 global using Trading.Bot.API.Extensions;
 global using Trading.Bot.API.Interfaces;
 global using Trading.Bot.API.Mediator;
+global using Trading.Bot.API.Models;
 global using Trading.Bot.Configuration;
 global using Trading.Bot.Extensions;
 global using Trading.Bot.Extensions.IndicatorExtensions;

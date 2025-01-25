@@ -61,8 +61,6 @@ public class TradeManager : BackgroundService
 
         if (!await NewCandleAvailable(settings, price, stoppingToken) || !GoodTradingTime()) return;
 
-        await CloseWinningTrades(settings);
-
         var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity);
 
         if (candles.Length == 0)
@@ -72,6 +70,8 @@ public class TradeManager : BackgroundService
         }
 
         var calcResult = candles.CalcMikeStrategy(settings.Integers[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
+
+        await UpdateWinningTrades(settings, calcResult);
 
         if (calcResult.Signal != Signal.None)
         {
@@ -203,13 +203,18 @@ public class TradeManager : BackgroundService
         return openTrades.All(ot => ot.Instrument != settings.Instrument);
     }
 
-    private async Task CloseWinningTrades(TradeSettings settings)
+    private async Task UpdateWinningTrades(TradeSettings settings, IndicatorBase indicator)
     {
         var openTrade = (await _apiService.GetOpenTrades()).FirstOrDefault(ot => ot.Instrument == settings.Instrument);
 
+        var instrument = _instruments.FirstOrDefault(i => i.Name == settings.Instrument);
+
         if (openTrade is not null && openTrade.UnrealizedPL > 0)
         {
-            await _apiService.CloseTrade(openTrade.Id);
+            await _apiService.UpdateTrade(
+                new OrderUpdate(instrument?.DisplayPrecision ?? 5,
+                    openTrade.InitialUnits > 0 ? indicator.Candle.Ask_C : indicator.Candle.Bid_C),
+                openTrade.Id);
         }
     }
 }
