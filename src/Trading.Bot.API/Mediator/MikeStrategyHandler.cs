@@ -28,7 +28,7 @@ public class MikeStrategyHandler : IRequestHandler<MikeStrategyRequest, IResult>
 
             var fileName = $"MikeStrategy_{instrument}_{granularity}";
 
-            fileData.AddRange(nextCandle.GetFileData(fileName, tradeRisk, riskReward));
+            fileData.AddRange(nextCandle.GetFileData(fileName, tradeRisk, riskReward, true));
         }
 
         if (!fileData.Any()) return Task.FromResult(Results.Empty);

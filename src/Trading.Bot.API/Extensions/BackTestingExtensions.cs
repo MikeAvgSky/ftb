@@ -260,7 +260,7 @@ public static class BackTestingExtensions
 
     private static void UpdateStopLoss(TradeResult trade, IndicatorBase indicator)
     {
-        trade.StopLoss = indicator.Signal == Signal.Buy
+        trade.StopLoss = trade.Signal == Signal.Buy
             ? indicator.Candle.Ask_C
             : indicator.Candle.Bid_C;
     }
