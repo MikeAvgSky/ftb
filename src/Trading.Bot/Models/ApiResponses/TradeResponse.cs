@@ -14,6 +14,8 @@ public class TradeResponse
     public double UnrealizedPL { get; set; }
     public double MarginUsed { get; set; }
     public ClientExtensions ClientExtensions { get; set; }
+    public TakeProfit TakeProfitOrder { get; set; }
+    public StopLoss StopLossOrder { get; set; }
 }
 
 public class ClientExtensions

@@ -8,9 +8,10 @@ public class SimulationSummary
     public int Wins { get; set; }
     public int Losses { get; set; }
     public int Unknown { get; set; }
+    public int Even { get; set; }
     public double WinRate { get; set; }
     public double BuyWinRate { get; set; }
     public double SellWinRate { get; set; }
     public int TradeRisk { get; set; }
-    public double Winnings { get; set; }
+    public double Balance { get; set; }
 }

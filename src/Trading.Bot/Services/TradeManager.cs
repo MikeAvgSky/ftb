@@ -207,14 +207,33 @@ public class TradeManager : BackgroundService
     {
         var openTrade = (await _apiService.GetOpenTrades()).FirstOrDefault(ot => ot.Instrument == settings.Instrument);
 
-        var instrument = _instruments.FirstOrDefault(i => i.Name == settings.Instrument);
+        if (openTrade is null) return;
 
-        if (openTrade is not null && openTrade.UnrealizedPL > 0)
+        var openTradeSignal = openTrade.InitialUnits > 0 ? Signal.Buy : Signal.Sell;
+
+        if (indicator.Signal != Signal.None && openTrade.UnrealizedPL > 0 && DifferentDirection(indicator.Signal, openTradeSignal))
         {
-            await _apiService.UpdateTrade(
-                new OrderUpdate(instrument?.DisplayPrecision ?? 5,
-                    openTrade.InitialUnits > 0 ? indicator.Candle.Ask_C : indicator.Candle.Bid_C),
-                openTrade.Id);
+            await _apiService.CloseTrade(openTrade.Id);
+        }
+
+        if (ShouldUpdateStopLoss(openTrade, indicator))
+        {
+            await _apiService.UpdateTrade(new OrderUpdate(stopLoss: openTrade.Price), openTrade.Id);
         }
     }
+
+    private static bool ShouldUpdateStopLoss(TradeResponse trade, IndicatorBase indicator)
+    {
+        var priceList = new List<double> { trade.Price, trade.TakeProfitOrder.Price };
+
+        var currentValue = trade.InitialUnits > 0
+            ? indicator.Candle.Ask_C
+            : indicator.Candle.Bid_C;
+
+        var closest = priceList.OrderBy(value => Math.Abs(currentValue - value)).First();
+
+        return trade.StopLossOrder.Price < trade.Price && trade.TakeProfitOrder.Price - closest == 0;
+    }
+
+    private static bool DifferentDirection(Signal signal, Signal tradeSignal) => signal != tradeSignal;
 }
