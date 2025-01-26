@@ -214,6 +214,7 @@ public class TradeManager : BackgroundService
         if (indicator.Signal != Signal.None && openTrade.UnrealizedPL > 0 && DifferentDirection(indicator.Signal, openTradeSignal))
         {
             await _apiService.CloseTrade(openTrade.Id);
+            return;
         }
 
         if (ShouldUpdateStopLoss(openTrade, indicator))
