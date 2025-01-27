@@ -69,7 +69,8 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        var calcResult = candles.CalcMikeStrategy(settings.Integers[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
+        var calcResult = candles
+            .CalcMikeStrategy(settings.Integers[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
 
         await UpdateWinningTrades(settings, calcResult);
 
@@ -173,11 +174,12 @@ public class TradeManager : BackgroundService
             EmailToAddress = "mike.avgeros@gmail.com",
             EmailToName = "Mike",
             EmailSubject = "New Trade",
-            EmailBody = JsonSerializer.Serialize(emailBody, new JsonSerializerOptions
-            {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                WriteIndented = true
-            })
+            EmailBody = JsonSerializer.Serialize(emailBody, 
+                new JsonSerializerOptions
+                {
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                    WriteIndented = true
+                })
         });
     }
 
@@ -219,7 +221,10 @@ public class TradeManager : BackgroundService
 
         if (ShouldUpdateStopLoss(openTrade, indicator))
         {
-            await _apiService.UpdateTrade(new OrderUpdate(stopLoss: openTrade.Price), openTrade.Id);
+            var update = new OrderUpdate(stopLoss: openTrade.Price,
+                trailingStop: Math.Abs(openTrade.TakeProfitOrder.Price - openTrade.Price));
+
+            await _apiService.UpdateTrade(update, openTrade.Id);
         }
     }
 
