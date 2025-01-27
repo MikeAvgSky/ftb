@@ -282,7 +282,7 @@ public static class BackTestingExtensions
 
         var closest = priceList.OrderBy(value => Math.Abs(currentValue - value)).First();
 
-        return updateTrade && trade.Running && trade.StopLoss < trade.TriggerPrice && trade.TakeProfit - closest == 0;
+        return updateTrade && trade.Running && Math.Abs(trade.StopLoss - trade.TriggerPrice) > 0 && trade.TakeProfit - closest == 0;
     }
 
     private static int GetLossResult(TradeResult trade)

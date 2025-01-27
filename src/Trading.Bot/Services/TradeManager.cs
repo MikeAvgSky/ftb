@@ -233,7 +233,7 @@ public class TradeManager : BackgroundService
 
         var closest = priceList.OrderBy(value => Math.Abs(currentValue - value)).First();
 
-        return trade.StopLossOrder.Price < trade.Price && trade.TakeProfitOrder.Price - closest == 0;
+        return Math.Abs(trade.StopLossOrder.Price - trade.Price) > 0 && trade.TakeProfitOrder.Price - closest == 0;
     }
 
     private static bool DifferentDirection(Signal signal, Signal tradeSignal) => signal != tradeSignal;

@@ -235,7 +235,7 @@ public class OandaApiService
 
     public async Task<bool> UpdateTrade(OrderUpdate update, string tradeId)
     {
-        var endpoint = $"accounts/{_accountId}/trades/{tradeId}/close";
+        var endpoint = $"accounts/{_accountId}/trades/{tradeId}/orders";
 
         var response = await PutAsync<OrderUpdatedResponse>(endpoint, update);
 
