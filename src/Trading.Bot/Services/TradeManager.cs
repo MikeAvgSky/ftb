@@ -135,7 +135,7 @@ public class TradeManager : BackgroundService
 
         var tradeUnits = await GetTradeUnits(settings, indicator);
 
-        var trailingStop = settings.TrailingStop ? CalcTrailingStop(indicator) : 0;
+        var trailingStop = settings.TrailingStop ? CalcTrailingStop(indicator, settings.RiskReward) : 0;
 
         var order = new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, indicator.TakeProfit, trailingStop);
 
@@ -162,9 +162,9 @@ public class TradeManager : BackgroundService
         }
     }
 
-    private static double CalcTrailingStop(IndicatorBase indicator)
+    private static double CalcTrailingStop(IndicatorBase indicator, double multiplier)
     {
-        return indicator.Gain * 1.5;
+        return indicator.Gain * multiplier;
     }
 
     private async Task SendEmailNotification(object emailBody)
@@ -174,7 +174,7 @@ public class TradeManager : BackgroundService
             EmailToAddress = "mike.avgeros@gmail.com",
             EmailToName = "Mike",
             EmailSubject = "New Trade",
-            EmailBody = JsonSerializer.Serialize(emailBody, 
+            EmailBody = JsonSerializer.Serialize(emailBody,
                 new JsonSerializerOptions
                 {
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -219,22 +219,23 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        if (ShouldUpdateStopLoss(openTrade, indicator))
+        var currentValue = openTrade.InitialUnits > 0
+            ? indicator.Candle.Ask_C
+            : indicator.Candle.Bid_C;
+
+        if (ShouldUpdateStopLoss(openTrade, currentValue))
         {
-            var update = new OrderUpdate(stopLoss: openTrade.Price,
-                trailingStop: Math.Abs(openTrade.TakeProfitOrder.Price - openTrade.Price));
+            var displayPrecision = _instruments.First(i => i.Name == openTrade.Instrument).DisplayPrecision;
+
+            var update = new OrderUpdate(displayPrecision: displayPrecision, trailingStop: Math.Abs(openTrade.TakeProfitOrder.Price - openTrade.Price));
 
             await _apiService.UpdateTrade(update, openTrade.Id);
         }
     }
 
-    private static bool ShouldUpdateStopLoss(TradeResponse trade, IndicatorBase indicator)
+    private static bool ShouldUpdateStopLoss(TradeResponse trade, double currentValue)
     {
         var priceList = new List<double> { trade.Price, trade.TakeProfitOrder.Price };
-
-        var currentValue = trade.InitialUnits > 0
-            ? indicator.Candle.Ask_C
-            : indicator.Candle.Bid_C;
 
         var closest = priceList.OrderBy(value => Math.Abs(currentValue - value)).First();
 

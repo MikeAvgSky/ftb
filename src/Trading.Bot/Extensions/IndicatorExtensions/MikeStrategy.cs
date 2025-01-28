@@ -31,12 +31,16 @@ public static partial class Indicator
 
             var macdDelta = Round(macd[i].Macd) - Round(macd[i].SignalLine);
 
+            var emaRising = i > 0 && Round(ema[i]) > Round(ema[i - 1]);
+
+            var emaFalling = i > 0 && Round(ema[i]) < Round(ema[i - 1]);
+
             result[i].Signal = i < window ? Signal.None : maDelta switch
             {
-                > 0 when maDeltaPrev <= 0 &&
+                > 0 when maDeltaPrev <= 0 && emaRising &&
                          macdDelta > 0 && rsi[i].Rsi > 50 &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
-                < 0 when maDeltaPrev >= 0 &&
+                < 0 when maDeltaPrev >= 0 && emaFalling &&
                          macdDelta < 0 && rsi[i].Rsi < 50 &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
@@ -56,6 +60,6 @@ public static partial class Indicator
 
     private static double Round(double value)
     {
-        return Math.Floor(value * 10000) / 10000;
+        return Math.Floor(value * 100000) / 100000;
     }
 }
