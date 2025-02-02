@@ -188,6 +188,13 @@ public static class NumericExtensions
         return Math.Sqrt(sumSq / length).NaN2Zero();
     }
 
+    public static double Round(this double value, int decimalPoints)
+    {
+        var precision = int.Parse("1".PadRight(decimalPoints, '0'));
+
+        return Math.Floor(value * precision) / precision;
+    }
+
     public static double NaN2Zero(this double value)
         => double.IsNaN(value)
             ? 0.0

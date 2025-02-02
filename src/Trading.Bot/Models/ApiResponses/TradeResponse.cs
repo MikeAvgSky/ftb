@@ -16,6 +16,7 @@ public class TradeResponse
     public ClientExtensions ClientExtensions { get; set; }
     public TakeProfit TakeProfitOrder { get; set; }
     public StopLoss StopLossOrder { get; set; }
+    public TrailingStopLoss TrailingStopLossOrder { get; set; }
 }
 
 public class ClientExtensions

@@ -69,8 +69,8 @@ public class TradeManager : BackgroundService
             return;
         }
 
-        var calcResult = candles
-            .CalcMikeStrategy(settings.Integers[0], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last();
+        var calcResult = candles.CalcEliasStrategy(settings.Integers[0], settings.Integers[1], settings.Integers[2],
+            settings.Integers[3], settings.MinGain, settings.RiskReward, settings.MaxSpread).Last();
 
         await UpdateWinningTrades(settings, calcResult);
 
@@ -223,23 +223,25 @@ public class TradeManager : BackgroundService
             ? indicator.Candle.Ask_C
             : indicator.Candle.Bid_C;
 
-        if (ShouldUpdateStopLoss(openTrade, currentValue))
+        if (ShouldAddTrailingStop(openTrade, currentValue))
         {
             var displayPrecision = _instruments.First(i => i.Name == openTrade.Instrument).DisplayPrecision;
 
-            var update = new OrderUpdate(displayPrecision: displayPrecision, trailingStop: Math.Abs(openTrade.TakeProfitOrder.Price - openTrade.Price));
+            var trailingStop = Math.Abs(currentValue - openTrade.Price);
+
+            var update = new OrderUpdate(displayPrecision: displayPrecision, trailingStop: trailingStop);
 
             await _apiService.UpdateTrade(update, openTrade.Id);
         }
     }
 
-    private static bool ShouldUpdateStopLoss(TradeResponse trade, double currentValue)
+    private static bool ShouldAddTrailingStop(TradeResponse trade, double currentValue)
     {
         var priceList = new List<double> { trade.Price, trade.TakeProfitOrder.Price };
 
         var closest = priceList.OrderBy(value => Math.Abs(currentValue - value)).First();
 
-        return Math.Abs(trade.StopLossOrder.Price - trade.Price) > 0 && trade.TakeProfitOrder.Price - closest == 0;
+        return trade.TrailingStopLossOrder is null && trade.TakeProfitOrder.Price - closest == 0;
     }
 
     private static bool DifferentDirection(Signal signal, Signal tradeSignal) => signal != tradeSignal;

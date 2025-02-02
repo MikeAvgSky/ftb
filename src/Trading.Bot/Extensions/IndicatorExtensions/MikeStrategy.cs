@@ -25,15 +25,15 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            var maDelta = Round(ema[i]) - Round(sma[i]);
+            var maDelta = ema[i].Round(5) - sma[i].Round(5);
 
-            var maDeltaPrev = i > 0 ? Round(ema[i - 1]) - Round(sma[i - 1]) : 0;
+            var maDeltaPrev = i > 0 ? ema[i - 1].Round(5) - sma[i - 1].Round(5) : 0;
 
-            var macdDelta = Round(macd[i].Macd) - Round(macd[i].SignalLine);
+            var emaRising = i > 0 && ema[i].Round(5) > ema[i - 1].Round(5);
 
-            var emaRising = i > 0 && Round(ema[i]) > Round(ema[i - 1]);
+            var emaFalling = i > 0 && ema[i].Round(5) < ema[i - 1].Round(5);
 
-            var emaFalling = i > 0 && Round(ema[i]) < Round(ema[i - 1]);
+            var macdDelta = macd[i].Macd.Round(5) - macd[i].SignalLine.Round(5);
 
             result[i].Signal = i < window ? Signal.None : maDelta switch
             {
@@ -56,10 +56,5 @@ public static partial class Indicator
         }
 
         return result;
-    }
-
-    private static double Round(double value)
-    {
-        return Math.Floor(value * 100000) / 100000;
     }
 }

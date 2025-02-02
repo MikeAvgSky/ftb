@@ -27,7 +27,7 @@ public class EliasStrategyHandler : IRequestHandler<EliasStrategyRequest, IResul
 
             var fileName = $"EliasStrategy_{instrument}_{granularity}";
 
-            fileData.AddRange(macdEma.GetFileData(fileName, tradeRisk, riskReward));
+            fileData.AddRange(macdEma.GetFileData(fileName, tradeRisk, riskReward, true));
         }
 
         if (!fileData.Any()) return Task.FromResult(Results.Empty);
