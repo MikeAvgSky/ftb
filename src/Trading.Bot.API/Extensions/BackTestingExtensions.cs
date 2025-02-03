@@ -150,15 +150,12 @@ public static class BackTestingExtensions
 
             if (updateTrade && indicators[i].Signal != Signal.None && openTrades.Count > 0)
             {
-                foreach (var trade in openTrades.Where(trade => DifferentDirection(indicators[i].Signal, trade.Signal)))
+                foreach (var trade in openTrades.Where(trade => DifferentDirection(indicators[i].Signal, trade.Signal) &&
+                                                                trade.UnrealisedPL > 0))
                 {
-                    UpdateTrade(trade, indicators[i]);
-
                     var triggerPrice = trade.Signal == Signal.Buy
                         ? indicators[i].Candle.Bid_C
                         : indicators[i].Candle.Ask_C;
-
-                    if (!trade.Running || !(trade.UnrealisedPL > 0)) continue;
 
                     CloseTrade(trade, 1, indicators[i].Candle.Time, triggerPrice);
 
@@ -166,8 +163,6 @@ public static class BackTestingExtensions
                 }
 
                 openTrades.RemoveAll(ot => !ot.Running);
-
-                if (openTrades.Count > 0) continue;
             }
 
             if (indicators[i].Signal != Signal.None && openTrades.Count == 0)
@@ -212,7 +207,7 @@ public static class BackTestingExtensions
             trade.UnrealisedPL = trade.Signal switch
             {
                 Signal.Buy => indicator.Candle.Bid_C - trade.TriggerPrice,
-                Signal.Sell => indicator.Candle.Ask_C - trade.TriggerPrice,
+                Signal.Sell => trade.TriggerPrice - indicator.Candle.Ask_C,
                 _ => trade.UnrealisedPL
             };
         }
