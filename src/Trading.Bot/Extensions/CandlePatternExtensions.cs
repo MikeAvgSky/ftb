@@ -99,4 +99,54 @@ public static class CandlePatternExtensions
                (direction == 1 && candle.Mid_C > prev2Candle.MidPoint ||
                 direction == -1 && candle.Mid_C < prev2Candle.MidPoint);
     }
+
+    public static bool HigherHighs(this Candle[] candles)
+    {
+        var higherHighs = false;
+
+        var latestHigh = candles[0].Mid_H;
+
+        for (var i = 1; i < candles.Length; i++)
+        {
+            if (!IsSwingHigh(candles, i) || !(candles[i].Mid_H >= latestHigh)) continue;
+
+            latestHigh = candles[i].Mid_H;
+
+            higherHighs = true;
+        }
+
+        return higherHighs;
+    }
+
+    public static bool LowerLows(this Candle[] candles)
+    {
+        var lowerLows = false;
+
+        var latestLow = candles[0].Mid_L;
+
+        for (var i = 1; i < candles.Length; i++)
+        {
+            if (!IsSwingLow(candles, i) || !(candles[i].Mid_L <= latestLow)) continue;
+
+            latestLow = candles[i].Mid_H;
+
+            lowerLows = true;
+        }
+
+        return lowerLows;
+    }
+
+    private static bool IsSwingHigh(Candle[] candles, int index)
+    {
+        if (index < 1 || index >= candles.Length - 1) return false;
+
+        return candles[index].Mid_H > candles[index - 1].Mid_H && candles[index].Mid_H > candles[index + 1].Mid_H;
+    }
+
+    private static bool IsSwingLow(Candle[] candles, int index)
+    {
+        if (index < 1 || index >= candles.Length - 1) return false;
+
+        return candles[index].Mid_L < candles[index - 1].Mid_L && candles[index].Mid_L < candles[index + 1].Mid_L;
+    }
 }

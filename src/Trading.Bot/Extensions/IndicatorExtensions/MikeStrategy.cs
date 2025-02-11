@@ -25,23 +25,25 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            var maDelta = ema[i].Round(5) - sma[i].Round(5);
+            var emaRising = i > 0 && ema[i] > ema[i - 1];
 
-            var maDeltaPrev = i > 0 ? ema[i - 1].Round(5) - sma[i - 1].Round(5) : 0;
+            var macdRising = i > 0 && macd[i].Macd > macd[i - 1].Macd;
 
-            var emaRising = i > 0 && ema[i].Round(5) > ema[i - 1].Round(5);
+            var bullishTrend = emaRising && macdRising && ema[i] > sma[i];
 
-            var emaFalling = i > 0 && ema[i].Round(5) < ema[i - 1].Round(5);
+            var emaFalling = i > 0 && ema[i] < ema[i - 1];
+
+            var macdFalling = i > 0 && macd[i].Macd < macd[i - 1].Macd;
+
+            var bearishTrend = emaFalling && macdFalling && ema[i] < sma[i];
 
             var macdDelta = macd[i].Macd.Round(5) - macd[i].SignalLine.Round(5);
 
-            result[i].Signal = i < window ? Signal.None : maDelta switch
+            result[i].Signal = i < window ? Signal.None : macdDelta switch
             {
-                > 0 when maDeltaPrev <= 0 && emaRising &&
-                         macdDelta > 0 && rsi[i].Rsi > 50 &&
+                > 0 when bullishTrend && rsi[i].Rsi > 50 &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
-                < 0 when maDeltaPrev >= 0 && emaFalling &&
-                         macdDelta < 0 && rsi[i].Rsi < 50 &&
+                < 0 when bearishTrend && rsi[i].Rsi < 50 &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };

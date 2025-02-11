@@ -213,7 +213,7 @@ public class TradeManager : BackgroundService
 
         var openTradeSignal = openTrade.InitialUnits > 0 ? Signal.Buy : Signal.Sell;
 
-        if (indicator.Signal != Signal.None && openTrade.UnrealizedPL > 0 && DifferentDirection(indicator.Signal, openTradeSignal))
+        if (indicator.Signal != Signal.None && openTrade.UnrealizedPL > 1 && DifferentDirection(indicator.Signal, openTradeSignal))
         {
             await _apiService.CloseTrade(openTrade.Id);
             return;
