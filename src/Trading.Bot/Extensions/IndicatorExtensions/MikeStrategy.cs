@@ -37,13 +37,17 @@ public static partial class Indicator
 
             var bearishTrend = emaFalling && macdFalling && ema[i] < sma[i];
 
-            var macdDelta = macd[i].Macd.Round(5) - macd[i].SignalLine.Round(5);
+            var macdDelta = macd[i].Macd - macd[i].SignalLine;
 
             result[i].Signal = i < window ? Signal.None : macdDelta switch
             {
                 > 0 when bullishTrend && rsi[i].Rsi > 50 &&
+                         candles[(i - window)..i].HigherHighs() &&
+                         candles[(i - window)..i].HigherLows() &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
                 < 0 when bearishTrend && rsi[i].Rsi < 50 &&
+                         candles[(i - window)..i].LowerHighs() &&
+                         candles[(i - window)..i].LowerLows() &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };

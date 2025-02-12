@@ -102,38 +102,74 @@ public static class CandlePatternExtensions
 
     public static bool HigherHighs(this Candle[] candles)
     {
-        var higherHighs = false;
+        var higherHighs = 0;
 
         var latestHigh = candles[0].Mid_H;
 
         for (var i = 1; i < candles.Length; i++)
         {
-            if (!IsSwingHigh(candles, i) || !(candles[i].Mid_H >= latestHigh)) continue;
+            if (!IsSwingHigh(candles, i) || !(candles[i].Mid_H > latestHigh)) continue;
 
             latestHigh = candles[i].Mid_H;
 
-            higherHighs = true;
+            higherHighs++;
         }
 
-        return higherHighs;
+        return higherHighs > 1;
     }
 
-    public static bool LowerLows(this Candle[] candles)
+    public static bool LowerHighs(this Candle[] candles)
     {
-        var lowerLows = false;
+        var lowerHighs = 0;
+
+        var latestHigh = candles[0].Mid_H;
+
+        for (var i = 1; i < candles.Length; i++)
+        {
+            if (!IsSwingLow(candles, i) || !(candles[i].Mid_H < latestHigh)) continue;
+
+            latestHigh = candles[i].Mid_H;
+
+            lowerHighs++;
+        }
+
+        return lowerHighs > 1;
+    }
+
+    public static bool HigherLows(this Candle[] candles)
+    {
+        var higherLows = 0;
 
         var latestLow = candles[0].Mid_L;
 
         for (var i = 1; i < candles.Length; i++)
         {
-            if (!IsSwingLow(candles, i) || !(candles[i].Mid_L <= latestLow)) continue;
+            if (!IsSwingHigh(candles, i) || !(candles[i].Mid_L > latestLow)) continue;
 
-            latestLow = candles[i].Mid_H;
+            latestLow = candles[i].Mid_L;
 
-            lowerLows = true;
+            higherLows++;
         }
 
-        return lowerLows;
+        return higherLows > 1;
+    }
+
+    public static bool LowerLows(this Candle[] candles)
+    {
+        var lowerLows = 0;
+
+        var latestLow = candles[0].Mid_L;
+
+        for (var i = 1; i < candles.Length; i++)
+        {
+            if (!IsSwingLow(candles, i) || !(candles[i].Mid_L < latestLow)) continue;
+
+            latestLow = candles[i].Mid_L;
+
+            lowerLows++;
+        }
+
+        return lowerLows > 1;
     }
 
     private static bool IsSwingHigh(Candle[] candles, int index)
