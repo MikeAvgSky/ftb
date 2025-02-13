@@ -20,16 +20,16 @@ public static partial class Indicator
 
                 losses[i] = 0.0;
 
-                lastValue = candles[i].Mid_C;
+                lastValue = (double)candles[i].Mid_C;
 
                 continue;
             }
 
-            gains[i] = candles[i].Mid_C > lastValue ? candles[i].Mid_C - lastValue : 0.0;
+            gains[i] = (double)candles[i].Mid_C > lastValue ? (double)candles[i].Mid_C - lastValue : 0.0;
 
-            losses[i] = candles[i].Mid_C < lastValue ? lastValue - candles[i].Mid_C : 0.0;
+            losses[i] = (double)candles[i].Mid_C < lastValue ? lastValue - (double)candles[i].Mid_C : 0.0;
 
-            lastValue = candles[i].Mid_C;
+            lastValue = (double)candles[i].Mid_C;
         }
 
         var gains_rma = gains.CalcRma(window).ToArray();

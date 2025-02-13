@@ -6,9 +6,9 @@ public class MikeStrategyHandler : IRequestHandler<MikeStrategyRequest, IResult>
     {
         var fileData = new List<FileData<IEnumerable<object>>>();
 
-        var maxSpread = request.MaxSpread ?? 0.0004;
+        var maxSpread = request.MaxSpread ?? 0.0004m;
 
-        var minGain = request.MinGain ?? 0.001;
+        var minGain = request.MinGain ?? 0.001m;
 
         var riskReward = request.RiskReward ?? 1;
 
@@ -42,8 +42,8 @@ public record MikeStrategyRequest : IHttpRequest
 {
     public IFormFileCollection Files { get; set; } = new FormFileCollection();
     public int MovingAverage { get; set; }
-    public double? MaxSpread { get; set; }
-    public double? MinGain { get; set; }
-    public double? RiskReward { get; set; }
+    public decimal? MaxSpread { get; set; }
+    public decimal? MinGain { get; set; }
+    public decimal? RiskReward { get; set; }
     public int? TradeRisk { get; set; }
 }

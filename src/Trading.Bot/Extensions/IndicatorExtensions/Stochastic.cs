@@ -26,7 +26,7 @@ public static partial class Indicator
             var lowestPrice = lastCandles.Select(c => c.Mid_C).Min();
 
             result[i].KOscillator = highestPrice - lowestPrice != 0
-                ? 100 * (result[i].Candle.Mid_C - lowestPrice) / (highestPrice - lowestPrice)
+                ? (double)(100 * (result[i].Candle.Mid_C - lowestPrice) / (highestPrice - lowestPrice))
                 : 0.0;
         }
 

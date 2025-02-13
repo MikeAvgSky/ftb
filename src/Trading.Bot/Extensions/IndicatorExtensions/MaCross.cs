@@ -3,9 +3,9 @@
 public static partial class Indicator
 {
     public static MaCrossResult[] CalcMaCross(this Candle[] candles, int shortWindow = 10, int longWindow = 20,
-        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
+        decimal maxSpread = 0.0004m, decimal minGain = 0.0006m, decimal riskReward = 1.5m)
     {
-        var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
+        var typicalPrice = candles.Select(c => (double)(c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
         var maShort = typicalPrice.CalcEma(shortWindow).ToArray();
 

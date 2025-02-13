@@ -3,11 +3,11 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcRsiEma(this Candle[] candles, int rsiWindow = 14, int emaWindow = 200,
-        double rsiLimit = 50.0, double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
+        double rsiLimit = 50, decimal maxSpread = 0.0004m, decimal minGain = 0.0006m, decimal riskReward = 1.5m)
     {
         var rsiResult = candles.CalcRsi(rsiWindow);
 
-        var prices = candles.Select(c => c.Mid_C).ToArray();
+        var prices = candles.Select(c => (double)c.Mid_C).ToArray();
 
         var emaResult = prices.CalcEma(emaWindow).ToArray();
 
@@ -23,17 +23,17 @@ public static partial class Indicator
 
             var engulfing = i > 0 && candles[i].IsEngulfingCandle(candles[i - 1]);
 
-            result[i].Gain = Math.Abs(candles[i].Mid_C - emaResult[i]);
+            result[i].Gain = Math.Abs(candles[i].Mid_C - (decimal)emaResult[i]);
 
             result[i].Signal = candles[i].Direction switch
             {
                 1 when engulfing &&
-                       candles[i].Mid_L > emaResult[i] &&
+                       candles[i].Mid_L > (decimal)emaResult[i] &&
                        rsiResult[i].Rsi > rsiLimit &&
                        candles[i].Spread <= maxSpread &&
                        result[i].Gain >= minGain => Signal.Buy,
                 -1 when engulfing &&
-                        candles[i].Mid_H < emaResult[i] &&
+                        candles[i].Mid_H < (decimal)emaResult[i] &&
                         rsiResult[i].Rsi < rsiLimit &&
                         candles[i].Spread <= maxSpread &&
                         result[i].Gain >= minGain => Signal.Sell,

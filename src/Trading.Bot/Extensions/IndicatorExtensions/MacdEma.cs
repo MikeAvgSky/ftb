@@ -3,11 +3,11 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcMacdEma(this Candle[] candles, int emaWindow = 100,
-        double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
+        decimal maxSpread = 0.0004m, decimal minGain = 0.0006m, decimal riskReward = 1.5m)
     {
         var macd = candles.CalcMacd();
 
-        var prices = candles.Select(c => c.Mid_C).ToArray();
+        var prices = candles.Select(c => (double)c.Mid_C).ToArray();
 
         var emaResult = prices.CalcEma(emaWindow).ToArray();
 
@@ -32,14 +32,14 @@ public static partial class Indicator
                 _ => 0
             };
 
-            result[i].Gain = Math.Abs(candles[i].Mid_C - emaResult[i]);
+            result[i].Gain = Math.Abs(candles[i].Mid_C - (decimal)emaResult[i]);
 
             result[i].Signal = direction switch
             {
-                1 when candles[i].Mid_L > emaResult[i] &&
+                1 when candles[i].Mid_L > (decimal)emaResult[i] &&
                        candles[i].Spread <= maxSpread &&
                        result[i].Gain >= minGain => Signal.Buy,
-                -1 when candles[i].Mid_H < emaResult[i] &&
+                -1 when candles[i].Mid_H < (decimal)emaResult[i] &&
                         candles[i].Spread <= maxSpread &&
                         result[i].Gain >= minGain => Signal.Sell,
                 _ => Signal.None

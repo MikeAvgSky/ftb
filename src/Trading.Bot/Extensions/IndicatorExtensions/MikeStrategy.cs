@@ -3,13 +3,13 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcMikeStrategy(this Candle[] candles,
-        int window, double maxSpread = 0.0004, double minGain = 0.001, double riskReward = 1)
+        int window, decimal maxSpread = 0.0004m, decimal minGain = 0.002m, decimal riskReward = 1)
     {
         var macd = candles.CalcMacd();
 
         var rsi = candles.CalcRsi();
 
-        var prices = candles.Select(c => c.Mid_C).ToArray();
+        var prices = candles.Select(c => (double)c.Mid_C).ToArray();
 
         var ema = prices.CalcEma(window).ToArray();
 

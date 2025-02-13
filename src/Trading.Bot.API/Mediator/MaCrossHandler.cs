@@ -6,9 +6,9 @@ public sealed class MaCrossHandler : IRequestHandler<MovingAverageCrossRequest, 
     {
         var fileData = new List<FileData<IEnumerable<object>>>();
 
-        var maxSpread = request.MaxSpread ?? 0.0003;
+        var maxSpread = request.MaxSpread ?? 0.0003m;
 
-        var minGain = request.MinGain ?? 0.0006;
+        var minGain = request.MinGain ?? 0.0006m;
 
         var riskReward = request.RiskReward ?? 1;
 
@@ -52,8 +52,8 @@ public record MovingAverageCrossRequest : IHttpRequest
     public IFormFileCollection Files { get; set; } = new FormFileCollection();
     public string ShortWindow { get; set; } = "";
     public string LongWindow { get; set; } = "";
-    public double? MaxSpread { get; set; }
-    public double? MinGain { get; set; }
-    public double? RiskReward { get; set; }
+    public decimal? MaxSpread { get; set; }
+    public decimal? MinGain { get; set; }
+    public decimal? RiskReward { get; set; }
     public int? TradeRisk { get; set; }
 }

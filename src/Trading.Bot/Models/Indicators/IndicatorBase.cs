@@ -4,8 +4,8 @@ public abstract class IndicatorBase
 {
     public Candle Candle { get; set; }
     public Signal Signal { get; set; }
-    public double Gain { get; set; }
-    public double TakeProfit { get; set; }
-    public double StopLoss { get; set; }
-    public double Loss { get; set; }
+    public decimal Gain { get; set; }
+    public decimal TakeProfit { get; set; }
+    public decimal StopLoss { get; set; }
+    public decimal Loss { get; set; }
 }

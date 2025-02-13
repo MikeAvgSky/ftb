@@ -4,7 +4,7 @@ public static partial class Indicator
 {
     public static BollingerBandsResult[] CalcBollingerBands(this Candle[] candles, int window = 20, double stdDev = 2)
     {
-        var typicalPrice = candles.Select(c => (c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
+        var typicalPrice = candles.Select(c => (double)(c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
         var rolStdDev = typicalPrice.CalcRolStdDev(window).ToArray();
 

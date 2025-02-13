@@ -30,23 +30,23 @@ public static class MiscellaneousExtensions
         return (int)statusCode >= 200 && (int)statusCode <= 299;
     }
 
-    public static double CalcTakeProfit(this Candle candle, IndicatorBase result, double riskReward)
+    public static decimal CalcTakeProfit(this Candle candle, IndicatorBase result, decimal riskReward)
     {
         return result.Signal switch
         {
             Signal.Buy => candle.Mid_C + result.Gain * riskReward,
             Signal.Sell => candle.Mid_C - result.Gain * riskReward,
-            _ => 0.0
+            _ => 0
         };
     }
 
-    public static double CalcStopLoss(this Candle candle, IndicatorBase result)
+    public static decimal CalcStopLoss(this Candle candle, IndicatorBase result)
     {
         return result.Signal switch
         {
             Signal.Buy => candle.Mid_C - result.Gain,
             Signal.Sell => candle.Mid_C + result.Gain,
-            _ => 0.0
+            _ => 0
         };
     }
 }

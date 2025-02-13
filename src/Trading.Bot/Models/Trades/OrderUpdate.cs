@@ -6,7 +6,7 @@ public class OrderUpdate
     public StopLoss StopLoss { get; set; }
     public TrailingStopLoss TrailingStopLoss { get; set; }
 
-    public OrderUpdate(int displayPrecision = 0, double stopLoss = 0, double takeProfit = 0, double trailingStop = 0, string timeInForce = "GTC")
+    public OrderUpdate(int displayPrecision = 0, decimal stopLoss = 0, decimal takeProfit = 0, decimal trailingStop = 0, string timeInForce = "GTC")
     {
         StopLoss = stopLoss == 0
             ? null
@@ -41,17 +41,17 @@ public class OrderUpdate
 public class StopLoss
 {
     public string TimeInForce { get; set; }
-    public double Price { get; set; }
+    public decimal Price { get; set; }
 }
 
 public class TakeProfit
 {
     public string TimeInForce { get; set; }
-    public double Price { get; set; }
+    public decimal Price { get; set; }
 }
 
 public class TrailingStopLoss
 {
     public string TimeInForce { get; set; }
-    public double Distance { get; set; }
+    public decimal Distance { get; set; }
 }
