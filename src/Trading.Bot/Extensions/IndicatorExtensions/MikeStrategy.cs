@@ -2,18 +2,16 @@
 
 public static partial class Indicator
 {
-    public static IndicatorResult[] CalcMikeStrategy(this Candle[] candles,
-        int window, decimal maxSpread = 0.0004m, decimal minGain = 0.002m, decimal riskReward = 1)
+    public static IndicatorResult[] CalcMikeStrategy(this Candle[] candles, int shortWindow, int longWindow,
+        int priceActionWindow, decimal maxSpread = 0.0004m, decimal minGain = 0.002m, decimal riskReward = 1)
     {
         var macd = candles.CalcMacd();
 
-        var rsi = candles.CalcRsi();
-
         var prices = candles.Select(c => (double)c.Mid_C).ToArray();
 
-        var ema = prices.CalcEma(window).ToArray();
+        var shortEma = prices.CalcEma(shortWindow).ToArray();
 
-        var sma = prices.CalcSma(window).ToArray();
+        var longEma = prices.CalcSma(longWindow).ToArray();
 
         var length = candles.Length;
 
@@ -25,29 +23,29 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            var emaRising = i > 0 && ema[i] > ema[i - 1];
+            var bullishTrend = shortEma[i] > longEma[i];
+
+            var emaRising = i > 0 && shortEma[i] > longEma[i - 1];
 
             var macdRising = i > 0 && macd[i].Macd > macd[i - 1].Macd;
 
-            var bullishTrend = emaRising && macdRising && ema[i] > sma[i];
+            var bearishTrend = shortEma[i] < longEma[i];
 
-            var emaFalling = i > 0 && ema[i] < ema[i - 1];
+            var emaFalling = i > 0 && shortEma[i] < longEma[i - 1];
 
             var macdFalling = i > 0 && macd[i].Macd < macd[i - 1].Macd;
 
-            var bearishTrend = emaFalling && macdFalling && ema[i] < sma[i];
-
             var macdDelta = macd[i].Macd - macd[i].SignalLine;
 
-            result[i].Signal = i < window ? Signal.None : macdDelta switch
+            result[i].Signal = i < priceActionWindow ? Signal.None : macdDelta switch
             {
-                > 0 when bullishTrend && rsi[i].Rsi > 50 &&
-                         candles[(i - window)..i].HigherHighs() &&
-                         candles[(i - window)..i].HigherLows() &&
+                > 0 when bullishTrend && emaRising && macdRising &&
+                         candles[(i - priceActionWindow)..i].HigherHighs() &&
+                         candles[(i - priceActionWindow)..i].HigherLows() &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
-                < 0 when bearishTrend && rsi[i].Rsi < 50 &&
-                         candles[(i - window)..i].LowerHighs() &&
-                         candles[(i - window)..i].LowerLows() &&
+                < 0 when bearishTrend && emaFalling && macdFalling &&
+                         candles[(i - priceActionWindow)..i].LowerHighs() &&
+                         candles[(i - priceActionWindow)..i].LowerLows() &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };

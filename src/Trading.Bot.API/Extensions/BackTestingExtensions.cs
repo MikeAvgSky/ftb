@@ -6,7 +6,7 @@ public static class BackTestingExtensions
     {
         var list = sequence.ToList();
 
-        if (!list.Any())
+        if (list.Count == 0)
         {
             yield return string.Empty;
         }
@@ -34,7 +34,7 @@ public static class BackTestingExtensions
     {
         var list = sequence.ToList();
 
-        if (!list.Any())
+        if (list.Count == 0)
         {
             yield return Tuple.Create(0, 0);
         }
@@ -300,7 +300,7 @@ public static class BackTestingExtensions
             Days = indicators.Last().Candle.Time.Subtract(indicators.First().Candle.Time).Days,
             Candles = indicators.Length,
             Trades = closedTrades.Count,
-            Wins = closedTrades.Count(t => t.Result == 1),
+            Wins = closedTrades.Count(t => t.Result > 0),
             Losses = closedTrades.Count(t => t.Result == -1),
             Unknown = closedTrades.Count(t => t.Result == -2),
             Even = closedTrades.Count(t => t.Result == 0),
@@ -309,15 +309,15 @@ public static class BackTestingExtensions
 
         summary.WinRate = Math.Round((double)summary.Wins * 100 / (summary.Trades - summary.Unknown - summary.Even), 2);
 
-        var buyWins = closedTrades.Count(t => t.Result == 1 && t.Signal == Signal.Buy);
+        var buyWins = closedTrades.Count(t => t.Result > 0 && t.Signal == Signal.Buy);
 
-        var buyTrades = closedTrades.Count(t => t.Result is 1 or -1 && t.Signal == Signal.Buy);
+        var buyTrades = closedTrades.Count(t => t.Result is > 0 or -1 && t.Signal == Signal.Buy);
 
         summary.BuyWinRate = Math.Round((double)buyWins * 100 / buyTrades, 2);
 
-        var sellWins = closedTrades.Count(t => t.Result == 1 && t.Signal == Signal.Sell);
+        var sellWins = closedTrades.Count(t => t.Result > 0 && t.Signal == Signal.Sell);
 
-        var sellTrades = closedTrades.Count(t => t.Result is 1 or -1 && t.Signal == Signal.Sell);
+        var sellTrades = closedTrades.Count(t => t.Result is > 0 or -1 && t.Signal == Signal.Sell);
 
         summary.SellWinRate = Math.Round((double)sellWins * 100 / sellTrades, 2);
 
