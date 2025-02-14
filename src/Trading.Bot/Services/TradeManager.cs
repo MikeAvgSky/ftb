@@ -61,22 +61,24 @@ public class TradeManager : BackgroundService
 
         if (!await NewCandleAvailable(settings, price, stoppingToken) || !GoodTradingTime()) return;
 
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity);
+        var granularities = new[] { settings.MainGranularity }.Concat(settings.OtherGranularities);
 
-        if (candles.Length == 0)
+        var candles = await Task.WhenAll(granularities.Select(g => _apiService.GetCandles(settings.Instrument, g)));
+
+        if (candles.Length == 0 || candles.Any(c => c.Length == 0))
         {
             _logger.LogInformation("Not placing a trade for {Instrument}, candles not found", settings.Instrument);
             return;
         }
 
-        var calcResult = candles.CalcEliasStrategy(settings.Integers[0], settings.Integers[1], settings.Integers[2],
-            settings.Integers[3], settings.MinGain, settings.RiskReward, settings.MaxSpread).Last();
+        var calcResults = candles.Select(c => c.CalcMikeStrategy(settings.Integers[0], settings.Integers[1],
+            settings.MaxSpread, settings.MinGain, settings.RiskReward).Last()).ToList();
 
-        await UpdateWinningTrades(settings, calcResult);
+        await UpdateWinningTrades(settings, calcResults.First());
 
-        if (calcResult.Signal != Signal.None)
+        if (calcResults.All(cr => cr.Signal != Signal.None))
         {
-            await TryPlaceTrade(settings, calcResult);
+            await TryPlaceTrade(settings, calcResults.First());
             return;
         }
 
@@ -219,7 +221,7 @@ public class TradeManager : BackgroundService
         {
             var displayPrecision = _instruments.First(i => i.Name == openTrade.Instrument).DisplayPrecision;
 
-            var trailingStop = Math.Abs(currentValue - openTrade.Price);
+            var trailingStop = Math.Abs(currentValue - openTrade.Price - indicator.Candle.Spread);
 
             var update = new OrderUpdate(displayPrecision: displayPrecision, trailingStop: trailingStop);
 

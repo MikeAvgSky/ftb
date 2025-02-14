@@ -3,7 +3,7 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcMikeStrategy(this Candle[] candles, int shortWindow, int longWindow,
-        int priceActionWindow, decimal maxSpread = 0.0004m, decimal minGain = 0.002m, decimal riskReward = 1)
+        decimal maxSpread = 0.0004m, decimal minGain = 0.002m, decimal riskReward = 1.5m)
     {
         var macd = candles.CalcMacd();
 
@@ -37,15 +37,11 @@ public static partial class Indicator
 
             var macdDelta = macd[i].Macd - macd[i].SignalLine;
 
-            result[i].Signal = i < priceActionWindow ? Signal.None : macdDelta switch
+            result[i].Signal = i < longWindow ? Signal.None : macdDelta switch
             {
                 > 0 when bullishTrend && emaRising && macdRising &&
-                         candles[(i - priceActionWindow)..i].HigherHighs() &&
-                         candles[(i - priceActionWindow)..i].HigherLows() &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
                 < 0 when bearishTrend && emaFalling && macdFalling &&
-                         candles[(i - priceActionWindow)..i].LowerHighs() &&
-                         candles[(i - priceActionWindow)..i].LowerLows() &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
