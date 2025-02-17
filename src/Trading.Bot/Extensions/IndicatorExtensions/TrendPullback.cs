@@ -3,9 +3,9 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcTrendPullback(this Candle[] candles, int bbWindow = 20, int emaWindow = 100,
-        double stdDev = 2, double maxSpread = 0.0004, double minGain = 0.0006, double riskReward = 1.5)
+        double stdDev = 2, decimal maxSpread = 0.0004m, decimal minGain = 0.0006m, decimal riskReward = 1.5m)
     {
-        var prices = candles.Select(c => c.Mid_C).ToArray();
+        var prices = candles.Select(c => (double)c.Mid_C).ToArray();
 
         var emaResult = prices.CalcEma(emaWindow).ToArray();
 
@@ -92,13 +92,13 @@ public static partial class Indicator
                 crossedUpperBand = false;
             }
 
-            if (candles[i].Mid_C < bollingerBands[i].LowerBand)
+            if (candles[i].Mid_C < (decimal)bollingerBands[i].LowerBand)
             {
                 crossedLowerBand = true;
                 lastCrossedLowerBandIndex = i;
             }
 
-            if (candles[i].Mid_C > bollingerBands[i].UpperBand)
+            if (candles[i].Mid_C > (decimal)bollingerBands[i].UpperBand)
             {
                 crossedUpperBand = true;
                 lastCrossedUpperBandIndex = i;

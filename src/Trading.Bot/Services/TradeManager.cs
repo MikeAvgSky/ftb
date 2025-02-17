@@ -61,22 +61,24 @@ public class TradeManager : BackgroundService
 
         if (!await NewCandleAvailable(settings, price, stoppingToken) || !GoodTradingTime()) return;
 
-        var candles = await _apiService.GetCandles(settings.Instrument, settings.MainGranularity);
+        var granularities = new[] { settings.MainGranularity }.Concat(settings.OtherGranularities);
 
-        if (candles.Length == 0)
+        var candles = await Task.WhenAll(granularities.Select(g => _apiService.GetCandles(settings.Instrument, g)));
+
+        if (candles.Length == 0 || candles.Any(c => c.Length == 0))
         {
             _logger.LogInformation("Not placing a trade for {Instrument}, candles not found", settings.Instrument);
             return;
         }
 
-        var calcResult = candles.CalcEliasStrategy(settings.Integers[0], settings.Integers[1], settings.Integers[2],
-            settings.Integers[3], settings.MinGain, settings.RiskReward, settings.MaxSpread).Last();
+        var calcResults = candles.Select(c => c.CalcMikeStrategy(settings.Integers[0], settings.Integers[1],
+            settings.MaxSpread, settings.MinGain, settings.RiskReward).Last()).ToList();
 
-        await UpdateWinningTrades(settings, calcResult);
+        await UpdateWinningTrades(settings, calcResults.First());
 
-        if (calcResult.Signal != Signal.None)
+        if (calcResults.All(cr => cr.Signal != Signal.None))
         {
-            await TryPlaceTrade(settings, calcResult);
+            await TryPlaceTrade(settings, calcResults.First());
             return;
         }
 
@@ -94,7 +96,7 @@ public class TradeManager : BackgroundService
     {
         var retryCount = 0;
 
-        Start:
+    Start:
 
         if (retryCount >= 10)
         {
@@ -162,7 +164,7 @@ public class TradeManager : BackgroundService
         }
     }
 
-    private static double CalcTrailingStop(IndicatorBase indicator, double multiplier)
+    private static decimal CalcTrailingStop(IndicatorBase indicator, decimal multiplier)
     {
         return indicator.Gain * multiplier;
     }
@@ -183,13 +185,13 @@ public class TradeManager : BackgroundService
         });
     }
 
-    private async Task<double> GetTradeUnits(TradeSettings settings, IndicatorBase indicator)
+    private async Task<decimal> GetTradeUnits(TradeSettings settings, IndicatorBase indicator)
     {
         var price = (await _apiService.GetPrices(settings.Instrument)).FirstOrDefault();
 
-        if (price is null) return 0.0;
+        if (price is null) return 0;
 
-        var pipLocation = _instruments.FirstOrDefault(i => i.Name == settings.Instrument)?.PipLocation ?? 1.0;
+        var pipLocation = _instruments.FirstOrDefault(i => i.Name == settings.Instrument)?.PipLocation ?? 1;
 
         var numPips = indicator.Loss / pipLocation;
 
@@ -211,14 +213,6 @@ public class TradeManager : BackgroundService
 
         if (openTrade is null) return;
 
-        var openTradeSignal = openTrade.InitialUnits > 0 ? Signal.Buy : Signal.Sell;
-
-        if (indicator.Signal != Signal.None && openTrade.UnrealizedPL > 1 && DifferentDirection(indicator.Signal, openTradeSignal))
-        {
-            await _apiService.CloseTrade(openTrade.Id);
-            return;
-        }
-
         var currentValue = openTrade.InitialUnits > 0
             ? indicator.Candle.Ask_C
             : indicator.Candle.Bid_C;
@@ -227,7 +221,7 @@ public class TradeManager : BackgroundService
         {
             var displayPrecision = _instruments.First(i => i.Name == openTrade.Instrument).DisplayPrecision;
 
-            var trailingStop = Math.Abs(currentValue - openTrade.Price);
+            var trailingStop = Math.Abs(currentValue - openTrade.Price) - indicator.Candle.Spread;
 
             var update = new OrderUpdate(displayPrecision: displayPrecision, trailingStop: trailingStop);
 
@@ -235,14 +229,12 @@ public class TradeManager : BackgroundService
         }
     }
 
-    private static bool ShouldAddTrailingStop(TradeResponse trade, double currentValue)
+    private static bool ShouldAddTrailingStop(TradeResponse trade, decimal currentValue)
     {
-        var priceList = new List<double> { trade.Price, trade.TakeProfitOrder.Price };
+        var priceList = new List<decimal> { trade.Price, trade.TakeProfitOrder.Price };
 
         var closest = priceList.OrderBy(value => Math.Abs(currentValue - value)).First();
 
         return trade.TrailingStopLossOrder is null && trade.TakeProfitOrder.Price - closest == 0;
     }
-
-    private static bool DifferentDirection(Signal signal, Signal tradeSignal) => signal != tradeSignal;
 }

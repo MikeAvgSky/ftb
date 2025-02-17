@@ -19,8 +19,8 @@ public class CandleData
 
 public class CandlestickData
 {
-    public double O { get; set; }
-    public double H { get; set; }
-    public double L { get; set; }
-    public double C { get; set; }
+    public decimal O { get; set; }
+    public decimal H { get; set; }
+    public decimal L { get; set; }
+    public decimal C { get; set; }
 }

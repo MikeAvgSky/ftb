@@ -4,15 +4,15 @@ public class Order
 {
     public string Type { get; set; }
     public string Instrument { get; set; }
-    public double Units { get; set; }
+    public decimal Units { get; set; }
     public string TimeInForce { get; set; }
     public string PositionFill { get; set; }
     public StopLossOnFill StopLossOnFill { get; set; }
     public TakeProfitOnFill TakeProfitOnFill { get; set; }
     public TrailingStopLossOnFill TrailingStopLossOnFill { get; set; }
 
-    public Order(Instrument instrument, double units, Signal signal, double stopLoss = 0, double takeProfit = 0,
-        double trailingStop = 0, string type = "MARKET", string timeInForce = "FOK", string positionFill = "DEFAULT")
+    public Order(Instrument instrument, decimal units, Signal signal, decimal stopLoss = 0, decimal takeProfit = 0,
+        decimal trailingStop = 0, string type = "MARKET", string timeInForce = "FOK", string positionFill = "DEFAULT")
     {
         Type = type;
         Instrument = instrument.Name;
@@ -44,15 +44,15 @@ public class Order
 
 public class StopLossOnFill
 {
-    public double Price { get; set; }
+    public decimal Price { get; set; }
 }
 
 public class TakeProfitOnFill
 {
-    public double Price { get; set; }
+    public decimal Price { get; set; }
 }
 
 public class TrailingStopLossOnFill
 {
-    public double Distance { get; set; }
+    public decimal Distance { get; set; }
 }

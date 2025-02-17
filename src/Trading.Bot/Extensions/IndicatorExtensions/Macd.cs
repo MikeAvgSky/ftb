@@ -4,7 +4,7 @@ public static partial class Indicator
 {
     public static MacdResult[] CalcMacd(this Candle[] candles, int shortWindow = 12, int longWindow = 26, int signal = 9)
     {
-        var prices = candles.Select(c => c.Mid_C).ToArray();
+        var prices = candles.Select(c => (double)c.Mid_C).ToArray();
 
         var emaShort = prices.CalcEma(shortWindow).ToArray();
 

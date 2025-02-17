@@ -4,7 +4,7 @@ public static partial class Indicator
 {
     public static KeltnerChannelsResult[] CalcKeltnerChannels(this Candle[] candles, int emaWindow = 20, int atrWindow = 10, double multiplier = 2)
     {
-        var prices = candles.Select(c => c.Mid_C).ToArray();
+        var prices = candles.Select(c => (double)c.Mid_C).ToArray();
 
         var ema = prices.CalcEma(emaWindow).ToArray();
 

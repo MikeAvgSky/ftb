@@ -6,7 +6,7 @@ public static class BackTestingExtensions
     {
         var list = sequence.ToList();
 
-        if (!list.Any())
+        if (list.Count == 0)
         {
             yield return string.Empty;
         }
@@ -34,7 +34,7 @@ public static class BackTestingExtensions
     {
         var list = sequence.ToList();
 
-        if (!list.Any())
+        if (list.Count == 0)
         {
             yield return Tuple.Create(0, 0);
         }
@@ -86,7 +86,7 @@ public static class BackTestingExtensions
         return memoryStream.ToArray();
     }
 
-    public static IEnumerable<FileData<IEnumerable<object>>> GetFileData(this IndicatorResult[] indicator, string fileName, int tradeRisk, double riskReward, bool updateTrade = false)
+    public static IEnumerable<FileData<IEnumerable<object>>> GetFileData(this IndicatorResult[] indicator, string fileName, int tradeRisk, decimal riskReward, bool updateTrade = false)
     {
         var fileData = new List<FileData<IEnumerable<object>>>();
 
@@ -136,7 +136,7 @@ public static class BackTestingExtensions
         return csv.GetRecords<T>().ToArray();
     }
 
-    private static (TradeResult[] Result, SimulationSummary Summary) SimulateTrade(IndicatorBase[] indicators, int tradeRisk, double riskReward, bool updateTrade)
+    private static (TradeResult[] Result, SimulationSummary Summary) SimulateTrade(IndicatorBase[] indicators, int tradeRisk, decimal riskReward, bool updateTrade)
     {
         var length = indicators.Length;
 
@@ -147,23 +147,6 @@ public static class BackTestingExtensions
         for (var i = 0; i < length; i++)
         {
             UpdateUnrealisedPl(indicators[i], openTrades);
-
-            if (updateTrade && indicators[i].Signal != Signal.None && openTrades.Count > 0)
-            {
-                foreach (var trade in openTrades.Where(trade => DifferentDirection(indicators[i].Signal, trade.Signal) &&
-                                                                trade.UnrealisedPL > 0))
-                {
-                    var triggerPrice = trade.Signal == Signal.Buy
-                        ? indicators[i].Candle.Bid_C
-                        : indicators[i].Candle.Ask_C;
-
-                    CloseTrade(trade, 1, indicators[i].Candle.Time, triggerPrice);
-
-                    closedTrades.Add(trade);
-                }
-
-                openTrades.RemoveAll(ot => !ot.Running);
-            }
 
             if (indicators[i].Signal != Signal.None && openTrades.Count == 0)
             {
@@ -182,7 +165,7 @@ public static class BackTestingExtensions
                     StopLoss = indicators[i].StopLoss,
                     StartTime = indicators[i].Candle.Time,
                     EndTime = indicators[i].Candle.Time,
-                    Result = 0.0
+                    Result = 0
                 });
 
                 continue;
@@ -197,8 +180,6 @@ public static class BackTestingExtensions
 
         return (closedTrades.ToArray(), summary);
     }
-
-    private static bool DifferentDirection(Signal signal, Signal tradeSignal) => signal != tradeSignal;
 
     private static void UpdateUnrealisedPl(IndicatorBase indicator, List<TradeResult> openTrades)
     {
@@ -220,7 +201,17 @@ public static class BackTestingExtensions
             UpdateTrade(trade, indicator);
 
             if (ShouldUpdateStopLoss(updateTrade, trade, indicator))
-                trade.StopLoss = trade.TriggerPrice;
+            {
+                var currentValue = trade.Signal == Signal.Buy
+                    ? indicator.Candle.Ask_C
+                    : indicator.Candle.Bid_C;
+
+                var distance = Math.Abs(currentValue - trade.TriggerPrice) - indicator.Candle.Spread;
+
+                trade.StopLoss = trade.Signal == Signal.Buy
+                 ? trade.TakeProfit - distance
+                 : trade.TakeProfit + distance;
+            }
 
             if (trade.Running) continue;
 
@@ -244,7 +235,7 @@ public static class BackTestingExtensions
 
             if (indicator.Candle.Bid_L <= trade.StopLoss && indicator.Candle.Bid_H >= trade.TakeProfit)
             {
-                CloseTrade(trade, double.NaN, indicator.Candle.Time, indicator.Candle.Mid_C);
+                CloseTrade(trade, 0, indicator.Candle.Time, indicator.Candle.Mid_C);
             }
         }
 
@@ -262,14 +253,14 @@ public static class BackTestingExtensions
 
             if (indicator.Candle.Ask_H >= trade.StopLoss && indicator.Candle.Ask_L <= trade.TakeProfit)
             {
-                CloseTrade(trade, double.NaN, indicator.Candle.Time, indicator.Candle.Mid_C);
+                CloseTrade(trade, 0, indicator.Candle.Time, indicator.Candle.Mid_C);
             }
         }
     }
 
     private static bool ShouldUpdateStopLoss(bool updateTrade, TradeResult trade, IndicatorBase indicator)
     {
-        var priceList = new List<double> { trade.TriggerPrice, trade.TakeProfit };
+        var priceList = new List<decimal> { trade.TriggerPrice, trade.TakeProfit };
 
         var currentValue = trade.Signal == Signal.Buy
             ? indicator.Candle.Ask_C
@@ -282,12 +273,16 @@ public static class BackTestingExtensions
 
     private static int GetLossResult(TradeResult trade)
     {
-        if (trade.StopLoss - trade.TriggerPrice == 0) return 0;
+        var stoppedPrice = trade.Signal == Signal.Buy
+            ? trade.StopLoss - trade.TriggerPrice
+            : trade.TriggerPrice - trade.StopLoss;
+
+        if (stoppedPrice >= 0) return 1;
 
         return -1;
     }
 
-    private static void CloseTrade(TradeResult trade, double result, DateTime endTime, double triggerPrice)
+    private static void CloseTrade(TradeResult trade, decimal result, DateTime endTime, decimal triggerPrice)
     {
         trade.Running = false;
         trade.Result = Math.Round(GetAccurateResult(result, trade, triggerPrice), 2);
@@ -295,9 +290,9 @@ public static class BackTestingExtensions
         trade.TriggerPrice = triggerPrice;
     }
 
-    private static double GetAccurateResult(double result, TradeResult trade, double triggerPrice)
+    private static decimal GetAccurateResult(decimal result, TradeResult trade, decimal triggerPrice)
     {
-        if (double.IsNaN(result) || result - 1 != 0) return result;
+        if (result <= 0) return result;
 
         return trade.Signal switch
         {
@@ -307,12 +302,12 @@ public static class BackTestingExtensions
         };
     }
 
-    private static double GetDistance(double triggerPrice, double takeProfit)
+    private static decimal GetDistance(decimal triggerPrice, decimal takeProfit)
     {
         return Math.Abs(triggerPrice - takeProfit) / ((triggerPrice + takeProfit) / 2) * 100;
     }
 
-    private static SimulationSummary CalcSimSummary(IndicatorBase[] indicators, int tradeRisk, double riskReward, List<TradeResult> closedTrades)
+    private static SimulationSummary CalcSimSummary(IndicatorBase[] indicators, int tradeRisk, decimal riskReward, List<TradeResult> closedTrades)
     {
         var summary = new SimulationSummary
         {
@@ -321,28 +316,27 @@ public static class BackTestingExtensions
             Trades = closedTrades.Count,
             Wins = closedTrades.Count(t => t.Result > 0),
             Losses = closedTrades.Count(t => t.Result < 0),
-            Unknown = closedTrades.Count(t => double.IsNaN(t.Result)),
-            Even = closedTrades.Count(t => t.Result == 0),
+            Unknown = closedTrades.Count(t => t.Result == 0),
             TradeRisk = tradeRisk
         };
 
-        summary.WinRate = Math.Round((double)summary.Wins * 100 / (summary.Trades - summary.Unknown - summary.Even), 2);
+        summary.WinRate = Math.Round((double)summary.Wins * 100 / (summary.Trades - summary.Unknown), 2);
 
         var buyWins = closedTrades.Count(t => t.Result > 0 && t.Signal == Signal.Buy);
 
-        var buyTrades = closedTrades.Count(t => !double.IsNaN(t.Result) && t.Result != 0 && t.Signal == Signal.Buy);
+        var buyTrades = closedTrades.Count(t => t.Result != 0 && t.Signal == Signal.Buy);
 
         summary.BuyWinRate = Math.Round((double)buyWins * 100 / buyTrades, 2);
 
         var sellWins = closedTrades.Count(t => t.Result > 0 && t.Signal == Signal.Sell);
 
-        var sellTrades = closedTrades.Count(t => !double.IsNaN(t.Result) && t.Result != 0 && t.Signal == Signal.Sell);
+        var sellTrades = closedTrades.Count(t => t.Result != 0 && t.Signal == Signal.Sell);
 
         summary.SellWinRate = Math.Round((double)sellWins * 100 / sellTrades, 2);
 
         var winResultSum = Math.Round(closedTrades.Where(t => t.Result > 0).Sum(t => t.Result));
 
-        summary.Balance = Math.Round(winResultSum * (tradeRisk * riskReward) - summary.Losses * tradeRisk, 2);
+        summary.Balance = (double)Math.Round(winResultSum * tradeRisk * riskReward - summary.Losses * tradeRisk, 2);
 
         return summary;
     }

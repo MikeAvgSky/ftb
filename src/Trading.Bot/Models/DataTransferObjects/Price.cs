@@ -2,7 +2,7 @@
 
 public class Price : PriceBase
 {
-    public double HomeConversion { get; set; }
+    public decimal HomeConversion { get; set; }
 
     public Price(PriceResponse price, HomeConversionResponse conversion)
     {

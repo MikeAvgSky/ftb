@@ -10,7 +10,7 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
 
         var rsiHigh = request.RsiHigh ?? 70;
 
-        var maxSpread = request.MaxSpread ?? 0.0003;
+        var maxSpread = request.MaxSpread ?? 0.0003m;
 
         var minGain = request.MinGain ?? 0;
 
@@ -50,8 +50,8 @@ public record BollingerBandsRequest : IHttpRequest
     public double StandardDeviation { get; set; }
     public double? RsiLow { get; set; }
     public double? RsiHigh { get; set; }
-    public double? MaxSpread { get; set; }
-    public double? MinGain { get; set; }
-    public double? RiskReward { get; set; }
+    public decimal? MaxSpread { get; set; }
+    public decimal? MinGain { get; set; }
+    public decimal? RiskReward { get; set; }
     public int? TradeRisk { get; set; }
 }

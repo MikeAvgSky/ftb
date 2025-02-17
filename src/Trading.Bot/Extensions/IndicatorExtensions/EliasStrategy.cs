@@ -3,12 +3,12 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcEliasStrategy(this Candle[] candles, int emaShort = 8,
-        int emaMedium = 21, int smaLong = 50, int emaLong = 100, double minGain = 0.002,
-        double riskReward = 1, double maxSpread = 0.0003)
+        int emaMedium = 21, int smaLong = 50, int emaLong = 100, decimal minGain = 0.002m,
+        decimal riskReward = 1, decimal maxSpread = 0.0003m)
     {
         var macd = candles.CalcMacd();
 
-        var prices = candles.Select(c => c.Mid_C).ToArray();
+        var prices = candles.Select(c => (double)c.Mid_C).ToArray();
 
         var shortEma = prices.CalcEma(emaShort).ToArray();
 
@@ -34,10 +34,10 @@ public static partial class Indicator
 
             result[i].Signal = macDelta switch
             {
-                > 0 when macd[i].Macd > 0 && candles[i].Mid_C > resistance[i] &&
+                > 0 when macd[i].Macd > 0 && candles[i].Mid_C > (decimal)resistance[i] &&
                          shortEma[i] > medEma[i] && medEma[i] > longSma[i] &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
-                < 0 when macd[i].Macd < 0 && candles[i].Mid_C < resistance[i] &&
+                < 0 when macd[i].Macd < 0 && candles[i].Mid_C < (decimal)resistance[i] &&
                          shortEma[i] < medEma[i] && medEma[i] < longSma[i] &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None

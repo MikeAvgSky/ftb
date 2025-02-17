@@ -2,19 +2,19 @@
 
 public static class CandlePatternExtensions
 {
-    private const double HangingManBody = 15.0;
-    private const double HangingManHeight = 75.0;
-    private const double ShootingStarHeight = 75.0;
-    private const double SpinningTopMin = 40.0;
-    private const double SpinningTopMax = 60.0;
-    private const double Marubozu = 98.0;
-    private const double EngulfingFactor = 1.2;
-    private const double TweezerBody = 15.0;
-    private const double TweezerTopBody = 40.0;
-    private const double TweezerBottomBody = 60.0;
-    private const double TweezerHLPercentageDifference = 0.01;
-    private const double MorningStarPrev2Body = 90.0;
-    private const double MorningStarPrevBody = 10.0;
+    private const decimal HangingManBody = 15;
+    private const decimal HangingManHeight = 75;
+    private const decimal ShootingStarHeight = 75;
+    private const decimal SpinningTopMin = 40;
+    private const decimal SpinningTopMax = 60;
+    private const decimal Marubozu = 98;
+    private const decimal EngulfingFactor = 1.2m;
+    private const decimal TweezerBody = 15;
+    private const decimal TweezerTopBody = 40;
+    private const decimal TweezerBottomBody = 60;
+    private const decimal TweezerHLPercentageDifference = 0.01m;
+    private const decimal MorningStarPrev2Body = 90;
+    private const decimal MorningStarPrevBody = 10;
 
     public static bool IsHangingMan(this Candle candle)
     {

@@ -14,22 +14,24 @@ public static partial class Indicator
 
         for (var i = 0; i < length; i++)
         {
+            var value = (double)candles[i].Mid_C;
+
             if (i == 0)
             {
                 gains[i] = 0.0;
 
                 losses[i] = 0.0;
 
-                lastValue = candles[i].Mid_C;
+                lastValue = value;
 
                 continue;
             }
 
-            gains[i] = candles[i].Mid_C > lastValue ? candles[i].Mid_C - lastValue : 0.0;
+            gains[i] = value > lastValue ? value - lastValue : 0.0;
 
-            losses[i] = candles[i].Mid_C < lastValue ? lastValue - candles[i].Mid_C : 0.0;
+            losses[i] = value < lastValue ? lastValue - value : 0.0;
 
-            lastValue = candles[i].Mid_C;
+            lastValue = value;
         }
 
         var gains_rma = gains.CalcRma(window).ToArray();

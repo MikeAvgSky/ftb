@@ -6,7 +6,7 @@ public class EliasStrategyHandler : IRequestHandler<EliasStrategyRequest, IResul
     {
         var fileData = new List<FileData<IEnumerable<object>>>();
 
-        var minGain = request.MinGain ?? 0.001;
+        var minGain = request.MinGain ?? 0.001m;
 
         var riskReward = request.RiskReward ?? 1;
 
@@ -23,11 +23,11 @@ public class EliasStrategyHandler : IRequestHandler<EliasStrategyRequest, IResul
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
             var macdEma = candles.CalcEliasStrategy(request.ShortWindow, request.MediumWindow, request.LongWindow,
-                request.ResistanceLevel, minGain, request.RiskReward ?? 1, request.MaxSpread ?? 0.0004);
+                request.ResistanceLevel, minGain, request.RiskReward ?? 1, request.MaxSpread ?? 0.0004m);
 
             var fileName = $"EliasStrategy_{instrument}_{granularity}";
 
-            fileData.AddRange(macdEma.GetFileData(fileName, tradeRisk, riskReward, true));
+            fileData.AddRange(macdEma.GetFileData(fileName, tradeRisk, riskReward));
         }
 
         if (!fileData.Any()) return Task.FromResult(Results.Empty);
@@ -44,8 +44,8 @@ public record EliasStrategyRequest : IHttpRequest
     public int MediumWindow { get; set; }
     public int LongWindow { get; set; }
     public int ResistanceLevel { get; set; }
-    public double? MaxSpread { get; set; }
-    public double? MinGain { get; set; }
-    public double? RiskReward { get; set; }
+    public decimal? MaxSpread { get; set; }
+    public decimal? MinGain { get; set; }
+    public decimal? RiskReward { get; set; }
     public int? TradeRisk { get; set; }
 }

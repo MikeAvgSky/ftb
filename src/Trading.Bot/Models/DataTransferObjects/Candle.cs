@@ -4,28 +4,28 @@ public class Candle
 {
     public DateTime Time { get; set; }
     public int Volume { get; set; }
-    public double Mid_O { get; set; }
-    public double Mid_H { get; set; }
-    public double Mid_L { get; set; }
-    public double Mid_C { get; set; }
-    public double Bid_O { get; set; }
-    public double Bid_H { get; set; }
-    public double Bid_L { get; set; }
-    public double Bid_C { get; set; }
-    public double Ask_O { get; set; }
-    public double Ask_H { get; set; }
-    public double Ask_L { get; set; }
-    public double Ask_C { get; set; }
-    public double Spread { get; set; }
-    public double BodySize { get; set; }
+    public decimal Mid_O { get; set; }
+    public decimal Mid_H { get; set; }
+    public decimal Mid_L { get; set; }
+    public decimal Mid_C { get; set; }
+    public decimal Bid_O { get; set; }
+    public decimal Bid_H { get; set; }
+    public decimal Bid_L { get; set; }
+    public decimal Bid_C { get; set; }
+    public decimal Ask_O { get; set; }
+    public decimal Ask_H { get; set; }
+    public decimal Ask_L { get; set; }
+    public decimal Ask_C { get; set; }
+    public decimal Spread { get; set; }
+    public decimal BodySize { get; set; }
     public int Direction { get; set; }
-    public double FullRange { get; set; }
-    public double BodyPercentage { get; set; }
-    public double BodyLower { get; set; }
-    public double BodyUpper { get; set; }
-    public double BodyBottomPercentage { get; set; }
-    public double BodyTopPercentage { get; set; }
-    public double MidPoint { get; set; }
+    public decimal FullRange { get; set; }
+    public decimal BodyPercentage { get; set; }
+    public decimal BodyLower { get; set; }
+    public decimal BodyUpper { get; set; }
+    public decimal BodyBottomPercentage { get; set; }
+    public decimal BodyTopPercentage { get; set; }
+    public decimal MidPoint { get; set; }
 
     public Candle(CandleData data)
     {
@@ -47,12 +47,12 @@ public class Candle
         BodySize = Math.Abs(Mid_C - Mid_O);
         Direction = Mid_C - Mid_O >= 0 ? 1 : -1;
         FullRange = Mid_H - Mid_L;
-        BodyPercentage = (BodySize / FullRange * 100).NaN2Zero();
+        BodyPercentage = BodySize / FullRange * 100;
         BodyLower = new[] { Mid_C, Mid_O }.Min();
         BodyUpper = new[] { Mid_C, Mid_O }.Max();
-        BodyBottomPercentage = ((BodyLower - Mid_L) / FullRange * 100).NaN2Zero();
-        BodyTopPercentage = ((Mid_H - BodyUpper) / FullRange * 100).NaN2Zero();
-        MidPoint = (FullRange / 2 + Mid_L).NaN2Zero();
+        BodyBottomPercentage = (BodyLower - Mid_L) / FullRange * 100;
+        BodyTopPercentage = (Mid_H - BodyUpper) / FullRange * 100;
+        MidPoint = FullRange / 2 + Mid_L;
     }
 
     public Candle() { }

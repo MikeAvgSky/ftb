@@ -3,7 +3,7 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcMeanReversion(this Candle[] candles, int window = 20, double stdDev = 2,
-        double rsiLower = 30, double rsiUpper = 70, double maxSpread = 0.0004, double gain = 0, double riskReward = 1)
+        double rsiLower = 30, double rsiUpper = 70, decimal maxSpread = 0.0004m, decimal gain = 0, decimal riskReward = 1)
     {
         var bollingerBands = candles.CalcBollingerBands(window, stdDev);
 
@@ -27,11 +27,11 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].Gain = gain != 0 ? gain : Math.Abs(candles[i].Mid_C - bollingerBands[i].Sma);
+            result[i].Gain = gain != 0 ? gain : Math.Abs(candles[i].Mid_C - (decimal)bollingerBands[i].Sma);
 
-            var crossedLowerBand = candles[i].Mid_O > bollingerBands[i].LowerBand && candles[i].Mid_C < bollingerBands[i].LowerBand;
+            var crossedLowerBand = candles[i].Mid_O > (decimal)bollingerBands[i].LowerBand && candles[i].Mid_C < (decimal)bollingerBands[i].LowerBand;
 
-            var crossedUpperBand = candles[i].Mid_O < bollingerBands[i].UpperBand && candles[i].Mid_C > bollingerBands[i].UpperBand;
+            var crossedUpperBand = candles[i].Mid_O < (decimal)bollingerBands[i].UpperBand && candles[i].Mid_C > (decimal)bollingerBands[i].UpperBand;
 
             if (crossedLowerBand && rsiResult[i].Rsi < rsiLower)
             {

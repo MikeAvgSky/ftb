@@ -24,7 +24,7 @@ public static partial class Indicator
 
             result[i].Candle = candles[i];
 
-            result[i].MaxTr = trueRanges.Max();
+            result[i].MaxTr = (double)trueRanges.Max();
         }
 
         var maxTra = result.Select(x => x.MaxTr).ToArray().CalcSma(window).ToArray();

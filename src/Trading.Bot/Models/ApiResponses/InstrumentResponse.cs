@@ -9,15 +9,15 @@ public class InstrumentResponse
     public int DisplayPrecision { get; set; }
     public int TradeUnitsPrecision { get; set; }
     public string MinimumTradeSize { get; set; }
-    public double MaximumTrailingStopDistance { get; set; }
-    public double MinimumTrailingStopDistance { get; set; }
+    public decimal MaximumTrailingStopDistance { get; set; }
+    public decimal MinimumTrailingStopDistance { get; set; }
     public string MaximumPositionSize { get; set; }
-    public double MaximumOrderUnits { get; set; }
-    public double MarginRate { get; set; }
+    public decimal MaximumOrderUnits { get; set; }
+    public decimal MarginRate { get; set; }
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public GuaranteedStopLossOrderMode GuaranteedStopLossOrderMode { get; set; }
     public string MinimumGuaranteedStopLossDistance { get; set; }
-    public double GuaranteedStopLossOrderExecutionPremium { get; set; }
+    public decimal GuaranteedStopLossOrderExecutionPremium { get; set; }
     public GuaranteedStopLossOrderLevelRestriction GuaranteedStopLossOrderLevelRestriction { get; set; } = new();
     public Tag[] Tags { get; set; }
     public Financing Financing { get; set; } = new();
@@ -25,14 +25,14 @@ public class InstrumentResponse
 
 public class GuaranteedStopLossOrderLevelRestriction
 {
-    public double Volume { get; set; }
-    public double PriceRange { get; set; }
+    public decimal Volume { get; set; }
+    public decimal PriceRange { get; set; }
 }
 
 public class Financing
 {
-    public double LongRate { get; set; }
-    public double ShortRate { get; set; }
+    public decimal LongRate { get; set; }
+    public decimal ShortRate { get; set; }
     public FinancingDaysOfWeek[] FinancingDaysOfWeek { get; set; }
 }
 
