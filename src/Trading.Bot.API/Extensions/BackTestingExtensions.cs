@@ -202,15 +202,9 @@ public static class BackTestingExtensions
 
             if (ShouldUpdateStopLoss(updateTrade, trade, indicator))
             {
-                var currentValue = trade.Signal == Signal.Buy
-                    ? indicator.Candle.Ask_C
-                    : indicator.Candle.Bid_C;
-
-                var distance = Math.Abs(currentValue - trade.TriggerPrice) - indicator.Candle.Spread;
-
                 trade.StopLoss = trade.Signal == Signal.Buy
-                 ? trade.TakeProfit - distance
-                 : trade.TakeProfit + distance;
+                    ? trade.TriggerPrice + indicator.Candle.Spread
+                    : trade.TriggerPrice - indicator.Candle.Spread;
             }
 
             if (trade.Running) continue;
@@ -268,7 +262,12 @@ public static class BackTestingExtensions
 
         var closest = priceList.OrderBy(value => Math.Abs(currentValue - value)).First();
 
-        return updateTrade && trade.Running && Math.Abs(trade.StopLoss - trade.TriggerPrice) > 0 && trade.TakeProfit - closest == 0;
+        var currentStop = trade.Signal == Signal.Buy
+            ? trade.StopLoss - trade.TriggerPrice
+            : trade.TriggerPrice - trade.StopLoss;
+
+
+        return updateTrade && trade.Running && currentStop < 0 && trade.TakeProfit - closest == 0;
     }
 
     private static int GetLossResult(TradeResult trade)
