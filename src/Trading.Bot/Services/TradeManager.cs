@@ -221,7 +221,7 @@ public class TradeManager : BackgroundService
         {
             var displayPrecision = _instruments.First(i => i.Name == openTrade.Instrument).DisplayPrecision;
 
-            var trailingStop = Math.Abs(currentValue - openTrade.Price - indicator.Candle.Spread);
+            var trailingStop = Math.Abs(currentValue - openTrade.Price) - indicator.Candle.Spread;
 
             var update = new OrderUpdate(displayPrecision: displayPrecision, trailingStop: trailingStop);
 
