@@ -47,11 +47,11 @@ public class Candle
         BodySize = Math.Abs(Mid_C - Mid_O);
         Direction = Mid_C - Mid_O >= 0 ? 1 : -1;
         FullRange = Mid_H - Mid_L;
-        BodyPercentage = BodySize / FullRange * 100;
+        BodyPercentage = FullRange == 0 ? 0 : BodySize / FullRange * 100;
         BodyLower = new[] { Mid_C, Mid_O }.Min();
         BodyUpper = new[] { Mid_C, Mid_O }.Max();
-        BodyBottomPercentage = (BodyLower - Mid_L) / FullRange * 100;
-        BodyTopPercentage = (Mid_H - BodyUpper) / FullRange * 100;
+        BodyBottomPercentage = FullRange == 0 ? 0 : (BodyLower - Mid_L) / FullRange * 100;
+        BodyTopPercentage = FullRange == 0 ? 0 : (Mid_H - BodyUpper) / FullRange * 100;
         MidPoint = FullRange / 2 + Mid_L;
     }
 

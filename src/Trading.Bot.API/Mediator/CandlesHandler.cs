@@ -22,7 +22,7 @@ public sealed class CandlesHandler : IRequestHandler<CandlesRequest, IResult>
 
         var granularities = request.Granularity.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
-        if (!granularities.Any())
+        if (granularities.Length == 0)
         {
             granularities = new[] { OandaApiService.DefaultGranularity };
         }
@@ -34,9 +34,9 @@ public sealed class CandlesHandler : IRequestHandler<CandlesRequest, IResult>
             MaxDegreeOfParallelism = 3
         };
 
-        DateTime.TryParse(request.FromDate, out var fromDate);
+        if (!DateTime.TryParse(request.FromDate, out var fromDate)) fromDate = default;
 
-        DateTime.TryParse(request.ToDate, out var toDate);
+        if (!DateTime.TryParse(request.ToDate, out var toDate)) toDate = default;
 
         var count = int.TryParse(request.Count, out var _count) ? _count : 500;
 
@@ -47,7 +47,7 @@ public sealed class CandlesHandler : IRequestHandler<CandlesRequest, IResult>
                 var candles = (await _apiService.GetCandles(
                         instrument, granularity, request.Price, count, fromDate, toDate)).ToList();
 
-                if (!candles.Any()) continue;
+                if (candles.Count == 0) continue;
 
                 if (toDate != default && candles.Last().Time < toDate)
                 {
