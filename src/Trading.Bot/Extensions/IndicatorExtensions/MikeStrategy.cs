@@ -7,6 +7,8 @@ public static partial class Indicator
     {
         var macd = candles.CalcMacd();
 
+        var rsi = candles.CalcRsi();
+
         var prices = candles.Select(c => (double)c.Mid_C).ToArray();
 
         var shortEma = prices.CalcEma(shortWindow).ToArray();
@@ -39,9 +41,13 @@ public static partial class Indicator
 
             result[i].Signal = i < longWindow ? Signal.None : macdDelta switch
             {
-                > 0 when bullishTrend && emaRising && macdRising &&
+                > 0 when bullishTrend &&
+                         emaRising && macdRising &&
+                         rsi[i].Rsi <= 70 &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
-                < 0 when bearishTrend && emaFalling && macdFalling &&
+                < 0 when bearishTrend &&
+                         emaFalling && macdFalling &&
+                         rsi[i].Rsi >= 30 &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };

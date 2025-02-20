@@ -106,7 +106,9 @@ public static class CandlePatternExtensions
 
         var latestHigh = candles[0].Mid_H;
 
-        for (var i = 1; i < candles.Length; i++)
+        var length = candles.Length - 1;
+
+        for (var i = 1; i < length; i++)
         {
             if (!IsSwingHigh(candles, i) || !(candles[i].Mid_H > latestHigh)) continue;
 
@@ -124,7 +126,9 @@ public static class CandlePatternExtensions
 
         var latestHigh = candles[0].Mid_H;
 
-        for (var i = 1; i < candles.Length; i++)
+        var length = candles.Length - 1;
+
+        for (var i = 1; i < length; i++)
         {
             if (!IsSwingLow(candles, i) || !(candles[i].Mid_H < latestHigh)) continue;
 
@@ -142,7 +146,9 @@ public static class CandlePatternExtensions
 
         var latestLow = candles[0].Mid_L;
 
-        for (var i = 1; i < candles.Length; i++)
+        var length = candles.Length - 1;
+
+        for (var i = 1; i < length; i++)
         {
             if (!IsSwingHigh(candles, i) || !(candles[i].Mid_L > latestLow)) continue;
 
@@ -160,7 +166,9 @@ public static class CandlePatternExtensions
 
         var latestLow = candles[0].Mid_L;
 
-        for (var i = 1; i < candles.Length; i++)
+        var length = candles.Length - 1;
+
+        for (var i = 1; i < length; i++)
         {
             if (!IsSwingLow(candles, i) || !(candles[i].Mid_L < latestLow)) continue;
 
@@ -170,6 +178,38 @@ public static class CandlePatternExtensions
         }
 
         return lowerLows > 1;
+    }
+
+    public static double CalcResistance(this Candle[] candles)
+    {
+        var resistanceLevels = new List<double>();
+
+        var prices = candles.Select(c => (double)c.Mid_H).ToArray();
+
+        var length = prices.Length - 1;
+
+        for (var i = 0; i < length; i++)
+        {
+            if (i == 0 || IsSwingHigh(candles, i)) resistanceLevels.Add(prices[i]);
+        }
+
+        return resistanceLevels.Max();
+    }
+
+    public static double CalcSupport(this Candle[] candles)
+    {
+        var supportLevels = new List<double>();
+
+        var prices = candles.Select(c => (double)c.Mid_L).ToArray();
+
+        var length = prices.Length - 1;
+
+        for (var i = 0; i < length; i++)
+        {
+            if (i == 0 || IsSwingLow(candles, i)) supportLevels.Add(prices[i]);
+        }
+
+        return supportLevels.Min();
     }
 
     private static bool IsSwingHigh(Candle[] candles, int index)

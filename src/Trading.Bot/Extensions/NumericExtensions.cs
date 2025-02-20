@@ -130,6 +130,44 @@ public static class NumericExtensions
         }
     }
 
+    public static IEnumerable<double> CalcTrendLine(this double[] sequence)
+    {
+        if (sequence is null)
+        {
+            yield break;
+        }
+
+        var length = sequence.Length;
+
+        double sumX = 0;
+
+        double sumY = 0;
+
+        double sumXY = 0;
+
+        double sumX2 = 0;
+
+        for (var i = 0; i < length; i++)
+        {
+            sumX += i;
+
+            sumY += sequence[i];
+
+            sumXY += i * sequence[i];
+
+            sumX2 += i * i;
+        }
+
+        var slope = (length * sumXY - sumX * sumY) / (length * sumX2 - sumX * sumX);
+
+        var intercept = (sumY - slope * sumX) / length;
+
+        for (var i = 0; i < length; i++)
+        {
+            yield return slope * i + intercept;
+        }
+    }
+
     public static IEnumerable<double> CalcRolStdDev(this double[] sequence, int window)
     {
         if (sequence is null)
