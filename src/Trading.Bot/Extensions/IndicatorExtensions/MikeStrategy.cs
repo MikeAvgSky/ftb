@@ -7,13 +7,11 @@ public static partial class Indicator
     {
         var macd = candles.CalcMacd();
 
-        var rsi = candles.CalcRsi();
-
-        var prices = candles.Select(c => (double)c.Mid_C).ToArray();
+        var prices = candles.Select(c => (double)(c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
         var shortEma = prices.CalcEma(shortWindow).ToArray();
 
-        var longEma = prices.CalcSma(longWindow).ToArray();
+        var longEma = prices.CalcEma(longWindow).ToArray();
 
         var length = candles.Length;
 
@@ -27,13 +25,13 @@ public static partial class Indicator
 
             var bullishTrend = shortEma[i] > longEma[i];
 
-            var emaRising = i > 0 && shortEma[i] > longEma[i - 1];
+            var emaRising = i > 0 && shortEma[i] > shortEma[i - 1];
 
             var macdRising = i > 0 && macd[i].Macd > macd[i - 1].Macd;
 
             var bearishTrend = shortEma[i] < longEma[i];
 
-            var emaFalling = i > 0 && shortEma[i] < longEma[i - 1];
+            var emaFalling = i > 0 && shortEma[i] < shortEma[i - 1];
 
             var macdFalling = i > 0 && macd[i].Macd < macd[i - 1].Macd;
 
@@ -41,13 +39,9 @@ public static partial class Indicator
 
             result[i].Signal = i < longWindow ? Signal.None : macdDelta switch
             {
-                > 0 when bullishTrend &&
-                         emaRising && macdRising &&
-                         rsi[i].Rsi <= 70 &&
+                > 0 when bullishTrend && emaRising && macdRising &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
-                < 0 when bearishTrend &&
-                         emaFalling && macdFalling &&
-                         rsi[i].Rsi >= 30 &&
+                < 0 when bearishTrend && emaFalling && macdFalling &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
