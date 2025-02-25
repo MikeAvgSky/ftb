@@ -40,9 +40,9 @@ public static partial class Indicator
             result[i].Signal = i < longWindow ? Signal.None : macdDelta switch
             {
                 > 0 when bullishTrend && emaRising && macdRising &&
-                         candles[i].Spread <= maxSpread => Signal.Buy,
-                < 0 when bearishTrend && emaFalling && macdFalling &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
+                < 0 when bearishTrend && emaFalling && macdFalling &&
+                         candles[i].Spread <= maxSpread => Signal.Buy,
                 _ => Signal.None
             };
 
