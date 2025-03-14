@@ -20,7 +20,7 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
         {
             var candles = file.GetObjectFromCsv<Candle>();
 
-            if (!candles.Any()) continue;
+            if (candles.Length == 0) continue;
 
             var instrument = file.FileName[..file.FileName.LastIndexOf('_')];
 
@@ -30,10 +30,10 @@ public class RsiEmaRequestHandler : IRequestHandler<RsiEmaRequest, IResult>
 
             var fileName = $"RsiEma_{instrument}_{granularity}_{request.RsiWindow}_{request.EmaWindow}";
 
-            fileData.AddRange(rsi.GetFileData(fileName, tradeRisk, riskReward));
+            fileData.AddRange(rsi.GetFileData(fileName, tradeRisk, riskReward, true));
         }
 
-        if (!fileData.Any()) return Task.FromResult(Results.Empty);
+        if (fileData.Count == 0) return Task.FromResult(Results.Empty);
 
         return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
             "application/octet-stream", "RsiEma.zip"));

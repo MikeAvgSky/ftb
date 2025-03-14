@@ -182,7 +182,7 @@ public class OandaApiService
 
         return response.StatusCode.IsSuccessStatusCode()
             ? response.Value.MapToPrices()
-            : Array.Empty<Price>();
+            : [];
     }
 
     public async Task<Instrument[]> GetInstruments(string instruments)
@@ -193,7 +193,7 @@ public class OandaApiService
 
         return response.StatusCode.IsSuccessStatusCode()
             ? response.Value.MapToInstruments()
-            : Array.Empty<Instrument>();
+            : [];
     }
 
     public async Task<Candle[]> GetCandles(string instrument, string granularity = null,
@@ -206,7 +206,7 @@ public class OandaApiService
 
         return response.StatusCode.IsSuccessStatusCode()
             ? response.Value.Candles.MapToCandles()
-            : Array.Empty<Candle>();
+            : [];
     }
 
     public async Task<DateTime> GetLastCandleTime(string instrument, string granularity = null)
@@ -259,7 +259,7 @@ public class OandaApiService
 
         return response.StatusCode.IsSuccessStatusCode()
             ? response.Value
-            : Array.Empty<TradeResponse>();
+            : [];
     }
 
     public async Task<TradeResponse> GetTrade(string tradeId)

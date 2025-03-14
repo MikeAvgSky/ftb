@@ -20,7 +20,7 @@ public class OrderFilledResponse
     public decimal QuotePl { get; set; }
     public string Reason { get; set; }
     public DateTime Time { get; set; }
-    public TradeOpened TradeOpened { get; set; }
+    public TradeOpened TradeOpened { get; set; } = new();
     public TradeClosed[] TradesClosed { get; set; }
     public string Type { get; set; }
     public decimal Units { get; set; }

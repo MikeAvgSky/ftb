@@ -22,7 +22,7 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
         {
             var candles = file.GetObjectFromCsv<Candle>();
 
-            if (!candles.Any()) continue;
+            if (candles.Length == 0) continue;
 
             var instrument = file.FileName[..file.FileName.LastIndexOf('_')];
 
@@ -33,10 +33,10 @@ public class BollingerBandsHandler : IRequestHandler<BollingerBandsRequest, IRes
 
             var fileName = $"MeanReversion_{instrument}_{granularity}_{request.Window}_{request.StandardDeviation}";
 
-            fileData.AddRange(bollingerBands.GetFileData(fileName, tradeRisk, riskReward));
+            fileData.AddRange(bollingerBands.GetFileData(fileName, tradeRisk, riskReward, true));
         }
 
-        if (!fileData.Any()) return Task.FromResult(Results.Empty);
+        if (fileData.Count == 0) return Task.FromResult(Results.Empty);
 
         return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
             "application/octet-stream", "MeanReversion.zip"));

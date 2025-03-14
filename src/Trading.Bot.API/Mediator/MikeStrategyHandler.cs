@@ -18,7 +18,7 @@ public class MikeStrategyHandler : IRequestHandler<MikeStrategyRequest, IResult>
         {
             var candles = file.GetObjectFromCsv<Candle>();
 
-            if (!candles.Any()) continue;
+            if (candles.Length == 0) continue;
 
             var instrument = file.FileName[..file.FileName.LastIndexOf('_')];
 
@@ -31,7 +31,7 @@ public class MikeStrategyHandler : IRequestHandler<MikeStrategyRequest, IResult>
             fileData.AddRange(nextCandle.GetFileData(fileName, tradeRisk, riskReward, true));
         }
 
-        if (!fileData.Any()) return Task.FromResult(Results.Empty);
+        if (fileData.Count == 0) return Task.FromResult(Results.Empty);
 
         return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
             "application/octet-stream", "Mike_Strategy.zip"));

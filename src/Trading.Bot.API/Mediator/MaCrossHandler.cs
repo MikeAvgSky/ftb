@@ -18,15 +18,15 @@ public sealed class MaCrossHandler : IRequestHandler<MovingAverageCrossRequest, 
         {
             var candles = file.GetObjectFromCsv<Candle>();
 
-            if (!candles.Any()) continue;
+            if (candles.Length == 0) continue;
 
             var instrument = file.FileName[..file.FileName.LastIndexOf('_')];
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var maShortList = request.ShortWindow?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse) ?? new[] { 10 };
+            var maShortList = request.ShortWindow?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse) ?? [10];
 
-            var maLongList = request.LongWindow?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse) ?? new[] { 20 };
+            var maLongList = request.LongWindow?.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse) ?? [20];
 
             var mergedWindows = maShortList.Concat(maLongList).GetAllWindowCombinations().Distinct();
 
@@ -36,11 +36,11 @@ public sealed class MaCrossHandler : IRequestHandler<MovingAverageCrossRequest, 
 
                 var fileName = $"MaCross_{instrument}_{granularity}_{window.Item1}_{window.Item2}";
 
-                fileData.AddRange(movingAvgCross.Cast<IndicatorResult>().ToArray().GetFileData(fileName, tradeRisk, riskReward));
+                fileData.AddRange(movingAvgCross.Cast<IndicatorResult>().ToArray().GetFileData(fileName, tradeRisk, riskReward, true));
             }
         }
 
-        if (!fileData.Any()) return Task.FromResult(Results.Empty);
+        if (fileData.Count == 0) return Task.FromResult(Results.Empty);
 
         return Task.FromResult(Results.File(fileData.GetZipFromFileData(),
             "application/octet-stream", "MaCross.zip"));

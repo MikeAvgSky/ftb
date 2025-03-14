@@ -141,7 +141,11 @@ public class TradeManager : BackgroundService
 
         var order = new Order(instrument, tradeUnits, indicator.Signal, indicator.StopLoss, indicator.TakeProfit, trailingStop);
 
-        var ofResponse = await _apiService.PlaceTrade(order);
+        var ofResponse = _tradeConfiguration.NotifyOnly switch
+        {
+            true => new OrderFilledResponse(),
+            false => await _apiService.PlaceTrade(order)
+        };
 
         if (ofResponse is null)
         {
@@ -153,7 +157,7 @@ public class TradeManager : BackgroundService
         {
             await SendEmailNotification(new
             {
-                ofResponse.Instrument,
+                settings.Instrument,
                 Signal = indicator.Signal.ToString(),
                 ofResponse.TradeOpened.Units,
                 ofResponse.TradeOpened.Price,

@@ -19,7 +19,7 @@ public sealed class InstrumentsHandler : IRequestHandler<InstrumentsRequest, IRe
                 !string.Equals(i.Type, request.Type, StringComparison.OrdinalIgnoreCase));
         }
 
-        if (!instrumentList.Any()) return Results.Empty;
+        if (instrumentList.Count == 0) return Results.Empty;
 
         return request.Download
             ? Results.File(instrumentList.GetCsvBytes(),

@@ -24,7 +24,7 @@ public sealed class CandlesHandler : IRequestHandler<CandlesRequest, IResult>
 
         if (granularities.Length == 0)
         {
-            granularities = new[] { OandaApiService.DefaultGranularity };
+            granularities = [OandaApiService.DefaultGranularity];
         }
 
         var candlesBag = new ConcurrentBag<FileData<IEnumerable<Candle>>>();
