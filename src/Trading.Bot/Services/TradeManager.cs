@@ -72,7 +72,8 @@ public class TradeManager : BackgroundService
         }
 
         var calcResults = candles.Select(c => c.CalcMikeStrategy(settings.Integers[0],
-            settings.Integers[1], settings.MaxSpread, settings.MinGain, settings.RiskReward).Last()).ToList();
+            settings.Integers[1], settings.Doubles[0], settings.MaxSpread, settings.MinGain,
+            settings.RiskReward).Last()).ToList();
 
         await UpdateWinningTrades(settings, calcResults.First());
 

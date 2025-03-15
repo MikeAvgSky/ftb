@@ -3,9 +3,11 @@
 public static partial class Indicator
 {
     public static IndicatorResult[] CalcMikeStrategy(this Candle[] candles, int shortWindow, int longWindow,
-        decimal maxSpread = 0.0004m, decimal minGain = 0.002m, decimal riskReward = 1.5m)
+        double stdDev = 1.5, decimal maxSpread = 0.0004m, decimal minGain = 0.002m, decimal riskReward = 1.5m)
     {
         var macd = candles.CalcMacd();
+
+        var bollingerBands = candles.CalcBollingerBands(shortWindow, stdDev);
 
         var prices = candles.Select(c => (double)(c.Mid_C + c.Mid_H + c.Mid_L) / 3).ToArray();
 
@@ -37,12 +39,20 @@ public static partial class Indicator
 
             var macdDelta = macd[i].Macd - macd[i].SignalLine;
 
+            var crossedLowerBand = candles[i].Mid_O > (decimal)bollingerBands[i].LowerBand &&
+                                   candles[i].Mid_C < (decimal)bollingerBands[i].LowerBand;
+
+            var crossedUpperBand = candles[i].Mid_O < (decimal)bollingerBands[i].UpperBand &&
+                                   candles[i].Mid_C > (decimal)bollingerBands[i].UpperBand;
+
             result[i].Signal = i < longWindow ? Signal.None : macdDelta switch
             {
                 > 0 when bullishTrend && emaRising && macdRising &&
-                         candles[i].Spread <= maxSpread => Signal.Sell,
-                < 0 when bearishTrend && emaFalling && macdFalling &&
+                         crossedUpperBand && candles[i].BodyPercentage > 50 &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
+                < 0 when bearishTrend && emaFalling && macdFalling &&
+                         crossedLowerBand && candles[i].BodyPercentage > 50 &&
+                         candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
 
