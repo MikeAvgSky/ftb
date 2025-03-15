@@ -71,10 +71,10 @@ public static class BackTestingExtensions
             {
                 var options = new TypeConverterOptions
                 {
-                    Formats = new[]
-                    {
+                    Formats =
+                    [
                         "o"
-                    }
+                    ]
                 };
 
                 csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
@@ -99,7 +99,7 @@ public static class BackTestingExtensions
             $"{fileName}_Simulation.csv", tradingSim.Result));
 
         fileData.Add(new FileData<IEnumerable<object>>(
-            $"{fileName}_Summary.csv", new[] { tradingSim.Summary }));
+            $"{fileName}_Summary.csv", [tradingSim.Summary]));
 
         return fileData;
     }

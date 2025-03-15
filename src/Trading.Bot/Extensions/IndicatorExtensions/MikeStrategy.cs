@@ -40,10 +40,10 @@ public static partial class Indicator
             var macdDelta = macd[i].Macd - macd[i].SignalLine;
 
             var crossedLowerBand = candles[i].Mid_O > (decimal)bollingerBands[i].LowerBand &&
-                                   candles[i].Mid_C < (decimal)bollingerBands[i].LowerBand;
+                                        candles[i].Mid_C < (decimal)bollingerBands[i].LowerBand;
 
             var crossedUpperBand = candles[i].Mid_O < (decimal)bollingerBands[i].UpperBand &&
-                                   candles[i].Mid_C > (decimal)bollingerBands[i].UpperBand;
+                                        candles[i].Mid_C > (decimal)bollingerBands[i].UpperBand;
 
             result[i].Signal = i < longWindow ? Signal.None : macdDelta switch
             {

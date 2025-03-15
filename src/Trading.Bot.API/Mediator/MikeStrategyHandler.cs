@@ -24,7 +24,8 @@ public class MikeStrategyHandler : IRequestHandler<MikeStrategyRequest, IResult>
 
             var granularity = file.FileName[(file.FileName.LastIndexOf('_') + 1)..file.FileName.IndexOf('.')];
 
-            var nextCandle = candles.CalcMikeStrategy(request.ShortWindow, request.LongWindow, maxSpread, minGain, riskReward);
+            var nextCandle = candles.CalcMikeStrategy(request.ShortWindow, request.LongWindow, request.StdDev,
+                maxSpread, minGain, riskReward);
 
             var fileName = $"MikeStrategy_{instrument}_{granularity}";
 
@@ -43,6 +44,7 @@ public record MikeStrategyRequest : IHttpRequest
     public IFormFileCollection Files { get; set; } = new FormFileCollection();
     public int ShortWindow { get; set; }
     public int LongWindow { get; set; }
+    public double StdDev { get; set; }
     public decimal? MaxSpread { get; set; }
     public decimal? MinGain { get; set; }
     public decimal? RiskReward { get; set; }
