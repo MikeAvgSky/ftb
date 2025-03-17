@@ -160,8 +160,8 @@ public class TradeManager : BackgroundService
             {
                 settings.Instrument,
                 Signal = indicator.Signal.ToString(),
-                ofResponse.TradeOpened.Units,
-                ofResponse.TradeOpened.Price,
+                Units = ofResponse.TradeOpened?.Units ?? Math.Round(tradeUnits, instrument.TradeUnitsPrecision),
+                Price = ofResponse.TradeOpened?.Price ?? indicator.Candle.Mid_C,
                 TakeProfit = order.TakeProfitOnFill?.Price ?? 0,
                 StopLoss = order.StopLossOnFill?.Price ?? 0,
                 TrailingStop = order.TrailingStopLossOnFill?.Distance ?? 0
