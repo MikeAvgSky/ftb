@@ -31,13 +31,11 @@ public static partial class Indicator
 
             result[i].Signal = i < longWindow ? Signal.None : trend switch
             {
-                > 0 when candles[i].Mid_O < (decimal)bollingerBands[i].LowerBand &&
-                         candles[i].Mid_C > (decimal)bollingerBands[i].LowerBand &&
-                         candles[i].BodyPercentage > 50 &&
+                > 0 when candles[i].Mid_O > (decimal)bollingerBands[i].LowerBand &&
+                         candles[i].Mid_C < (decimal)bollingerBands[i].LowerBand &&
                          candles[i].Spread <= maxSpread => Signal.Buy,
-                < 0 when candles[i].Mid_O > (decimal)bollingerBands[i].UpperBand &&
-                         candles[i].Mid_C < (decimal)bollingerBands[i].UpperBand &&
-                         candles[i].BodyPercentage > 50 &&
+                < 0 when candles[i].Mid_O < (decimal)bollingerBands[i].UpperBand &&
+                         candles[i].Mid_C > (decimal)bollingerBands[i].UpperBand &&
                          candles[i].Spread <= maxSpread => Signal.Sell,
                 _ => Signal.None
             };
